@@ -11,13 +11,14 @@ from app.ml.onnx_session import create_session
 from app.ml.tracker import TrackerConfig
 from app.repositories.backend_gallery import BackendGalleryClient, GallerySource
 from app.repositories.face_repository import FaceRepository
+from app.repositories.local_gallery import LocalGalleryStore
 from app.repositories.vector_index import InMemoryVectorIndex
 from app.services.check_in_service import CheckInService
 from app.services.enrollment_service import EnrollmentService
 from app.services.recognition_service import RecognitionService
 from app.services.track_state import DetectionMode
 from app.services.tracking_service import TrackingConfig, TrackingService
-from app.utils.video_stream import CaptureFormat, OpenCvVideoStream
+from app.utils.video_stream import CaptureFormat, open_frame_source
 
 
 @dataclass(frozen=True)
@@ -85,7 +86,7 @@ def wire_services(
     tracking_service = TrackingService(
         tracking_analyzer,
         recognition_service,
-        source_factory=partial(OpenCvVideoStream, capture_format=_capture_format(settings)),
+        source_factory=partial(open_frame_source, capture_format=_capture_format(settings)),
         video_source=settings.video_source,
         config=_tracking_config(settings),
         on_identified=check_in_service.record_identification,
@@ -93,7 +94,9 @@ def wire_services(
     )
     return ServiceContainer(
         settings=settings,
-        enrollment_service=EnrollmentService(still_analyzer, repository, vector_index, gallery_source),
+        enrollment_service=EnrollmentService(
+            still_analyzer, repository, vector_index, gallery_source, LocalGalleryStore(settings.dataset_dir)
+        ),
         recognition_service=recognition_service,
         tracking_service=tracking_service,
         check_in_service=check_in_service,
@@ -124,6 +127,7 @@ def _tracking_config(settings: Settings) -> TrackingConfig:
         embedding_history=settings.track_embedding_history,
         recognition_interval_frames=settings.recognition_interval_frames,
         reverify_interval_frames=settings.reverify_interval_frames,
+        recognition_max_faces_per_frame=settings.recognition_max_faces_per_frame,
         angled_face_threshold_degrees=settings.angled_face_threshold_degrees,
         zoom_size_pixels=settings.zoom_size_pixels,
         detection_mode=DetectionMode(settings.detection_mode),

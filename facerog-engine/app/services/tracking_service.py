@@ -24,7 +24,7 @@ from app.services.track_state import (
 )
 from app.utils import drawing
 from app.utils.image import encode_jpeg, resize_to_width
-from app.utils.video_stream import FrameSource
+from app.utils.video_stream import BrowserFrameSource, FrameSource
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,7 @@ class TrackingConfig:
     steady_frames: int = 3
     steady_max_speed: float = 0.75
     mirror_video: bool = True
+    recognition_max_faces_per_frame: int = 2
 
 
 class TrackingService:
@@ -63,7 +64,8 @@ class TrackingService:
     Publishes per-track zoom images, a JSON-friendly snapshot and the boxes to draw.
 
     The live video is encoded on its own thread from every camera frame, with the newest boxes
-    drawn on, so it plays at the camera's rate even while recognition is slow.
+    drawn on, so it plays at the camera's rate even while recognition is slow. With the browser
+    as the source there is no such video: the browser shows its own camera and draws the boxes.
     """
 
     def __init__(
@@ -128,13 +130,14 @@ class TrackingService:
             daemon=True,
         )
         self._thread.start()
-        self._preview_thread = threading.Thread(
-            target=self._run_preview,
-            args=(self._source, self._stop_event),
-            name="video-preview",
-            daemon=True,
-        )
-        self._preview_thread.start()
+        if not isinstance(self._source, BrowserFrameSource):
+            self._preview_thread = threading.Thread(
+                target=self._run_preview,
+                args=(self._source, self._stop_event),
+                name="video-preview",
+                daemon=True,
+            )
+            self._preview_thread.start()
         logger.info("Tracking started on source %r", self._video_source)
 
     def stop(self) -> None:
@@ -215,6 +218,19 @@ class TrackingService:
         with self._lock:
             return list(reversed(self._events))
 
+    def submit_frame(self, frame: np.ndarray, timeout_seconds: float) -> None:
+        """Hand a browser camera frame to the worker thread and wait until it has been processed.
+
+        The browser sends its next frame only after this returns, so frames never queue up: when
+        recognition or the network is slow, the frame rate drops but the frames stay fresh.
+        """
+        source = self._source
+        if not isinstance(source, BrowserFrameSource) or not self.is_running:
+            raise StreamUnavailableError("The engine is not taking frames from the browser.")
+        frame_number = source.push(frame)
+        with self._frame_ready:
+            self._frame_ready.wait_for(lambda: self._processed_frame >= frame_number, timeout_seconds)
+
     def process_frame(self, frame: np.ndarray) -> None:
         """Run one frame through the pipeline. Called by the worker thread (and by tests)."""
         started_at = time.perf_counter()
@@ -243,6 +259,7 @@ class TrackingService:
         self._tracker = ByteTracker(self._config.tracker)
         self._states: dict[int, TrackState] = {}
         self._frame_index = 0
+        self._processed_frame = 0
         self._fps = 0.0
         self._frame_size = (0, 0)
         self._latest_jpeg: bytes | None = None
@@ -265,6 +282,9 @@ class TrackingService:
             except (ValueError, RuntimeError, cv2.error) as err:
                 # Keep the stream alive through a single bad frame; log it for diagnosis.
                 logger.exception("Frame %d failed: %s", frame_number, err)
+            with self._frame_ready:
+                self._processed_frame = frame_number
+                self._frame_ready.notify_all()
 
     def _run_preview(self, source: FrameSource, stop_event: threading.Event) -> None:
         last_frame_number = 0
@@ -343,6 +363,9 @@ class TrackingService:
         ]
         if not due:
             return
+        # New faces first, then whoever has waited longest; the others stay due for the next frame.
+        due.sort(key=lambda state: state.last_recognized_frame or 0)
+        due = due[: self._config.recognition_max_faces_per_frame]
         analyzed = self._analyzer.embed_detections(frame, [state.detection for state in due])
         for state, face in zip(due, analyzed, strict=True):
             weight = face.head_pose.frontal_score * face.detection.score

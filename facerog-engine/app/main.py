@@ -13,6 +13,7 @@ from app.api.v1.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.exceptions import EngineError, register_exception_handlers
 from app.core.logging import configure_logging
+from app.services.gallery_cleanup_scheduler import GalleryCleanupScheduler
 
 WEB_DIR = Path(__file__).parent / "web"
 
@@ -36,8 +37,14 @@ def create_app(
                 logger.warning("Could not load faces from the backend: %s", err.message)
         if settings.video_autostart:
             container.tracking_service.start()
+        gallery_cleanup = GalleryCleanupScheduler(
+            container.enrollment_service.remove_finished_events,
+            settings.gallery_cleanup_interval_minutes * 60,
+        )
+        gallery_cleanup.start()
         app.state.container = container
         yield
+        gallery_cleanup.stop()
         container.tracking_service.stop()
 
     app = FastAPI(title="Face Recognition Engine", version="0.1.0", lifespan=lifespan)
@@ -51,6 +58,11 @@ def create_app(
         )
     app.include_router(api_router)
     app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
+
+    @app.get("/health", tags=["health"])
+    def health() -> dict[str, str]:
+        """Liveness probe: a 200 means the API is up. Details are at /api/v1/health."""
+        return {"status": "ok"}
 
     @app.get("/", include_in_schema=False)
     def dashboard() -> FileResponse:

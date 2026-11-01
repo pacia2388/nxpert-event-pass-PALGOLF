@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     backend_api_key: str = ""
     backend_event_id: int | None = Field(default=None, description="Gallery loaded at startup.")
     backend_timeout_seconds: float = Field(default=30.0, gt=0.0)
+    # The engine's own copy of each event's photos, names and templates (biometric data).
+    dataset_dir: Path = Path("datasets/faces")
+    # How often the copies of finished events are deleted (also once at startup).
+    gallery_cleanup_interval_minutes: float = Field(default=15.0, gt=0.0)
     # Browser origins allowed to call the engine (the Angular app), as a JSON list.
     cors_origins: list[str] = []
 
@@ -40,7 +44,9 @@ class Settings(BaseSettings):
     match_threshold: float = Field(default=0.40, ge=-1.0, le=1.0)
     top_k: int = 3
 
-    video_source: str = "0"
+    # "browser": frames come from the webcam of the browser showing the TV, so the engine can run
+    # on a server with no camera. Also a webcam index ("0"), video file path or RTSP URL.
+    video_source: str = "browser"
     video_autostart: bool = True
     video_frame_width: int = 960
     # What to ask a webcam for (0 = camera default). It picks the nearest mode it supports, so
@@ -62,6 +68,9 @@ class Settings(BaseSettings):
     trajectory_length: int = 60
 
     recognition_interval_frames: int = 5
+    # Each face costs about 80 ms on a CPU. New faces go first and the rest follow on the next
+    # frames, so a crowd doesn't freeze the boxes.
+    recognition_max_faces_per_frame: int = Field(default=2, ge=1)
     reverify_interval_frames: int = 90
     track_embedding_history: int = 10
     angled_face_threshold_degrees: float = 15.0
@@ -80,7 +89,7 @@ class Settings(BaseSettings):
 
     max_upload_size_bytes: int = 10 * 1024 * 1024
 
-    @field_validator("model_dir")
+    @field_validator("model_dir", "dataset_dir")
     @classmethod
     def _resolve_from_project_root(cls, path: Path) -> Path:
         """Relative paths are anchored at the project root, not the shell's current directory."""

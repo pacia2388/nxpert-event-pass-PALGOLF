@@ -11,6 +11,8 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 RECONNECT_DELAY_SECONDS = 2.0
+# The video source for frames uploaded by the browser's webcam (POST /api/v1/stream/frame).
+BROWSER_SOURCE = "browser"
 
 
 class FrameSource(Protocol):
@@ -75,6 +77,46 @@ def _request_format(capture: cv2.VideoCapture, capture_format: CaptureFormat) ->
         capture.get(cv2.CAP_PROP_FRAME_HEIGHT),
         capture.get(cv2.CAP_PROP_FPS),
     )
+
+
+class BrowserFrameSource:
+    """Frames uploaded by the browser showing the TV, for a server with no camera of its own.
+
+    Like a camera, it keeps only the newest frame.
+    """
+
+    def __init__(self, _source: str = BROWSER_SOURCE) -> None:
+        self._lock = threading.Lock()
+        self._frame: np.ndarray | None = None
+        self._frame_number = 0
+        self._is_open = False
+
+    @property
+    def is_open(self) -> bool:
+        return self._is_open
+
+    def start(self) -> None:
+        self._is_open = True
+
+    def stop(self) -> None:
+        self._is_open = False
+
+    def read_latest(self) -> tuple[int, np.ndarray | None]:
+        with self._lock:
+            return self._frame_number, self._frame
+
+    def push(self, frame: np.ndarray) -> int:
+        """Make `frame` the newest one and return its frame number."""
+        with self._lock:
+            self._frame = frame
+            self._frame_number += 1
+            return self._frame_number
+
+
+def open_frame_source(source: str, capture_format: CaptureFormat | None = None) -> FrameSource:
+    if source == BROWSER_SOURCE:
+        return BrowserFrameSource(source)
+    return OpenCvVideoStream(source, capture_format)
 
 
 class OpenCvVideoStream:

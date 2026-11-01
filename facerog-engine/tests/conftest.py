@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 import pytest
@@ -69,10 +71,14 @@ class FakeGallerySource:
     def __init__(self, people_by_event: dict[int, list[GalleryPerson]]) -> None:
         self.people_by_event = people_by_event
         self.fetch_count = 0
+        self.finished_events: set[int] = set()
 
     def fetch_people(self, event_id: int) -> list[GalleryPerson]:
         self.fetch_count += 1
         return list(self.people_by_event.get(event_id, []))
+
+    def fetch_finished_events(self, event_ids: set[int]) -> set[int]:
+        return self.finished_events & event_ids
 
 
 @pytest.fixture
@@ -82,9 +88,10 @@ def gallery_source() -> FakeGallerySource:
 
 
 @pytest.fixture
-def settings() -> Settings:
+def settings(tmp_path: Path) -> Settings:
     # Continuous detection: most tests feed a frame or two and expect it identified right away.
     return Settings(
+        dataset_dir=tmp_path / "faces",
         backend_event_id=1,
         video_autostart=False,
         match_threshold=0.9,

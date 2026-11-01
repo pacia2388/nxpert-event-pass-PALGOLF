@@ -4,9 +4,10 @@ Source: `deploy-iis` skill.
 
 - API and App are **two separate IIS sites on separate ports** (example: App 8080/8443, API
   5000/5001). Do not merge them or change ports without updating the cross-references below.
-- **Cross-references must carry ports:** `API_BASE` (`frontend/web/src/app/core/config.ts`) =
+- **Cross-references must carry ports:** `apiBaseUrl` (`frontend/web/src/environments/environment.ts`) =
   API public URL; `App:FrontendBaseUrl` (API config) = App public URL.
-- **`API_BASE` is compiled into the bundle** — any change requires `npm run build` again.
+- **`apiBaseUrl` is compiled into the bundle** — any change requires `npm run build` again. So is
+  everything else in `src/environments/`, so never put secrets there.
 - Use `npm ci` (not `npm install`) for production builds.
 - Production config lives in `appsettings.Production.json` with `ASPNETCORE_ENVIRONMENT=Production`;
   real values only, never dev secrets, never committed.

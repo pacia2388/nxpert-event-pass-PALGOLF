@@ -390,14 +390,20 @@ the camera**, and only after the **same person is recognised on several frames i
 
 ### TV / presentation mode
 
-**TV mode** (scanner header) opens the door TV: the face recognition engine's camera checks
-people in and the screen shows each person's name, photo and result, with the attendee list on
+**TV mode** (scanner header) opens the door TV: the webcam of the computer showing the TV sends
+frames to the face recognition engine on the server, which checks people in, and the screen
+shows each person's name, photo and result, with the attendee list on
 the right. Choose what the camera checks in with — **QR** (passes), **Face**, or **Auto** (both);
 the choice is remembered on that device. **Fullscreen** hides the attendee list and the buttons
 (press **Esc** to get them back); **Exit** returns to the scanner.
 
-- The TV and the browser scanner share the webcam: the TV takes it when opened and gives it back
-  on **Exit**. Don't run both at once on one computer.
+- The browser asks for camera permission (HTTPS required); allow it for the site. It uses the
+  browser's default camera, which you can change in the browser's site settings.
+- The TV takes the webcam when opened and gives it back on **Exit**. Keep the TV tab in front:
+  browsers slow down hidden tabs.
+- Run **one TV at a time** per engine: it follows one camera and one event's faces.
+- Hover over the camera preview to see how fast the face engine is answering. Slower answers
+  mean a longer wait, not less accurate matches; **Steady** mode stays reliable on slow links.
 - Check-ins still follow the normal rules: only confirmed passes, only during the event.
 
 ### Offline check-in

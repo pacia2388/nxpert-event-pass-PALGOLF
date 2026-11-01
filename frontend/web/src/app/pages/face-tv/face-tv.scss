@@ -127,6 +127,15 @@
   animation: enter 400ms ease-out;
 }
 .spotlight.tone-warn { --tone-bg: linear-gradient(160deg, #f9ab00, #d98e00); }
+// Yellow is light for white text, so the text gets a dark outline-like shadow to stay readable
+// across a room, and the progress bar is dark.
+.spotlight.tone-notice {
+  --tone-bg: linear-gradient(160deg, #ffd600, #fbc02d);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 65%), 0 0 12px rgb(0 0 0 / 35%);
+
+  .progress { background: rgb(0 0 0 / 20%); }
+  .progress-fill { background: #202124; }
+}
 .spotlight.tone-bad { --tone-bg: linear-gradient(160deg, #d93025, #a52218); }
 .spotlight.tone-muted { --tone-bg: linear-gradient(160deg, #5f6368, #3c4043); }
 .spotlight.tone-info { --tone-bg: linear-gradient(160deg, #1a73e8, #1557b0); }
@@ -238,14 +247,45 @@
   background: #000;
   opacity: 0.85;
 
-  img {
+  video {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: inherit;
+    transform: scaleX(-1); // Like a selfie camera; the frames sent to the engine stay unmirrored.
   }
   &:hover { opacity: 1; }
+}
+// Square corners in the box's colour, like the engine's own video (app/utils/drawing.py).
+.camera-face {
+  --box-color: rgb(230 60 60);
+  position: absolute;
+  border: 2px solid var(--box-color);
+  pointer-events: none;
+  // Eases the box between answers instead of jumping at the engine's frame rate.
+  transition: left 140ms linear, top 140ms linear, width 140ms linear, height 140ms linear;
+
+  &.status-matched { --box-color: rgb(60 200 80); }
+}
+// Down the right edge of the picture, at the proportions of the engine's insets
+// (drawing.draw_zoom_insets: 126 px squares on a 960x540 frame).
+.camera-zooms {
+  position: absolute;
+  top: 1.5%;
+  right: 0.8%;
+  width: 13.1%;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+.camera-zoom {
+  display: block;
+  width: 100%;
+  margin-bottom: 6%;
+  aspect-ratio: 1;
+  border: 2px solid rgb(240 190 0);
+  background: #000;
 }
 // QR scan square: the area outside it is dimmed and white brackets mark its corners. Clipped
 // to the preview on its own layer, so the resize grip can still overhang the preview's edge.
@@ -489,10 +529,17 @@
 }
 
 /* Queue in the bottom-right corner, running horizontally. */
+// On the stage, so the queue also shows while the attendee list is closed (and in fullscreen).
 .queue-tray {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1;
+  max-width: 60%;
   padding: 8px;
-  border-top: 1px solid var(--glass-divider);
-  background: rgb(0 0 0 / 15%);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgb(0 0 0 / 60%);
   animation: enter 300ms ease-out;
 }
 .queue {
@@ -546,9 +593,11 @@
   .layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 38vh; }
   .layout.side-closed { grid-template-rows: minmax(0, 1fr); }
   .spotlight-photo, .progress { width: min(60vw, 30vh); }
-  .camera-preview { display: none; }
+  // Not display: none, so the video keeps delivering frames to the engine.
+  .camera-preview { visibility: hidden; }
   .stage-status { max-width: 36vw; }
 }
 @media (prefers-reduced-motion: reduce) {
   .spotlight, .queue-tray, .queue-item, .attendee { animation: none; }
+  .camera-face { transition: none; }
 }

@@ -105,12 +105,12 @@ in the site — below). Put real values there — never ship dev secrets:
 
 ### Point the SPA at the API **before** building
 
-`API_BASE` is compiled into the bundle. Edit
-[`frontend/web/src/app/core/config.ts`](frontend/web/src/app/core/config.ts) to the API site's
+`apiBaseUrl` is compiled into the bundle. Edit
+[`frontend/web/src/environments/environment.ts`](frontend/web/src/environments/environment.ts) to the API site's
 public URL **including its port**:
 
 ```ts
-export const API_BASE = 'https://SERVER:5001';
+apiBaseUrl: 'https://SERVER:5001',
 ```
 
 ### Build
@@ -139,7 +139,7 @@ Output lands in **`dist/web/browser`** (includes the `web.config` from `public/`
 ## 3. Cross-cutting checklist
 
 - **The two URLs must reference each other, with ports:**
-  `API_BASE = https://SERVER:5001` (SPA) and `App:FrontendBaseUrl = https://SERVER:8443` (API).
+  `apiBaseUrl = https://SERVER:5001` (SPA) and `App:FrontendBaseUrl = https://SERVER:8443` (API).
   Get these wrong and API calls or invite links hit the wrong port.
 - **CORS:** different port = different origin. The API currently allows **any** origin (dev
   convenience), so it works out of the box. For production, tighten it in `Program.cs`
@@ -161,4 +161,4 @@ Output lands in **`dist/web/browser`** (includes the `web.config` from `public/`
   restarts on file change; `iisreset` if a DLL is locked.
 - **Frontend:** re-run `npm run build`, replace the contents of `C:\inetpub\EventReg\web`
   (hashed filenames avoid stale-cache issues).
-- Changed `API_BASE`? You **must rebuild** the frontend — it's baked into the bundle.
+- Changed `apiBaseUrl`? You **must rebuild** the frontend — it's baked into the bundle.

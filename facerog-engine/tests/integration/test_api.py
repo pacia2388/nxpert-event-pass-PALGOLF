@@ -16,6 +16,12 @@ def client(settings: Settings, container: ServiceContainer) -> Iterator[TestClie
         yield test_client
 
 
+def test_root_health_returns_200(client: TestClient) -> None:
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
 def test_health_reports_enrolled_people(client: TestClient) -> None:
     body = client.get("/api/v1/health").json()
     assert body["status"] == "ok"
@@ -77,6 +83,36 @@ def test_tracks_endpoint_when_stream_stopped(client: TestClient) -> None:
     body = client.get("/api/v1/stream/tracks").json()
     assert body["is_running"] is False
     assert body["tracks"] == []
+
+
+def _frame_upload(color_name: str) -> dict[str, tuple[str, bytes, str]]:
+    return {"image": ("frame.png", encode_png(make_face_image(color_name, size=400)), "image/png")}
+
+
+def test_browser_frame_is_processed_before_the_response(client: TestClient) -> None:
+    started = client.post("/api/v1/stream/start", json={"source": "browser"}).json()
+    assert started["is_running"] is True
+    assert started["is_source_open"] is True
+    try:
+        body = client.post("/api/v1/stream/frame", files=_frame_upload("red")).json()
+        assert body["frame_index"] == 1
+        assert body["frame_width"] == 400
+        assert body["tracks"][0]["person"]["name"] == "Red Person"
+    finally:
+        client.post("/api/v1/stream/stop")
+
+
+def test_browser_frame_is_refused_while_stopped(client: TestClient) -> None:
+    assert client.post("/api/v1/stream/frame", files=_frame_upload("red")).status_code == 503
+
+
+def test_browser_frame_must_be_an_image(client: TestClient) -> None:
+    client.post("/api/v1/stream/start", json={"source": "browser"})
+    try:
+        files = {"image": ("frame.jpg", b"not an image", "image/jpeg")}
+        assert client.post("/api/v1/stream/frame", files=files).status_code == 400
+    finally:
+        client.post("/api/v1/stream/stop")
 
 
 def test_dashboard_is_served(client: TestClient) -> None:

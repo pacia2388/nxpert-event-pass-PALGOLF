@@ -60,12 +60,23 @@ or `onnxruntime-gpu` (CUDA 12 + cuDNN 9). For a lightweight CPU setup, use
 
 ## Register people
 
-Put photos in `datasets/faces/<person_id>/`, then click **Reload dataset** on the dashboard.
-Full dataset rules are in the Claude Code skill `.claude/skills/datasets/SKILL.md`.
+People register in the Event Registration app; the backend owns their photos. The engine keeps its
+own copy in `datasets/faces/` (`FRE_DATASET_DIR`), so a restart is ready right away and unchanged
+photos aren't embedded again:
 
 ```
-datasets/faces/juan_dela_cruz/{info.json, profile.jpg}    # one frontal photo is enough
+datasets/faces/event_2/u15/{info.json, profile.jpg, templates.npy}
 ```
+
+Don't edit this folder by hand: each sync with the backend overwrites changed people and deletes
+anyone no longer registered for that event. An event is only synced while its TV is open, so people
+removed in the meantime stay on disk until then or until the event is over. These files are
+unencrypted biometric data, so restrict access to the folder on a server.
+
+A scheduler deletes the whole `event_<id>` folder once the event is over, checking at startup and
+every `FRE_GALLERY_CLEANUP_INTERVAL_MINUTES` (15). Over means the backend says it is past the last
+day of the event and its sub-events (check-in stays open through that day) or that the event no
+longer exists. If the backend can't be reached, nothing is deleted.
 
 ## Run
 
@@ -108,8 +119,24 @@ A check-in screen for a TV or projector. Press **F** or click **Fullscreen**.
     `FRE_STEADY_FRAMES` (3) frames; the video shows *hold still...* until then.
   - `continuous`: every face is identified right away, even someone walking quickly.
 
+### Browser webcam (how the deployed TV works)
+
+The Angular TV uses the webcam of the computer showing it, so the engine can run on a server with
+no camera. It starts the engine with `{"source": "browser"}` (whatever `FRE_VIDEO_SOURCE` says),
+then uploads 960 px wide JPEGs to `POST /api/v1/stream/frame`. Each answer holds the current tracks,
+and the next frame goes only after the answer, at most 10 per second. On a slow link fewer frames go
+through, but they are always current and never queue up. Recognition is the same as with a local
+camera; the page needs HTTPS (or localhost) to open the webcam.
+
+The engine follows one camera at a time, so run one TV at a time per engine. Frames contain
+biometric data: keep the engine behind HTTPS.
+
+### Other video sources
+
 Use another source with `FRE_VIDEO_SOURCE` in `.env` (webcam index, video file or `rtsp://` URL),
-or switch at runtime with `POST /api/v1/stream/start` and `{"source": "..."}`.
+or switch at runtime with `POST /api/v1/stream/start` and `{"source": "..."}`. With these sources
+the engine also serves the annotated video below; with `browser` it doesn't, since the browser shows
+its own camera.
 
 The live video is encoded from every camera frame on its own thread, so it plays at the camera's
 rate however slow recognition is; the boxes update as each frame finishes inference. A webcam is
@@ -123,6 +150,7 @@ display only, recognition and QR reading use the camera's real image.
 
 | Method | Path | Purpose |
 |--------|------|---------|
+| GET    | `/health` | Liveness check, returns 200 when the API is up |
 | GET    | `/api/v1/health` | Status, execution provider, enrolled count |
 | GET    | `/api/v1/faces` | Enrolled people |
 | POST   | `/api/v1/faces` | Enroll (`name`, `image` form fields) |
@@ -136,6 +164,7 @@ display only, recognition and QR reading use the camera's real image.
 | GET    | `/api/v1/stream/tracks/{track_id}/zoom` | Zoomed face-structure image |
 | GET    | `/api/v1/stream/events` | Recent identifications |
 | POST   | `/api/v1/stream/start` / `stop` | Control capture (optional `{"source": "..."}`) |
+| POST   | `/api/v1/stream/frame` | One browser webcam frame (`image` form field); answers with the tracks once it's processed |
 | GET    | `/api/v1/check-ins?after_sequence=N` | Checked-in participants after N, all names together |
 | POST   | `/api/v1/check-ins` | Check in every registered face in an uploaded photo (`image` form field) |
 | DELETE | `/api/v1/check-ins` | Start a new check-in session |
@@ -148,6 +177,7 @@ curl -F image=@group.jpg localhost:8000/api/v1/recognize
 
 - `FRE_MATCH_THRESHOLD` (default 0.40): ArcFace cosine similarity. Raise it (0.45–0.5) if strangers get matched; lower it if registered people show up as Unknown.
 - `FRE_RECOGNITION_INTERVAL_FRAMES` / `FRE_REVERIFY_INTERVAL_FRAMES`: how often unidentified tracks retry and identified tracks get re-checked.
+- `FRE_RECOGNITION_MAX_FACES_PER_FRAME` (default 2): faces recognized per frame, new faces first. Each costs about 80 ms on a CPU; raise it on a GPU.
 - All settings are listed in `.env.example` (every one is optional; defaults live in `app/core/config.py`).
 
 ## Tests

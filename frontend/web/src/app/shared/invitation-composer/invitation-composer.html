@@ -4,8 +4,8 @@
       <div>
         <h3>{{ editingEmail ? 'Edit scheduled email' : 'Compose invitation' }}</h3>
         <p class="muted">
-          Type email addresses, separated by commas (e.g. ana&#64;gmail.com, ben&#64;gmail.com). Addresses you
-          send to are saved for next time. Use <strong>&#64;n-pax</strong> to include all {{ directoryCount }} system users.
+          Type email addresses, separated by commas (e.g. ana&#64;gmail.com, ben&#64;gmail.com), or click To or CC to
+          pick a saved one. Use <strong>&#64;n-pax</strong> to include all {{ directoryCount }} system users.
         </p>
       </div>
       @if (counts.to.length + counts.cc.length > 0) {
@@ -22,17 +22,18 @@
               <mat-chip-row (removed)="remove(field, address)" [disabled]="sending()"
                             [class.group-chip]="address === allUsers"
                             [matTooltip]="address === allUsers ? 'Expands to all current system users when saved' : address">
+                @if (isSaved(address)) { <mat-icon matChipAvatar>bookmark</mat-icon> }
                 {{ label(address) }}
                 <button matChipRemove [attr.aria-label]="'Remove ' + address"><mat-icon>cancel</mat-icon></button>
               </mat-chip-row>
             }
-            <input [matChipInputFor]="grid" [matAutocomplete]="options" #trigger="matAutocompleteTrigger"
+            <input #recipientInput [matChipInputFor]="grid" [matAutocomplete]="options" #trigger="matAutocompleteTrigger"
                    [(ngModel)]="query[field]" [name]="field" inputmode="email" autocomplete="off"
-                   placeholder="email@gmail.com, email@gmail.com"
+                   placeholder="Type an address or pick a saved one"
                    (keydown)="key($event, field, trigger)" (paste)="pasteRecipients($event, field)"
                    [disabled]="sending()" />
           </mat-chip-grid>
-          <!-- Only addresses this admin saved before, and only once they start typing. -->
+          <!-- Addresses this admin saved; the box still accepts any typed address. -->
           <mat-autocomplete #options="matAutocomplete" (optionSelected)="add(field, $event.option.value)">
             @for (address of suggestions(field); track address) {
               <mat-option [value]="address" class="saved-option">
@@ -43,6 +44,17 @@
             }
           </mat-autocomplete>
         </mat-form-field>
+        @if (unsaved(field); as fresh) {
+          @if (fresh.length) {
+            <div class="save-hint">
+              <mat-icon>bookmark_add</mat-icon>
+              <span>{{ fresh.length === 1 ? fresh[0] + " isn't" : fresh.length + " addresses aren't" }} in your saved list.</span>
+              <button type="button" class="save-link" (click)="saveAddresses(fresh)" [disabled]="sending()">
+                <mat-icon>bookmark_add</mat-icon> Save {{ fresh.length === 1 ? 'to list' : 'all to list' }}
+              </button>
+            </div>
+          }
+        }
       }
 
       <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">

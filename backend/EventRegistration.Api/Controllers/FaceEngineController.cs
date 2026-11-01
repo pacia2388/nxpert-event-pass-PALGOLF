@@ -38,9 +38,7 @@ public class FaceEngineController : ControllerBase
     [HttpGet("events/{id:int}/gallery")]
     public async Task<ActionResult<IEnumerable<FaceEngineGalleryItem>>> Gallery(int id)
     {
-        var configuredKey = _config["FaceEngine:ApiKey"];
-        if (string.IsNullOrEmpty(configuredKey)) return NotFound();
-        if (!KeyMatches(Request.Headers[KeyHeader].ToString(), configuredKey)) return Unauthorized();
+        if (RejectRequest() is { } rejected) return rejected;
 
         if (!await _db.Events.AnyAsync(e => e.Id == id)) return NotFound();
 
@@ -63,6 +61,37 @@ public class FaceEngineController : ControllerBase
             .DistinctBy(i => i.PersonId)
             .ToList();
         return Ok(items);
+    }
+
+    /// <summary>
+    /// Which of the given events are over, so the engine can delete its copy of their faces: those
+    /// past the last day of the event and its sub-events (check-in stays open through that day,
+    /// see CheckInController), and those that no longer exist.
+    /// </summary>
+    [HttpGet("events/finished")]
+    public async Task<ActionResult<IEnumerable<int>>> FinishedEvents([FromQuery] int[] ids)
+    {
+        if (RejectRequest() is { } rejected) return rejected;
+
+        var events = await _db.Events
+            .Where(e => ids.Contains(e.Id))
+            .Select(e => new { e.Id, e.EndsAt, LastSessionEnd = e.Sessions.Max(s => (DateTime?)s.EndsAt) })
+            .ToListAsync();
+
+        // Times are wall-clock, like the check-in window.
+        var today = DateTime.Now.Date;
+        var running = events
+            .Where(e => today <= (e.LastSessionEnd > e.EndsAt ? e.LastSessionEnd.Value : e.EndsAt).Date)
+            .Select(e => e.Id)
+            .ToHashSet();
+        return Ok(ids.Distinct().Where(id => !running.Contains(id)));
+    }
+
+    private ActionResult? RejectRequest()
+    {
+        var configuredKey = _config["FaceEngine:ApiKey"];
+        if (string.IsNullOrEmpty(configuredKey)) return NotFound();
+        return KeyMatches(Request.Headers[KeyHeader].ToString(), configuredKey) ? null : Unauthorized();
     }
 
     private static bool KeyMatches(string provided, string expected) =>

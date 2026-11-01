@@ -73,6 +73,7 @@ export class PublicEventComponent implements OnInit {
   // consented and captured one. Used for face check-in at the event.
   faceConsent = false;
   capturedFace = signal<string | null>(null); // JSON 128-float descriptor
+  capturedFacePhoto = signal<string | null>(null); // the captured still (jpeg data URL)
 
   // Live-format the phone field to the PH mobile mask "+63 9XX XXX XXXX".
   onPhoneInput(e: Event): void {
@@ -271,7 +272,7 @@ export class PublicEventComponent implements OnInit {
         sessionIds: ids,
         responses,
         face: this.guestFace(),
-        displayPicture: this.displayPicture(),
+        displayPicture: this.registrationPhoto(),
       })
       .subscribe({
         next: (res) => {
@@ -308,7 +309,7 @@ export class PublicEventComponent implements OnInit {
         responses,
         registeredAt: new Date().toISOString(),
         face: this.guestFace(),
-        displayPicture: this.displayPicture(),
+        displayPicture: this.registrationPhoto(),
       });
       this.queuedOffline.set(true);
       this.deliveryChannel.set(this.notificationChannel);
@@ -384,6 +385,7 @@ export class PublicEventComponent implements OnInit {
       .subscribe((res: FaceCaptureResult | undefined) => {
         if (res) {
           this.capturedFace.set(JSON.stringify(res.descriptor));
+          this.capturedFacePhoto.set(res.image);
           this.cdr.detectChanges();
         }
       });
@@ -391,6 +393,13 @@ export class PublicEventComponent implements OnInit {
 
   removeFace(): void {
     this.capturedFace.set(null);
+    this.capturedFacePhoto.set(null);
+  }
+
+  // The Face TV recognizes people from this one photo, so a face captured with consent wins over an
+  // uploaded picture, which may be old or not show the face clearly.
+  private registrationPhoto(): string | null {
+    return (this.faceConsent ? this.capturedFacePhoto() : null) ?? this.displayPicture();
   }
 
   // ---- Display picture (profile photo shown to staff during check-in) ----

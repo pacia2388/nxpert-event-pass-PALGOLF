@@ -25,23 +25,39 @@
         @if (view.session) { <p class="spotlight-event"><strong>{{ view.session }}</strong></p> }
         <p class="status-badge">{{ view.badge }}</p>
         <p class="spotlight-time">{{ view.note }}</p>
-        <div class="progress">
-          <div class="progress-fill" [style.animation-duration.s]="displaySeconds()"></div>
-        </div>
+        @if (item.result) {
+          <div class="progress">
+            <div class="progress-fill" [style.animation-duration.s]="displaySeconds()"></div>
+          </div>
+        }
       </section>
     } @empty {
       <section class="idle">
         <p class="kicker">{{ eventWelcome() || 'Welcome to' }}</p>
         @if (eventTitle()) { <h1 class="idle-event">{{ eventTitle() }}</h1> }
         <h2>{{ idleTitle() }}</h2>
-        @if (verifyOnly()) { <p class="verify-pill">Verify only — nobody is being checked in</p> }
+        @if (verifyOnly()) { <p class="verify-pill">Verify only — still scanning, no check-ins recorded</p> }
         <p class="idle-hint">{{ idleHint() }}</p>
       </section>
     }
 
     @if (cameraOn()) {
-    <div class="camera-preview" [style.width.px]="cameraWidth()">
-      <img [src]="cameraUrl()" alt="Live camera" (error)="onCameraError()" />
+    <div class="camera-preview" [style.width.px]="cameraWidth()" [style.aspect-ratio]="cameraAspect()"
+         [title]="frameStats()">
+      <video #cameraVideo autoplay playsinline aria-label="Live camera" [muted]="true"
+             [srcObject]="cameraStream()" (loadedmetadata)="onCameraMetadata(cameraVideo)"></video>
+      @for (box of faceBoxes(); track box.id) {
+        <div [class]="'camera-face status-' + box.status" [style.left.%]="box.left" [style.top.%]="box.top"
+             [style.width.%]="box.width" [style.height.%]="box.height"
+             [style.transition-duration.ms]="boxEaseMs()"></div>
+      }
+      @if (faceZooms().length) {
+        <div class="camera-zooms" aria-hidden="true">
+          @for (zoom of faceZooms(); track zoom.id) {
+            <img class="camera-zoom" [src]="zoom.url" alt="" />
+          }
+        </div>
+      }
       <!-- QR only: a scan square like the browser scanner's, so people know where to hold the
            pass. Face and Auto look at the whole picture, so they show none. -->
       @if (scanMode() === 'qr') {
@@ -55,7 +71,24 @@
     </div>
     }
 
+    @if (waiting().length) {
+      <!-- Next up, left to right: new arrivals join on the right and move left as each is shown. -->
+      <div class="queue-tray" aria-label="Waiting to be shown">
+        <ol class="queue">
+          @for (item of queuePreview(); track item.sequence) {
+            <li class="queue-item"
+                [class.flagged]="item.result && item.result.status !== 'valid' && item.result.status !== 'already'">
+              @if (item.photo) { <img [src]="item.photo" alt="" /> }
+              <div class="name">{{ item.name }}</div>
+            </li>
+          }
+          @if (queueOverflow()) { <li class="queue-more">+{{ queueOverflow() }}</li> }
+        </ol>
+      </div>
+    }
+
     <div class="stage-status">
+      @if (cameraProblem()) { <p class="stage-problem" role="status">{{ cameraProblem() }}</p> }
       @if (!engineOnline() || galleryError()) {
         <p class="stage-problem" role="status">
           {{ !engineOnline() ? 'Face engine offline — retrying' : galleryMessage() }}
@@ -117,21 +150,6 @@
           <li class="attendees-empty">No registrations yet.</li>
         }
       </ol>
-
-      @if (waiting().length) {
-        <!-- Next up, left to right: new arrivals join on the right and move left as each is shown. -->
-        <div class="queue-tray" aria-label="Waiting to be shown">
-          <ol class="queue">
-            @for (item of queuePreview(); track item.sequence) {
-              <li class="queue-item" [class.flagged]="item.result.status !== 'valid' && item.result.status !== 'already'">
-                @if (item.photo) { <img [src]="item.photo" alt="" /> }
-                <div class="name">{{ item.name }}</div>
-              </li>
-            }
-            @if (queueOverflow()) { <li class="queue-more">+{{ queueOverflow() }}</li> }
-          </ol>
-        </div>
-      }
     </aside>
   }
 </div>

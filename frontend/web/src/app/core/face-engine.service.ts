@@ -34,6 +34,29 @@ export type EngineScanMode = 'face' | 'qr' | 'auto';
  */
 export type EngineDetectionMode = 'steady' | 'continuous';
 
+/** A face the engine is following, with its box in the pixels of the frame it was sent. */
+export interface EngineTrack {
+  track_id: number;
+  status: 'identifying' | 'matched' | 'unknown';
+  bbox: { x1: number; y1: number; x2: number; y2: number };
+  similarity: number | null;
+  person: EnginePerson | null;
+  is_steady: boolean;
+  recognition_count: number;
+  seconds_tracked: number;
+  head_pose: { is_angled: boolean };
+  // The face enlarged, with its eyes-nose-mouth structure drawn on by the engine.
+  zoom_url: string;
+}
+
+export interface EngineSnapshot {
+  frame_index: number;
+  frame_width: number;
+  frame_height: number;
+  detection_mode: EngineDetectionMode;
+  tracks: EngineTrack[];
+}
+
 export interface EngineGallerySummary {
   event_id: number;
   person_count: number;
@@ -69,15 +92,19 @@ export class FaceEngineService {
     return this.http.delete<void>(this.url('/check-ins'));
   }
 
-  /**
-   * Open the engine's camera. The engine no longer grabs it at startup, so the browser scanner
-   * can use the same webcam while the TV is closed.
-   */
+  /** Get the engine ready for this browser's webcam frames; the server has no camera of its own. */
   startStream(): Observable<unknown> {
-    return this.http.post(this.url('/stream/start'), null);
+    return this.http.post(this.url('/stream/start'), { source: 'browser' });
   }
 
-  /** Release the engine's camera so the browser scanner can open it. */
+  /** Send one webcam frame. The answer comes once the engine has processed it. */
+  sendFrame(frame: Blob): Observable<EngineSnapshot> {
+    const body = new FormData();
+    body.append('image', frame, 'frame.jpg');
+    return this.http.post<EngineSnapshot>(this.url('/stream/frame'), body);
+  }
+
+  /** Tell the engine no more frames are coming. */
   stopStream(): Observable<unknown> {
     return this.http.post(this.url('/stream/stop'), null);
   }
@@ -92,13 +119,14 @@ export class FaceEngineService {
     return this.http.post(this.url('/stream/detection'), { mode });
   }
 
-  /** Release the camera while the page is unloading (refresh / tab close), when HttpClient can't. */
+  /** Stop the engine while the page is unloading (refresh / tab close), when HttpClient can't. */
   stopStreamOnUnload(): void {
     navigator.sendBeacon?.(this.url('/stream/stop'));
   }
 
-  streamUrl(): string {
-    return `${this.url('/stream/video')}?t=${Date.now()}`;
+  /** `version` makes the browser fetch a fresh picture; the engine redraws it every frame. */
+  zoomUrl(track: EngineTrack, version: number): string {
+    return `${FACE_ENGINE_BASE}${track.zoom_url}?t=${version}`;
   }
 
   photoUrl(person: EnginePerson): string {

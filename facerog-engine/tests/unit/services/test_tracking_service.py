@@ -2,9 +2,12 @@ import time
 
 import cv2
 import numpy as np
+import pytest
 
 from app.api.dependencies import ServiceContainer, _tracking_config, wire_services
 from app.core.config import Settings
+from app.core.exceptions import StreamUnavailableError
+from app.ml.aligner import ARCFACE_TEMPLATE
 from app.ml.detector import DetectedFace
 from app.ml.face_analyzer import FaceAnalyzer
 from app.services.track_state import DetectionMode, TrackState, TrackStatus
@@ -169,6 +172,38 @@ def test_video_keeps_playing_while_inference_is_slow(
         tracking.stop()
 
 
+def test_browser_source_returns_after_its_frame_and_encodes_no_video(container: ServiceContainer) -> None:
+    container.enrollment_service.sync_gallery(1)
+    tracking = container.tracking_service
+    tracking.start("browser")
+    try:
+        for expected_frame_index in (1, 2, 3):
+            tracking.submit_frame(make_face_image("red", size=400), timeout_seconds=5)
+            assert tracking.get_snapshot().frame_index == expected_frame_index
+        assert tracking.get_snapshot().tracks[0].status == TrackStatus.MATCHED
+        assert tracking.wait_for_new_jpeg(None, timeout_seconds=0.05) is None
+    finally:
+        tracking.stop()
+
+
+def test_browser_frame_is_refused_from_a_camera_source(
+    settings: Settings, face_analyzer: FaceAnalyzer, container: ServiceContainer
+) -> None:
+    tracking = TrackingService(
+        face_analyzer,
+        container.recognition_service,
+        source_factory=_CountingSource,
+        video_source="0",
+        config=_tracking_config(settings),
+    )
+    tracking.start()
+    try:
+        with pytest.raises(StreamUnavailableError):
+            tracking.submit_frame(make_face_image("red", size=400), timeout_seconds=1)
+    finally:
+        tracking.stop()
+
+
 def test_video_is_mirrored_for_display_only(container: ServiceContainer) -> None:
     tracking = container.tracking_service
     frame = np.zeros((200, 400, 3), dtype=np.uint8)
@@ -177,3 +212,19 @@ def test_video_is_mirrored_for_display_only(container: ServiceContainer) -> None
     shown = cv2.imdecode(np.frombuffer(tracking.get_latest_jpeg(), np.uint8), cv2.IMREAD_COLOR)
     assert shown[100, 350, 2] > 200 and shown[100, 50, 2] < 50  # shown on the right
     assert frame[100, 50, 2] == 255  # the camera frame itself is untouched
+
+
+def test_new_faces_are_recognized_first_and_only_up_to_the_limit(container: ServiceContainer) -> None:
+    tracking = container.tracking_service
+    landmarks = ARCFACE_TEMPLATE.copy()
+    detection = DetectedFace(np.array([0, 0, 112, 112], dtype=np.float32), landmarks, 0.9)
+    frame = np.zeros((200, 200, 3), dtype=np.uint8)
+    waited_long, new_a, new_b = (TrackState(i, 10, 10) for i in (1, 2, 3))
+    waited_long.last_recognized_frame = 1
+    for state in (waited_long, new_a, new_b):
+        state.detection = detection
+    tracking._frame_index = 100
+
+    tracking._recognize_due_tracks(frame, [waited_long, new_a, new_b])
+
+    assert [s.recognition_count for s in (waited_long, new_a, new_b)] == [0, 1, 1]

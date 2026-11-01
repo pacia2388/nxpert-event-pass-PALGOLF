@@ -1,6 +1,6 @@
 ---
 name: deploy-iis
-description: Publish the Event Registration app to IIS as two independent sites (Angular static app + .NET API) on separate ports — prerequisites, dotnet publish, production appsettings, app pool/site/bindings, API_BASE, CORS, HTTPS, and update procedure. Use when asked to deploy, publish, host on IIS, or update a deployed instance.
+description: Publish the Event Registration app to IIS as two independent sites (Angular static app + .NET API) on separate ports — prerequisites, dotnet publish, production appsettings, app pool/site/bindings, apiBaseUrl, CORS, HTTPS, and update procedure. Use when asked to deploy, publish, host on IIS, or update a deployed instance.
 ---
 
 # Deploy to IIS (API and App on separate ports)
@@ -67,11 +67,11 @@ Dev Kestrel ports (5088/7088 in `launchSettings.json`) are ignored under IIS.
 
 ## 2. Frontend (Angular)
 
-`API_BASE` is compiled into the bundle — set it **before** building in
-`frontend/web/src/app/core/config.ts`:
+`apiBaseUrl` is compiled into the bundle — set it **before** building in
+`frontend/web/src/environments/environment.ts`:
 
 ```ts
-export const API_BASE = 'https://SERVER:5001';
+apiBaseUrl: 'https://SERVER:5001',
 ```
 
 From `frontend/web`:
@@ -89,7 +89,7 @@ Browse `https://SERVER:8443/` → sign-in page.
 
 ## 3. Cross-cutting checklist
 
-- URLs must reference each other **with ports**: `API_BASE = https://SERVER:5001` (SPA) and
+- URLs must reference each other **with ports**: `apiBaseUrl = https://SERVER:5001` (SPA) and
   `App:FrontendBaseUrl = https://SERVER:8443` (API).
 - **CORS:** API currently allows any origin. For production tighten in `Program.cs` to exactly the
   App origin and republish:
@@ -107,4 +107,4 @@ Browse `https://SERVER:8443/` → sign-in page.
   restarts on file change; `iisreset` if a DLL is locked.
 - **Frontend:** re-run `npm run build`, replace contents of `C:\inetpub\EventReg\web` (hashed
   filenames avoid stale cache).
-- Changed `API_BASE`? **Rebuild the frontend** — it is baked into the bundle.
+- Changed `apiBaseUrl`? **Rebuild the frontend** — it is baked into the bundle.

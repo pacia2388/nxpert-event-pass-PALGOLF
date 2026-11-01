@@ -1,19 +1,34 @@
-import { Component, HostListener, OnDestroy, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, filter, firstValueFrom, timeout } from 'rxjs';
 import { ApiService } from '../../core/api.service';
+import { CAMERA_FAILURE_MESSAGES, CameraFailure, cameraFailure } from '../../core/camera-failure';
 import {
   EngineCheckIn,
   EngineDetectionMode,
   EngineScanMode,
+  EngineSnapshot,
+  EngineTrack,
   FaceEngineService,
 } from '../../core/face-engine.service';
 import { AttendeeDto, CheckInResult } from '../../core/models';
 import { RealtimeService } from '../../core/realtime.service';
 import { TvBanner, TvBannerService } from '../../core/tv-banner.service';
 
-const POLL_MS = 500;
+const POLL_MS = 250;
 // The gallery re-syncs as soon as the backend reports a change (registration added/removed,
 // photo changed). Changes that arrive together (a bulk import) are batched into one reload.
 const GALLERY_CHANGE_DEBOUNCE_MS = 2000;
@@ -26,7 +41,37 @@ const QUEUE_SLOTS = 4;
 // The attendee list also refreshes on its own, to pick up QR and manual check-ins.
 const ATTENDEES_REFRESH_MS = 30 * 1000;
 const CAMERA_RETRY_MS = 3000;
-// Exit waits this long at most for the engine to release the webcam before leaving.
+// An engine that accepts connections but never answers counts as offline.
+const ENGINE_TIMEOUT_MS = 10 * 1000;
+// Frames go to the engine at its own working width (FRE_VIDEO_FRAME_WIDTH), so it sees the same
+// detail as from a local camera and no bandwidth is spent on pixels it would discard.
+const FRAME_WIDTH = 960;
+// Below this, small faces (far from the camera) start to lose recognition similarity.
+const FRAME_JPEG_QUALITY = 0.92;
+// A second frame is already on its way when the engine finishes one, so it doesn't sit idle while
+// answers travel over the network. More would only make the frames older.
+const FRAMES_IN_FLIGHT = 2;
+const FRAME_MIN_INTERVAL_MS = 100;
+const FRAME_TIMEOUT_MS = 10 * 1000;
+// A check-in the backend never answers ends as an error, so it can't hold up the queue.
+const CHECK_IN_TIMEOUT_MS = 10 * 1000;
+const FRAME_STATS_SMOOTHING = 0.9;
+// Zooms of angled faces inside the camera preview, like the insets on the engine's own video.
+const MAX_ZOOMS = 4;
+const ZOOM_REFRESH_MS = 250;
+const BOX_EASE_MAX_MS = 250;
+// A face is announced as not registered only after a fair look, so a registered person who just
+// walked in, or something in the background that resembles a face, doesn't get flagged.
+const NOT_REGISTERED_MIN_ATTEMPTS = 3;
+const NOT_REGISTERED_MIN_SECONDS = 1.5;
+const NOT_REGISTERED_MIN_FACE_WIDTH = 0.08; // of the frame's width
+const NOT_REGISTERED_PHOTO_SIZE = 320;
+const NOT_REGISTERED_PHOTO_MARGIN = 0.25;
+// An announced face shows again only after its box has been gone this many engine frames (about a
+// second). Counted in frames so a slow engine or a detector blink doesn't re-announce someone
+// who never left.
+const NOT_REGISTERED_GONE_FRAMES = 10;
+// Exit waits this long at most for the engine to stop before leaving.
 const EXIT_RELEASE_TIMEOUT_MS = 8000;
 // The TV's scan mode is remembered per device.
 const SCAN_MODE_KEY = 'nxpass.tvScanMode';
@@ -88,18 +133,61 @@ function loadDetectionMode(): EngineDetectionMode {
   }
 }
 
-// One recognized person, after the backend recorded (or refused) the check-in.
+// A face box over the camera preview, in percent of the preview.
+interface FaceBox {
+  id: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  status: EngineTrack['status'];
+}
+
+function smoothed(previous: number | null, value: number): number {
+  return previous === null ? value : FRAME_STATS_SMOOTHING * previous + (1 - FRAME_STATS_SMOOTHING) * value;
+}
+
+// The preview is mirrored like a selfie camera, so the boxes are too; the frames stay unmirrored.
+function faceBox(track: EngineTrack, snapshot: EngineSnapshot): FaceBox {
+  const { x1, y1, x2, y2 } = track.bbox;
+  const { frame_width: w, frame_height: h } = snapshot;
+  return {
+    id: track.track_id,
+    left: (1 - x2 / w) * 100,
+    top: (y1 / h) * 100,
+    width: ((x2 - x1) / w) * 100,
+    height: ((y2 - y1) / h) * 100,
+    status: track.status,
+  };
+}
+
+function isNotRegistered(track: EngineTrack, frameWidth: number): boolean {
+  return (
+    track.status === 'unknown' &&
+    track.recognition_count >= NOT_REGISTERED_MIN_ATTEMPTS &&
+    track.seconds_tracked >= NOT_REGISTERED_MIN_SECONDS &&
+    (track.bbox.x2 - track.bbox.x1) / frameWidth >= NOT_REGISTERED_MIN_FACE_WIDTH
+  );
+}
+
+// The backend's answer, or 'notregistered': a face that matches no registrant, which the TV
+// announces on its own.
+type TvResult = Omit<CheckInResult, 'status'> & { status: CheckInResult['status'] | 'notregistered' };
+
+// One person on the TV. Someone recognized is shown as soon as the engine reports them; result is
+// null until the backend has recorded (or refused) the check-in.
 interface TvItem {
   sequence: number;
   name: string;
   photo: string;
-  result: CheckInResult;
+  result: TvResult | null;
 }
 
 /**
- * Door TV for camera check-in. The face engine watches the camera and reports who it
- * recognized; each person is checked in through the backend, and the backend's answer is what
- * the TV shows (so only confirmed registrations, inside the event window, are checked in).
+ * Door TV for camera check-in. This browser's webcam sends frames to the face engine, which
+ * reports who it recognized; each person is checked in through the backend, and the backend's
+ * answer is what the TV shows (so only confirmed registrations, inside the event window, are
+ * checked in).
  */
 @Component({
   selector: 'app-face-tv',
@@ -115,10 +203,29 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   private tvBanners = inject(TvBannerService);
 
   readonly eventId = Number(this.route.snapshot.paramMap.get('eventId'));
-  readonly cameraUrl = signal(this.engine.streamUrl());
+  readonly cameraStream = signal<MediaStream | null>(null);
+  readonly cameraProblem = signal<string | null>(null);
+  // Width / height of the camera's picture, so the preview and the boxes line up with it.
+  readonly cameraAspect = signal<number | null>(null);
+  readonly faceBoxes = signal<FaceBox[]>([]);
+  readonly faceZooms = signal<{ id: number; url: string }[]>([]);
+  // Smoothed time from sending a frame to the engine's answer (upload + recognition + download).
+  readonly frameRoundTripMs = signal<number | null>(null);
+  readonly framesPerSecond = signal(0);
+  readonly frameStats = computed(() => {
+    const ms = this.frameRoundTripMs();
+    return ms === null
+      ? 'Connecting to the face engine…'
+      : `Recognizing ${this.framesPerSecond().toFixed(1)} frames/s · answers in ${Math.round(ms)} ms`;
+  });
+  // Each box glides for as long as the next answer takes, so it keeps moving between answers.
+  readonly boxEaseMs = computed(() => {
+    const fps = this.framesPerSecond();
+    return fps > 0 ? Math.min(BOX_EASE_MAX_MS, 1000 / fps) : BOX_EASE_MAX_MS;
+  });
   readonly engineOnline = signal(true);
   readonly exiting = signal(false);
-  readonly galleryMessage = signal('Loading registered faces…');
+  readonly galleryMessage = signal('');
   readonly galleryError = signal(false);
 
   // The event's own branding (set on the event form): banner image and TV welcome message.
@@ -169,7 +276,7 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   // The attendee sidebar can be closed so the stage takes the full width.
   readonly sideOpen = signal(true);
 
-  // Camera off pauses check-in (the engine releases the webcam) and shows the standby banner:
+  // Camera off pauses check-in (the browser releases the webcam) and shows the standby banner:
   // the banner uploaded on this device, else the event's saved banner. Turning it back on
   // returns to the normal check-in screen.
   readonly cameraOn = signal(true);
@@ -210,11 +317,15 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   );
 
   // How the spotlight presents the backend's answer. The tone picks the full-screen colour:
-  // green for a new check-in, amber for already in / not confirmed, grey outside the check-in
-  // window, red otherwise. Member details (chips, event) only show for valid / already.
+  // green for a new check-in, amber for already in / not confirmed, yellow for a face that isn't
+  // registered, grey outside the check-in window, red otherwise. Member details (chips, event)
+  // only show for valid / already.
   readonly spotlight = computed(() => {
-    const r = this.current()?.result;
-    if (!r) return null;
+    const item = this.current();
+    if (!item) return null;
+    const r = item.result;
+    // Nothing is promised until the backend answers.
+    if (!r) return { tone: 'info', kicker: null, badge: 'Checking…', note: null, chips: [], event: null, session: null };
     const at = r.checkedInAt ? `at ${this.formatTime(new Date(r.checkedInAt))}` : null;
     const chips = [r.level, r.senateNo ? `Senate No. ${r.senateNo}` : null, r.organization].filter(
       (c): c is string => !!c,
@@ -234,7 +345,7 @@ export class FaceTvComponent implements OnInit, OnDestroy {
         return {
           tone: 'info',
           kicker: r.welcomeMessage || this.eventWelcome() || 'Welcome',
-          badge: '✓ Verified',
+          badge: '✓ Recognized — Verify only',
           note: 'Confirmed registration — not checked in.',
           ...details,
         };
@@ -246,6 +357,14 @@ export class FaceTvComponent implements OnInit, OnDestroy {
           kicker: null,
           badge: 'Registration not yet confirmed',
           note: 'Please see the registration desk.',
+          ...none,
+        };
+      case 'notregistered':
+        return {
+          tone: 'notice',
+          kicker: null,
+          badge: 'Please see the registration desk',
+          note: null,
           ...none,
         };
       case 'notstarted':
@@ -284,6 +403,23 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   private timers: ReturnType<typeof setInterval>[] = [];
   private showTimer: ReturnType<typeof setTimeout> | null = null;
   private cameraRetry: ReturnType<typeof setTimeout> | null = null;
+  @ViewChild('cameraVideo') private cameraVideo?: ElementRef<HTMLVideoElement>;
+  private frameCanvas = document.createElement('canvas');
+  // Bumped whenever the camera stops or restarts, which ends the running start / frame loops.
+  private cameraRun = 0;
+  private nextFrameAt = 0;
+  private lastAnswerAt: number | null = null;
+  private frameIntervalMs: number | null = null;
+  private lastFrameIndex = 0;
+  private zoomVersion = 0;
+  private lastZoomAt = 0;
+  // The engine holds this event's current registrants, so a face that matches none isn't theirs.
+  private galleryReady = false;
+  // Faces announced as not registered, with the engine frame each was last in view. A face is
+  // announced once while its box stays up; once the box has gone, it can be announced again.
+  private announcedTracks = new Map<number, number>();
+  // Queue entries that aren't engine check-ins count down, so they never clash with its sequence.
+  private localSequence = 0;
   private galleryLoading = false;
   private galleryReloadQueued = false;
   private hubWasDown = false;
@@ -316,7 +452,7 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.startCamera();
+    void this.startCamera();
     this.loadEvent();
     this.loadGallery();
     this.loadAttendees();
@@ -338,19 +474,19 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     if (this.cameraRetry) clearTimeout(this.cameraRetry);
     if (this.bannerNoticeTimer) clearTimeout(this.bannerNoticeTimer);
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    // Hand the webcam back to the browser scanner (Exit goes straight back to it).
+    this.stopLocalCamera();
     this.engine.stopStream().subscribe({ error: () => {} });
   }
 
-  // Go back to the scanner only once the engine has released the webcam; leaving right away
-  // made the scanner find the camera still in use and give up.
+  // The webcam is released right away, so the scanner can open it as soon as we get there.
   async exit(): Promise<void> {
     if (this.exiting()) return;
     this.exiting.set(true);
+    this.stopLocalCamera();
     try {
       await firstValueFrom(this.engine.stopStream().pipe(timeout(EXIT_RELEASE_TIMEOUT_MS)));
     } catch {
-      /* engine offline or slow — the scanner retries a busy camera by itself */
+      /* engine offline or slow — it starts again when the TV next opens */
     }
     void this.router.navigate(['/scanner', this.eventId]);
   }
@@ -360,17 +496,200 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     this.engine.stopStreamOnUnload();
   }
 
-  // The engine opens the camera only while the TV is showing. The scanner page may still be
-  // releasing it for a moment; the engine keeps retrying, and the preview reconnects on error.
-  private startCamera(): void {
-    this.engine.startStream().subscribe({
-      next: () => {
-        this.cameraUrl.set(this.engine.streamUrl());
-        this.applyScanMode(); // the engine forgets both on restart
-        this.applyDetectionMode();
-      },
-      error: () => this.onCameraError(),
-    });
+  // The camera runs only while the TV is showing. The scanner page may still be releasing it for
+  // a moment, and the engine may be restarting; both are retried by themselves. The webcam opens
+  // first, so the preview still shows while the engine is unavailable.
+  private async startCamera(): Promise<void> {
+    const run = ++this.cameraRun;
+    if (!this.cameraStream() && !(await this.openWebcam(run))) return;
+    try {
+      await firstValueFrom(this.engine.startStream().pipe(timeout(ENGINE_TIMEOUT_MS)));
+      if (run !== this.cameraRun) return;
+      this.applyScanMode(); // the engine forgets both on restart
+      this.applyDetectionMode();
+    } catch {
+      if (run === this.cameraRun) this.onCameraError();
+      return;
+    }
+    this.lastAnswerAt = null;
+    this.frameIntervalMs = null;
+    this.lastFrameIndex = 0;
+    this.announcedTracks.clear(); // a restarted engine numbers frames and tracks from the start
+    for (let i = 0; i < FRAMES_IN_FLIGHT; i++) void this.sendFrames(run);
+  }
+
+  // False when the webcam didn't open (a retry is scheduled unless it can't help) or isn't
+  // needed any more.
+  private async openWebcam(run: number): Promise<boolean> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+        audio: false,
+      });
+      if (run !== this.cameraRun) {
+        stream.getTracks().forEach((t) => t.stop());
+        return false;
+      }
+      this.cameraProblem.set(null);
+      this.cameraStream.set(stream);
+      return true;
+    } catch (err) {
+      if (run !== this.cameraRun) return false;
+      const failure: CameraFailure = cameraFailure(err);
+      this.cameraProblem.set(
+        failure === 'other' ? 'Could not open the camera. Check that it is connected.' : CAMERA_FAILURE_MESSAGES[failure],
+      );
+      if (failure !== 'insecure') this.onCameraError();
+      return false;
+    }
+  }
+
+  private stopLocalCamera(): void {
+    this.cameraRun++;
+    this.cameraStream()?.getTracks().forEach((t) => t.stop());
+    this.cameraStream.set(null);
+    this.faceBoxes.set([]);
+    this.faceZooms.set([]);
+    this.announcedTracks.clear();
+    this.frameRoundTripMs.set(null);
+    this.framesPerSecond.set(0);
+  }
+
+  // One of FRAMES_IN_FLIGHT senders: sends the camera's newest picture, waits for the answer, then
+  // repeats. On a slow network or engine fewer frames go through, but they are always current and
+  // never pile up (the engine only ever works on the newest one it has).
+  private async sendFrames(run: number): Promise<void> {
+    while (run === this.cameraRun) {
+      await this.waitForFrameTurn();
+      if (run !== this.cameraRun) return;
+      const startedAt = performance.now();
+      try {
+        const frame = await this.grabFrame();
+        if (frame && run === this.cameraRun) {
+          const snapshot = await firstValueFrom(this.engine.sendFrame(frame).pipe(timeout(FRAME_TIMEOUT_MS)));
+          if (run !== this.cameraRun) return;
+          this.onFrameAnswered(snapshot, performance.now() - startedAt);
+        }
+      } catch {
+        // The engine restarted or the network dropped: start it again once it's reachable.
+        if (run === this.cameraRun) {
+          this.faceBoxes.set([]);
+          this.faceZooms.set([]);
+          this.onCameraError();
+        }
+        return;
+      }
+    }
+  }
+
+  // Spaces the senders' frames at least FRAME_MIN_INTERVAL_MS apart.
+  private async waitForFrameTurn(): Promise<void> {
+    const now = performance.now();
+    const turn = Math.max(now, this.nextFrameAt);
+    this.nextFrameAt = turn + FRAME_MIN_INTERVAL_MS;
+    if (turn > now) await new Promise((resolve) => setTimeout(resolve, turn - now));
+  }
+
+  // Null until the video has a picture.
+  private grabFrame(): Promise<Blob | null> {
+    const video = this.cameraVideo?.nativeElement;
+    if (!video || !video.videoWidth) return Promise.resolve(null);
+    const canvas = this.frameCanvas;
+    canvas.width = Math.min(FRAME_WIDTH, video.videoWidth);
+    canvas.height = Math.round((video.videoHeight * canvas.width) / video.videoWidth);
+    const context = canvas.getContext('2d')!;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', FRAME_JPEG_QUALITY));
+  }
+
+  private onFrameAnswered(snapshot: EngineSnapshot, roundTripMs: number): void {
+    // With two frames on their way, an older answer can arrive after a newer one.
+    if (snapshot.frame_index < this.lastFrameIndex) return;
+    const processed = snapshot.frame_index - this.lastFrameIndex;
+    this.lastFrameIndex = snapshot.frame_index;
+    this.announceNotRegistered(snapshot);
+    // Once a face has been announced as not registered, it stops being marked on the preview.
+    const marked = snapshot.tracks.filter(
+      (track) => !(track.status === 'unknown' && this.announcedTracks.has(track.track_id)),
+    );
+    this.faceBoxes.set(marked.map((track) => faceBox(track, snapshot)));
+    this.frameRoundTripMs.update((previous) => smoothed(previous, roundTripMs));
+    // Two answers can report the same processed frame when the engine skipped an older one.
+    const now = performance.now();
+    if (now - this.lastZoomAt >= ZOOM_REFRESH_MS) {
+      this.lastZoomAt = now;
+      this.zoomVersion++;
+    }
+    this.faceZooms.set(
+      marked
+        .filter((track) => track.head_pose.is_angled)
+        .slice(0, MAX_ZOOMS)
+        .map((track) => ({ id: track.track_id, url: this.engine.zoomUrl(track, this.zoomVersion) })),
+    );
+    if (processed > 0) {
+      if (this.lastAnswerAt !== null) {
+        // Smooth the time per frame, not the rate: answers arrive in bursts, which inflate a rate.
+        this.frameIntervalMs = smoothed(this.frameIntervalMs, (now - this.lastAnswerAt) / processed);
+        this.framesPerSecond.set(1000 / this.frameIntervalMs);
+      }
+      this.lastAnswerAt = now;
+    }
+  }
+
+  // A registrant with no photo isn't in the gallery either, so they show as not registered too.
+  private announceNotRegistered(snapshot: EngineSnapshot): void {
+    // Forget faces that have gone first, so one coming back in this frame counts as new.
+    for (const [trackId, lastSeenFrame] of this.announcedTracks) {
+      if (snapshot.frame_index - lastSeenFrame >= NOT_REGISTERED_GONE_FRAMES) this.announcedTracks.delete(trackId);
+    }
+    for (const track of snapshot.tracks) {
+      if (this.announcedTracks.has(track.track_id)) this.announcedTracks.set(track.track_id, snapshot.frame_index);
+    }
+    if (!this.galleryReady) return;
+    const fresh = snapshot.tracks.filter(
+      (track) => !this.announcedTracks.has(track.track_id) && isNotRegistered(track, snapshot.frame_width),
+    );
+    if (!fresh.length) return;
+    for (const track of fresh) {
+      this.announcedTracks.set(track.track_id, snapshot.frame_index);
+      this.waiting.update((list) => [
+        ...list,
+        {
+          sequence: --this.localSequence,
+          name: 'Not Registered For This Event',
+          photo: this.faceCrop(track),
+          result: { ...this.errorResult('Not Registered For This Event', ''), status: 'notregistered' },
+        },
+      ]);
+    }
+    this.showNext();
+  }
+
+  // The face as the last frame sent shows it; this picture stays in the browser.
+  private faceCrop(track: EngineTrack): string {
+    const { x1, y1, x2, y2 } = track.bbox;
+    const side = Math.max(x2 - x1, y2 - y1) * (1 + 2 * NOT_REGISTERED_PHOTO_MARGIN);
+    const crop = document.createElement('canvas');
+    crop.width = crop.height = NOT_REGISTERED_PHOTO_SIZE;
+    crop
+      .getContext('2d')!
+      .drawImage(
+        this.frameCanvas,
+        (x1 + x2 - side) / 2,
+        (y1 + y2 - side) / 2,
+        side,
+        side,
+        0,
+        0,
+        NOT_REGISTERED_PHOTO_SIZE,
+        NOT_REGISTERED_PHOTO_SIZE,
+      );
+    return crop.toDataURL('image/jpeg', FRAME_JPEG_QUALITY);
+  }
+
+  onCameraMetadata(video: HTMLVideoElement): void {
+    if (video.videoWidth && video.videoHeight) this.cameraAspect.set(video.videoWidth / video.videoHeight);
   }
 
   setScanMode(mode: EngineScanMode): void {
@@ -410,14 +729,12 @@ export class FaceTvComponent implements OnInit, OnDestroy {
       return;
     }
     this.galleryLoading = true;
+    this.galleryReady = false;
     this.engine.loadGallery(this.eventId).subscribe({
       complete: () => this.onGalleryLoaded(),
-      next: (s) => {
+      next: () => {
         this.galleryError.set(false);
-        const skipped = s.skipped_people.length
-          ? ` · ${s.skipped_people.length} photo${s.skipped_people.length === 1 ? '' : 's'} without a clear face`
-          : '';
-        this.galleryMessage.set(`${s.person_count} registered face${s.person_count === 1 ? '' : 's'}${skipped}`);
+        this.galleryReady = true;
       },
       error: (err) => {
         this.galleryError.set(true);
@@ -515,13 +832,13 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     }
   }
 
-  onCameraError(): void {
-    if (this.cameraRetry || !this.cameraOn()) return;
+  private onCameraError(): void {
+    if (this.cameraRetry || !this.cameraOn() || this.destroyed) return;
     // Start again too (a no-op if it's running): the engine may have restarted, or the camera
-    // was released by another page.
+    // was released by another app.
     this.cameraRetry = setTimeout(() => {
       this.cameraRetry = null;
-      if (this.cameraOn()) this.startCamera();
+      if (this.cameraOn()) void this.startCamera();
     }, CAMERA_RETRY_MS);
   }
 
@@ -533,7 +850,7 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     try {
       if (on) {
         this.cameraOn.set(true);
-        this.startCamera();
+        void this.startCamera();
       } else {
         this.cameraOn.set(false);
         this.clearShown();
@@ -541,6 +858,8 @@ export class FaceTvComponent implements OnInit, OnDestroy {
           clearTimeout(this.cameraRetry);
           this.cameraRetry = null;
         }
+        this.stopLocalCamera();
+        this.cameraProblem.set(null);
         await firstValueFrom(this.engine.stopStream().pipe(timeout(EXIT_RELEASE_TIMEOUT_MS)));
       }
     } catch {
@@ -631,7 +950,7 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     if (this.isPolling) return;
     this.isPolling = true;
     try {
-      const data = await firstValueFrom(this.engine.checkIns(this.lastSequence));
+      const data = await firstValueFrom(this.engine.checkIns(this.lastSequence).pipe(timeout(ENGINE_TIMEOUT_MS)));
       this.engineOnline.set(true);
       const isFirstLoad = this.sessionId === null;
       if (data.session_id !== this.sessionId) {
@@ -640,6 +959,8 @@ export class FaceTvComponent implements OnInit, OnDestroy {
         this.lastSequence = 0;
         this.waiting.set([]);
         if (!isFirstLoad) {
+          // A restarted engine has no gallery until it's told which event to load.
+          this.loadGallery();
           this.isPolling = false;
           await this.poll();
           return;
@@ -651,11 +972,11 @@ export class FaceTvComponent implements OnInit, OnDestroy {
       const fresh = this.cameraOn()
         ? data.check_ins.filter((c) => !isFirstLoad || c.checked_in_at >= replayAfter)
         : [];
-      // Recorded together, so people recognized in the same frame are shown in order.
-      const items = await Promise.all(fresh.map((c) => this.record(c)));
-      if (items.length) {
-        if (this.cameraOn()) this.waiting.update((list) => [...list, ...items]);
-        this.loadAttendees();
+      // People join the queue right away, in the order they were recognized; the backend's answers
+      // fill in as they arrive, without holding up the next poll.
+      if (fresh.length) {
+        this.waiting.update((list) => [...list, ...fresh.map((c) => this.toItem(c))]);
+        void Promise.all(fresh.map((c) => this.record(c))).then(() => this.loadAttendees());
       }
       this.showNext();
     } catch {
@@ -665,23 +986,38 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Record the check-in in the backend; its answer decides what the TV shows. */
-  private async record(checkIn: EngineCheckIn): Promise<TvItem> {
+  // What the engine knows, straight from the engine. A QR pass has no engine photo; only the
+  // backend knows whose pass it is.
+  private toItem(checkIn: EngineCheckIn): TvItem {
     const { person } = checkIn;
-    let result: CheckInResult;
-    try {
-      result = await firstValueFrom(this.checkInRequest(person.person_id));
-    } catch {
-      result = this.errorResult(person.name, 'Could not record this check-in. Please see the registration desk.');
-    }
-    // A QR pass has no engine photo; only the backend knows whose pass it is.
     const isQr = person.person_id.startsWith('q');
     return {
       sequence: checkIn.sequence,
-      name: result.fullName || person.name || (isQr ? 'QR pass' : 'Guest'),
-      photo: result.photoUrl || (isQr ? '' : this.engine.photoUrl(person)),
-      result,
+      name: person.name || (isQr ? 'QR pass' : 'Guest'),
+      photo: isQr ? '' : this.engine.photoUrl(person),
+      result: null,
     };
+  }
+
+  /** Record the check-in in the backend; its answer decides what the TV shows. */
+  private async record(checkIn: EngineCheckIn): Promise<void> {
+    const { person } = checkIn;
+    let result: CheckInResult;
+    try {
+      result = await firstValueFrom(this.checkInRequest(person.person_id).pipe(timeout(CHECK_IN_TIMEOUT_MS)));
+    } catch {
+      result = this.errorResult(person.name, 'Could not record this check-in. Please see the registration desk.');
+    }
+    const answered = (item: TvItem): TvItem =>
+      item.sequence === checkIn.sequence
+        ? { ...item, result, name: result.fullName || item.name, photo: item.photo || result.photoUrl || '' }
+        : item;
+    this.waiting.update((list) => list.map(answered));
+    const current = this.current();
+    if (current?.sequence === checkIn.sequence) {
+      this.current.set(answered(current));
+      this.startDisplayTimer();
+    }
   }
 
   private checkInRequest(personId: string) {
@@ -696,6 +1032,11 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     if (!next) return;
     this.waiting.set(rest);
     this.current.set(next);
+    if (next.result) this.startDisplayTimer();
+  }
+
+  // Runs from the backend's answer, so everyone's status gets its full time on screen.
+  private startDisplayTimer(): void {
     this.showTimer = setTimeout(() => {
       this.showTimer = null;
       this.current.set(null);

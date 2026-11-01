@@ -37,6 +37,8 @@ class GalleryPerson:
 class GallerySource(Protocol):
     def fetch_people(self, event_id: int) -> list[GalleryPerson]: ...
 
+    def fetch_finished_events(self, event_ids: set[int]) -> set[int]: ...
+
 
 class BackendGalleryClient:
     """Calls GET {base_url}/api/face-engine/events/{event_id}/gallery with the shared engine key."""
@@ -63,6 +65,28 @@ class BackendGalleryClient:
         if not response.is_success:
             raise BackendUnavailableError(f"The backend returned HTTP {response.status_code}.")
         return [person for item in response.json() if (person := _parse_person(item)) is not None]
+
+    def fetch_finished_events(self, event_ids: set[int]) -> set[int]:
+        """Which of these events are over. Anything but a clear answer raises, so nothing gets deleted."""
+        if not self._base_url or not self._api_key:
+            raise BackendNotConfiguredError()
+        url = f"{self._base_url}/api/face-engine/events/finished"
+        try:
+            response = httpx.get(
+                url,
+                params={"ids": sorted(event_ids)},
+                headers={KEY_HEADER: self._api_key},
+                timeout=self._timeout_seconds,
+            )
+        except httpx.HTTPError as err:
+            raise BackendUnavailableError(f"Could not reach the backend: {err}") from err
+        if not response.is_success:
+            raise BackendUnavailableError(f"The backend returned HTTP {response.status_code}.")
+        try:
+            finished = set(response.json())
+        except (ValueError, TypeError) as err:
+            raise BackendUnavailableError(f"Unexpected answer from the backend: {err}") from err
+        return finished & event_ids
 
 
 def _parse_person(item: dict) -> GalleryPerson | None:

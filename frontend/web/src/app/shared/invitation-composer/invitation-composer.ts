@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, QueryList, ViewChild, ViewChildren, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -26,7 +26,7 @@ type RecipientField = 'to' | 'cc';
 
 const MAX_SCHEDULES = 30;
 const MAX_SAVED = 200;
-const MAX_SUGGESTIONS = 8;
+const MAX_SUGGESTIONS = 20;
 const PH_OFFSET_MS = 8 * 3600000;
 const DAY_MS = 24 * 3600000;
 // The server (InvitationMessageBuilder.InjectScheduleDay) replaces this with each email's send day.
@@ -35,7 +35,7 @@ const SCHEDULE_DAY_PATTERN = /\{\{\s*schedule_day\s*\}\}/i;
 
 /**
  * Event invitation email, Gmail / Outlook style: To and CC chips (typed or comma-separated
- * addresses, previously used addresses suggested while typing, or the @n-pax group = every
+ * addresses, addresses the admin chose to save picked from a dropdown, or the @n-pax group = every
  * system user), a formatted message with inline images, and the
  * event's details + calendar invitation appended by the server.
  */
@@ -65,6 +65,8 @@ export class InvitationComposerComponent implements OnChanges {
   @Output() sendingChange = new EventEmitter<boolean>();
   @ViewChild('editor', { static: true }) editor!: ElementRef<HTMLDivElement>;
   @ViewChild('previewBody', { static: true }) previewBody!: ElementRef<HTMLDivElement>;
+  // One per entry in `fields`, in the same order.
+  @ViewChildren('recipientInput') recipientInputs?: QueryList<ElementRef<HTMLInputElement>>;
   @ViewChild('historyBody') set historyBody(element: ElementRef<HTMLDivElement> | undefined) {
     if (!element) return;
     const doc = new DOMParser().parseFromString(this.openedEmail()?.bodyHtml ?? '<div></div>', 'text/html');
@@ -79,7 +81,7 @@ export class InvitationComposerComponent implements OnChanges {
   private auth = inject(AuthService);
 
   readonly allUsers = ALL_USERS;
-  // Addresses this admin has sent to before, offered as suggestions while typing.
+  // Addresses this admin chose to save, listed in the To and CC dropdowns.
   savedAddresses = signal<string[]>(this.loadSaved());
   readonly fields: RecipientField[] = ['to', 'cc'];
   recipients: Record<RecipientField, string[]> = { to: [], cc: [] };
@@ -199,7 +201,7 @@ export class InvitationComposerComponent implements OnChanges {
     }
     this.editingEmail = copy ? null : email;
     this.recipients = { to: [...email.to], cc: [...email.cc] };
-    this.query = { to: '', cc: '' };
+    this.clearQuery(...this.fields);
     this.subject = email.subject;
     this.scheduleEnabled = !copy && !!email.scheduledAt;
     this.scheduleAt = [email.scheduledAt ? this.toPhInput(new Date(email.scheduledAt).getTime()) : ''];
@@ -233,7 +235,7 @@ export class InvitationComposerComponent implements OnChanges {
   resetDraft(): void {
     this.editingEmail = null;
     this.recipients = { to: [], cc: [] };
-    this.query = { to: '', cc: '' };
+    this.clearQuery(...this.fields);
     this.subject = `You're invited: ${this.event.title}`.slice(0, 200);
     this.scheduleEnabled = false;
     this.scheduleAt = [''];
@@ -331,13 +333,26 @@ export class InvitationComposerComponent implements OnChanges {
     return expandRecipients([ALL_USERS], [], this.contacts.map((c) => c.email)).to.length;
   }
 
-  // Saved addresses matching what is being typed; nothing is listed until the admin types.
+  // Saved addresses not yet in this field: all of them on click, narrowed down while typing.
   suggestions(field: RecipientField): string[] {
     const q = this.query[field].trim().toLowerCase();
-    if (!q) return [];
     return this.savedAddresses()
       .filter((a) => a.includes(q) && !this.recipients[field].includes(a))
       .slice(0, MAX_SUGGESTIONS);
+  }
+
+  isSaved(address: string): boolean {
+    return this.savedAddresses().includes(address);
+  }
+
+  // Entered addresses that can still be saved; @n-pax is a group, so it is never offered.
+  unsaved(field: RecipientField): string[] {
+    return this.recipients[field].filter((a) => a !== ALL_USERS && !this.isSaved(a));
+  }
+
+  saveAddresses(addresses: string[]): void {
+    this.rememberAddresses(addresses);
+    this.toast.success(addresses.length === 1 ? `${addresses[0]} saved to your list.` : `${addresses.length} addresses saved to your list.`);
   }
 
   // ---- Saved addresses (per admin, in this browser) ----
@@ -396,9 +411,18 @@ export class InvitationComposerComponent implements OnChanges {
       return false;
     }
     this.recipients[field] = [...new Set([...this.recipients[field], ...(addresses as string[])])];
-    this.rememberAddresses(addresses as string[]);
-    this.query[field] = '';
+    this.clearQuery(field);
     return true;
+  }
+
+  // The autocomplete writes model values to the form field's control, which here is the chip grid
+  // and not the input, so the input is cleared directly or the typed text stays beside its chip.
+  private clearQuery(...fields: RecipientField[]): void {
+    for (const field of fields) {
+      this.query[field] = '';
+      const input = this.recipientInputs?.get(this.fields.indexOf(field))?.nativeElement;
+      if (input) input.value = '';
+    }
   }
 
   remove(field: RecipientField, address: string): void {
@@ -600,7 +624,6 @@ export class InvitationComposerComponent implements OnChanges {
           results.push(result);
           if (results.length < schedules.length) return;
           const problem = results.find((r) => r.queued || r.status === 'Failed');
-          this.rememberAddresses([...base.to, ...base.cc]);
           if (problem) this.toast.warning(problem.message, 8000);
           else if (results.length > 1) this.toast.success(`Invitation scheduled on ${results.length} dates for ${result.recipientCount} recipient(s).`);
           else this.toast.success(result.message);

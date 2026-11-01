@@ -210,10 +210,11 @@ export class UserFormPanelComponent {
       .afterClosed()
       .subscribe((res: FaceCaptureResult | undefined) => {
         if (!res) return;
-        // Store ONLY the face descriptor for recognition — the profile picture is uploaded
-        // separately (and is what's shown at check-in), so we don't touch the photo here.
+        // The captured face doubles as the photo, since the Face TV recognizes people from it.
         this.newFace.set(JSON.stringify(res.descriptor));
         this.clearFace.set(false);
+        this.newPhoto.set(res.image);
+        this.clearPhoto.set(false);
       });
   }
 
