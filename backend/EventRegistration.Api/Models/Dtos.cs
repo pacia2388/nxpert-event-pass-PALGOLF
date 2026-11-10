@@ -1,4 +1,27 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EventRegistration.Api.Models;
+
+// ---- Teams ----
+// MaxMembers comes from the team's category (TeamCategories.MaxMembers); the lead is not counted.
+public record TeamMemberDto(int UserId, string FullName, string Email, DateTime AddedAt);
+public record TeamDto(
+    int Id, string Description, string Category, int TeamLeadUserId, string TeamLeadName,
+    int MemberCount, int MaxMembers, DateTime CreatedAt);
+public record TeamDetailDto(
+    int Id, string Description, string Category, int TeamLeadUserId, string TeamLeadName,
+    int MemberCount, int MaxMembers, DateTime CreatedAt, List<TeamMemberDto> Members);
+public record TeamUpsertRequest(
+    [StringLength(200)] string Description, [StringLength(20)] string Category,
+    [Range(1, int.MaxValue)] int TeamLeadUserId);
+// Admin: add an existing Participant to a team.
+public record TeamAddMemberRequest([Range(1, int.MaxValue)] int UserId);
+// Team Lead: add a member by name + email. An unknown email creates a Participant account.
+public record TeamMemberCreateRequest(
+    [StringLength(100)] string FirstName, [StringLength(10)] string? MiddleInitial,
+    [StringLength(100)] string LastName, [StringLength(256)] string Email);
+// Created = a new account was made (it signs in with the default temporary password).
+public record TeamMemberAddResult(TeamMemberDto Member, bool Created);
 
 // Email holds the login identifier — an email address OR a username.
 public record LoginRequest(string Email, string Password);
