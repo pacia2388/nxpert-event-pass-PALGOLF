@@ -62,6 +62,7 @@ export class HomeComponent {
       { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
       { title: 'Calendar', subtitle: 'Event Dates & Invitations', icon: 'calendar_month', link: '/calendar', category: 'Events' },
       { title: 'Mail Planner', subtitle: 'Mail Reminders', icon: 'schedule_send', link: '/mail-planner', category: 'Events' },
+      { title: 'Voucher', subtitle: 'Free Golf Equipment', icon: 'redeem', link: '/voucher', category: 'Account' },
       account,
     ];
     if (this.auth.canConfirm()) {

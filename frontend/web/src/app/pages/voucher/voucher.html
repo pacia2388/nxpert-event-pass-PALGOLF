@@ -1,0 +1,38 @@
+<div class="voucher-page">
+  <h1 class="vp-title">Voucher</h1>
+
+  <section class="vp-card" aria-label="Golf equipment voucher">
+    <h2 class="vp-card-title"><mat-icon>golf_course</mat-icon> Free golf equipment</h2>
+    <p class="vp-lead">
+      Enter your Philippine Airlines booking reference to get your voucher code.
+    </p>
+
+    <form class="vp-form" (ngSubmit)="submit()" autocomplete="off">
+      <mat-form-field appearance="outline">
+        <mat-label>Booking reference</mat-label>
+        <input matInput name="bookingReference" [(ngModel)]="bookingReference" maxlength="6"
+               placeholder="ABC123" autocapitalize="characters" spellcheck="false" />
+        <mat-hint>The 6-character code on your ticket or itinerary.</mat-hint>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>redeem</mat-icon> Get voucher
+      </button>
+    </form>
+
+    @if (invalid()) {
+      <p class="vp-error" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        Enter a 6-character booking reference, letters and digits only.
+      </p>
+    }
+
+    @if (code(); as c) {
+      <div class="vp-result" role="status">
+        <span class="vp-result-label">Your voucher code</span>
+        <span class="vp-code">{{ c }}</span>
+        <span class="vp-result-note">Show this code at the golf equipment counter.</span>
+      </div>
+    }
+  </section>
+</div>

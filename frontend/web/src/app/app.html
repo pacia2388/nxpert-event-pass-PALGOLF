@@ -71,6 +71,11 @@
           <mat-icon>manage_accounts</mat-icon> Edit account
         </a>
       }
+      @if (auth.canUseVoucher()) {
+        <a mat-menu-item routerLink="/voucher">
+          <mat-icon>redeem</mat-icon> Voucher
+        </a>
+      }
       @if (pwa.canInstall()) {
         <button mat-menu-item (click)="pwa.install()">
           <mat-icon>install_mobile</mat-icon> Install app
