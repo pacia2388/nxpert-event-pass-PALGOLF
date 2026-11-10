@@ -22,7 +22,7 @@ public class UsersController : ControllerBase
         _notify = notify;
     }
 
-    private static readonly string[] AssignableRoles = { Roles.Admin, Roles.Participant, Roles.Merchant };
+    private static readonly string[] AssignableRoles = { Roles.Admin, Roles.Participant, Roles.Merchant, Roles.TeamLead };
 
     // includePhoto is false for the list so the payload stays light — the photo (a base64
     // data URL) is only sent for single-user fetch/create/update responses.

@@ -10,6 +10,8 @@ public static class Roles
     public const string SuperAdmin = "SuperAdmin";
     // A merchant/vendor account that can only scan and redeem meal stubs.
     public const string Merchant = "Merchant";
+    // Team Lead. Same capabilities as Participant for now.
+    public const string TeamLead = "TL";
 }
 
 public static class Permissions

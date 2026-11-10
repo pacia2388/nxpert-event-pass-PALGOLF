@@ -18,6 +18,9 @@ export class AuthService {
   });
   // A merchant can only scan/redeem meal stubs.
   readonly isMerchant = computed(() => this._auth()?.role === 'Merchant');
+  readonly isTeamLead = computed(() => this._auth()?.role === 'TL');
+  // shortcut: TLs only, until the teams tables exist; then true for users listed in a team's details.
+  readonly isTeamMember = computed(() => this.isTeamLead());
   // Can this user confirm event registrations? Admins always can; others need the grant.
   readonly canConfirmRegistrations = computed(() => !!this._auth()?.canConfirmRegistrations);
   readonly canConfirm = computed(() => this.isAdmin() || this.canConfirmRegistrations());

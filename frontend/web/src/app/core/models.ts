@@ -4,7 +4,7 @@ export interface AuthResponse {
   fullName: string;
   email: string;
   username: string;
-  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant';
+  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant' | 'TL';
   emailVerified: boolean;
   verificationRequired: boolean;
   senateNo: string | null;
@@ -26,7 +26,7 @@ export interface UserDto {
   level: string | null;
   email: string;
   username: string;
-  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant';
+  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant' | 'TL';
   organization: string | null;
   phone: string | null;
   notificationChannel: NotificationChannel;
