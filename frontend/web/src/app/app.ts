@@ -45,6 +45,9 @@ export class App {
     (this.auth.role() ?? '').replace(/([a-z])([A-Z])/g, '$1 $2'),
   );
 
+  // Where the Home button and brand lead. A Team Lead has no launcher, only the Team page.
+  protected readonly homeLink = computed(() => (this.auth.isTeamLead() ? '/team' : '/home'));
+
   // Open a notification: mark it read and follow its link.
   openNotif(n: AppNotification): void {
     this.rt.markRead(n.id);

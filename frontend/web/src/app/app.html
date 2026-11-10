@@ -1,13 +1,13 @@
 @if (auth.isLoggedIn()) {
   <header class="app-header">
     <!-- Every module is reached from the Home launcher (pages/home). -->
-    <a class="home-btn" routerLink="/home" routerLinkActive="active" aria-label="Home">
+    <a class="home-btn" [routerLink]="homeLink()" routerLinkActive="active" aria-label="Home">
       <mat-icon>home</mat-icon> <span>Home</span>
     </a>
 
     <span class="header-divider"></span>
 
-    <span class="brand" routerLink="/home">
+    <span class="brand" [routerLink]="homeLink()">
       <span class="brand-badge"><mat-icon>grid_view</mat-icon></span>
       <span class="brand-lines">
         <span class="brand-text">NXPass</span>
@@ -66,7 +66,7 @@
       </span>
     </button>
     <mat-menu #menu="matMenu">
-      @if (!auth.isMerchant()) {
+      @if (!auth.isMerchant() && !auth.isTeamLead()) {
         <a mat-menu-item routerLink="/account">
           <mat-icon>manage_accounts</mat-icon> Edit account
         </a>
