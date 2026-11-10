@@ -116,3 +116,6 @@ app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapGet("/", () => Results.Ok(new { service = "EventRegistration.Api", status = "ok" }));
 
 app.Run();
+
+// Lets the integration tests host the API in-process (WebApplicationFactory<Program>).
+public partial class Program { }
