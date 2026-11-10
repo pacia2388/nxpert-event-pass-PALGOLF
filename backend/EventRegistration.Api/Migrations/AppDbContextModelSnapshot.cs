@@ -827,6 +827,75 @@ namespace EventRegistration.Api.Migrations
                     b.ToTable("Sessions");
                 });
 
+            modelBuilder.Entity("EventRegistration.Api.Models.Team", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("TeamLeadUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamLeadUserId")
+                        .IsUnique();
+
+                    b.ToTable("Teams");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.TeamMember", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("TeamMembers");
+                });
+
             modelBuilder.Entity("EventRegistration.Api.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1099,6 +1168,36 @@ namespace EventRegistration.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EventRegistration.Api.Models.Team", b =>
+                {
+                    b.HasOne("EventRegistration.Api.Models.User", "TeamLead")
+                        .WithMany()
+                        .HasForeignKey("TeamLeadUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TeamLead");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.TeamMember", b =>
+                {
+                    b.HasOne("EventRegistration.Api.Models.Team", "Team")
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EventRegistration.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EventRegistration.Api.Models.Event", b =>
                 {
                     b.Navigation("Invitations");
@@ -1132,6 +1231,11 @@ namespace EventRegistration.Api.Migrations
                     b.Navigation("Meals");
 
                     b.Navigation("Registrations");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.Team", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("EventRegistration.Api.Models.User", b =>

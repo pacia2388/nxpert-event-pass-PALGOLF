@@ -32,6 +32,8 @@ The facerog-engine has no database. It reads registrant photos from the API
 | `MailPlanSavedCcs` | CC addresses saved from the mail planner, offered later. |
 | `Feedbacks` | Event rating and comment, one per user per event. |
 | `Vouchers` | Airline baggage vouchers (golf equipment); one per airline ticket number across all users. |
+| `Teams` | A team: name, category (Senior / Regular) and its Team Lead. |
+| `TeamMembers` | The Participants in a team, one row per member. |
 | `AppSettings` | Key/value store for admin settings. |
 | `__EFMigrationsHistory` | EF Core's record of applied migrations (managed by EF). |
 
@@ -49,11 +51,14 @@ Users 1─* Registrations *─1 Events 1─* Sessions
                 ├─* MealStubs
                 └─* MealRedemptions
 MailPlans 1─* MailPlanSends 1─* MailPlanDeliveries
+Users 1─0..1 Teams (as Team Lead) 1─* TeamMembers 0..1─1 Users (as member)
 ```
 
 Delete rules: deleting an Event cascades to Sessions, Registrations, Meals, Invitations and
 InvitationEmails. A User with registrations cannot be deleted (Restrict). Registration→Session and
-Meal→Session are NoAction (cleaned up in code).
+Meal→Session are NoAction (cleaned up in code). Deleting a Team cascades to its TeamMembers (the
+user accounts stay). Teams→Users and TeamMembers→Users are Restrict: a Team Lead cannot be deleted
+while they lead a team, and deleting a member removes their TeamMembers row in code first.
 
 ---
 
@@ -323,6 +328,30 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | Comment | max | ✓ | ≤ 1000 chars (validation rule) |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
 
+### Teams
+
+| Column | Type | Null | Notes / enumerated values |
+|---|---|---|---|
+| Id | int | | PK |
+| CompanyId | int | ✓ | Always 1 for now |
+| Description | nvarchar(200) | | Team name, 2–200 chars |
+| Category | nvarchar(20) | | **`Senior` (max 8 members) · `Regular` (max 10 members)** |
+| TeamLeadUserId | int | | FK → Users (Restrict). **Unique**: a user leads at most one team. Must have role `TL` |
+| CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
+| CreatedByUserId | int | | Admin who created the team (no FK) |
+
+### TeamMembers
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| Id | int | | PK |
+| TeamId | int | | FK → Teams (Cascade) |
+| UserId | int | | FK → Users (Restrict). **Unique**: a user is in at most one team. Must have role `Participant` |
+| AddedAt | datetime2 | | DB default `GETUTCDATE()` |
+
+The Team Lead is not a row in `TeamMembers` and does not count toward the member cap. The cap is
+checked in code (`TeamCategories.MaxMembers`), not by a DB constraint.
+
 ### Vouchers
 
 | Column | Type | Null | Notes |
@@ -348,6 +377,7 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | `Roles` | Admin, Participant, TL, SuperAdmin, Merchant | Users.Role |
 | `NotificationChannels` | Email, Viber, Both | Users.NotificationChannel, Registrations.GuestNotificationChannel |
 | `EventStatus` | Draft, Published, Closed | Events.Status |
+| `TeamCategories` | Senior (max 8 members), Regular (max 10 members) | Teams.Category |
 | `EventFormats` | InPerson, Online, Hybrid | Events.Format |
 | `CheckInMethods` | Scan, Face, Manual | Registrations.CheckInMethod, *RedeemedMethod / Method (Scan, Manual) |
 | `InvitationStatus` | Sent, Queued, Registered | Invitations.Status |

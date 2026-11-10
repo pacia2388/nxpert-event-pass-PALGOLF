@@ -79,15 +79,8 @@ public class UsersController : ControllerBase
         return null;
     }
 
-    // Compose "First M. Last" from the captured parts (middle initial optional).
-    private static string ComposeFullName(string first, string? middle, string last)
-    {
-        var mi = (middle ?? "").Trim().TrimEnd('.');
-        var parts = new List<string> { first.Trim() };
-        if (mi.Length > 0) parts.Add(mi + ".");
-        parts.Add(last.Trim());
-        return string.Join(" ", parts);
-    }
+    private static string ComposeFullName(string first, string? middle, string last) =>
+        UserAccountHelper.ComposeFullName(first, middle, last);
 
     private static string? ValidatePhoto(string? photo)
     {
@@ -176,8 +169,7 @@ public class UsersController : ControllerBase
     // Default password for bulk-imported accounts. Users are expected to change it on first login.
     private const string DefaultImportPassword = "12345";
 
-    private static bool IsValidEmail(string email) =>
-        System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$");
+    private static bool IsValidEmail(string email) => UserAccountHelper.IsValidEmail(email);
 
     // Blank role → Participant; otherwise match an assignable role case-insensitively (null = invalid).
     private static string? ResolveImportRole(string? raw)
@@ -318,6 +310,14 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "First and last name are required." });
         if (!AssignableRoles.Contains(req.Role) && req.Role != user.Role)
             return BadRequest(new { message = "Invalid role." });
+        // A team's lead must stay a TL, and a team's members must stay Participants.
+        if (req.Role != user.Role)
+        {
+            if (await _db.Teams.AnyAsync(t => t.TeamLeadUserId == id))
+                return Conflict(new { message = "This user leads a team. Reassign or delete the team before changing their role." });
+            if (await _db.TeamMembers.AnyAsync(m => m.UserId == id))
+                return Conflict(new { message = "This user is a team member. Remove them from the team before changing their role." });
+        }
 
         var email = req.Email.Trim().ToLowerInvariant();
         if (email != user.Email && await _db.Users.AnyAsync(u => u.Email == email && u.Id != id))
@@ -415,6 +415,11 @@ public class UsersController : ControllerBase
         // Registrations reference the user with a restrict delete — block rather than cascade.
         if (await _db.Registrations.IgnoreQueryFilters().AnyAsync(r => r.UserId == id))
             return BadRequest(new { message = "This user has event registrations and can't be deleted." });
+
+        // Teams reference users with a restrict delete: a lead blocks, a membership is dropped.
+        if (await _db.Teams.AnyAsync(t => t.TeamLeadUserId == id))
+            return BadRequest(new { message = "This user leads a team. Reassign or delete the team first." });
+        _db.TeamMembers.RemoveRange(await _db.TeamMembers.Where(m => m.UserId == id).ToListAsync());
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();

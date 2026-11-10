@@ -10,8 +10,19 @@ public static class Roles
     public const string SuperAdmin = "SuperAdmin";
     // A merchant/vendor account that can only scan and redeem meal stubs.
     public const string Merchant = "Merchant";
-    // Team Lead. Same capabilities as Participant for now.
+    // Team Lead. Leads one team and adds Participants to it; the SPA shows a TL only the Team page.
     public const string TeamLead = "TL";
+}
+
+// Team type. The category sets how many members a team may hold (the Team Lead is not counted).
+public static class TeamCategories
+{
+    public const string Senior = "Senior";
+    public const string Regular = "Regular";
+
+    public static bool IsValid(string? c) => c is Senior or Regular;
+
+    public static int MaxMembers(string? c) => c == Senior ? 8 : 10;
 }
 
 public static class Permissions
@@ -112,6 +123,32 @@ public class User
     public bool CanConfirmRegistrations { get; set; }
 
     public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
+}
+
+// A team of Participants led by one Team Lead (role TL). Header row; members are in TeamMember.
+public class Team
+{
+    public int Id { get; set; }
+    public int? CompanyId { get; set; }
+    [MaxLength(200)] public string Description { get; set; } = "";
+    [MaxLength(20)] public string Category { get; set; } = TeamCategories.Regular;
+    // The lead is implied by this column and is not listed in Members.
+    public int TeamLeadUserId { get; set; }
+    public User? TeamLead { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int CreatedByUserId { get; set; }
+
+    public ICollection<TeamMember> Members { get; set; } = new List<TeamMember>();
+}
+
+public class TeamMember
+{
+    public int Id { get; set; }
+    public int TeamId { get; set; }
+    public Team? Team { get; set; }
+    public int UserId { get; set; }
+    public User? User { get; set; }
+    public DateTime AddedAt { get; set; }
 }
 
 public class Event

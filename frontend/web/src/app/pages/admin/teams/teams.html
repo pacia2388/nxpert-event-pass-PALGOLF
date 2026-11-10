@@ -1,0 +1,175 @@
+<div class="user-master">
+  <!-- Action bar -->
+  <div class="um-bar">
+    <div class="um-actions">
+      <button type="button" class="um-btn primary" (click)="newTeam()">
+        <mat-icon>add</mat-icon> New
+      </button>
+      <button type="button" class="um-btn" (click)="save()" [disabled]="saving()">
+        <mat-icon>save</mat-icon> Save
+      </button>
+      <button type="button" class="um-btn" (click)="remove()" [disabled]="!selected()">
+        <mat-icon>delete</mat-icon> Delete
+      </button>
+      <button type="button" class="um-icon-btn" (click)="refresh()" matTooltip="Refresh" aria-label="Refresh">
+        <mat-icon [class.spin]="loading()">sync</mat-icon>
+      </button>
+    </div>
+
+    <div class="um-search">
+      <label class="um-search-box">
+        <mat-icon>search</mat-icon>
+        <input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)"
+               placeholder="Search team or team lead…" aria-label="Search teams" />
+      </label>
+    </div>
+  </div>
+
+  @if (saving()) {
+    <mat-progress-bar mode="indeterminate" class="um-progress"></mat-progress-bar>
+  }
+
+  <!-- Split: list (left) | form (right) -->
+  <div class="um-split">
+    <section class="um-list" aria-label="Teams">
+      <div class="um-table-wrap">
+        <table class="um-table">
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Category</th>
+              <th>Team Lead</th>
+              <th class="col-num">Members</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading() && !teams().length) {
+              <tr class="um-empty"><td colspan="4"><mat-spinner diameter="32"></mat-spinner></td></tr>
+            } @else if (!teams().length) {
+              <tr class="um-empty"><td colspan="4">No teams yet. Fill in the form to create the first one.</td></tr>
+            } @else if (!filtered().length) {
+              <tr class="um-empty"><td colspan="4">No teams match your search.</td></tr>
+            }
+            @for (t of filtered(); track t.id) {
+              <tr class="um-row" [class.selected]="selected()?.id === t.id" (click)="select(t)"
+                  tabindex="0" (keydown.enter)="select(t)" [attr.aria-selected]="selected()?.id === t.id">
+                <td><span class="u-name">{{ t.description }}</span></td>
+                <td><span class="role-pill" [class.admin]="t.category === 'Senior'">{{ t.category }}</span></td>
+                <td>{{ t.teamLeadName }}</td>
+                <td class="col-num" [class.full]="t.memberCount >= t.maxMembers">
+                  {{ t.memberCount }} / {{ t.maxMembers }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="um-pager">
+        <span class="muted um-count">{{ filtered().length }} of {{ teams().length }} teams</span>
+      </div>
+    </section>
+
+    <section class="um-form" #formPane aria-label="Team details">
+      <div class="panel-head">
+        <span class="panel-title">
+          <mat-icon>{{ selected() ? 'groups' : 'group_add' }}</mat-icon>
+          {{ selected()?.description ?? 'New team' }}
+        </span>
+        @if (selected()) {
+          <span class="mode-pill">Editing</span>
+        } @else {
+          <span class="mode-pill new">New record</span>
+        }
+      </div>
+
+      <form #f="ngForm" class="uf" (ngSubmit)="save()" autocomplete="off">
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Team name</mat-label>
+          <input matInput name="description" [(ngModel)]="description" required minlength="2" maxlength="200" />
+          @if (description.trim().length < 2) {
+            <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select name="category" [(ngModel)]="category">
+            <mat-option value="Senior">Senior (8 members)</mat-option>
+            <mat-option value="Regular">Regular (10 members)</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Team Lead</mat-label>
+          <mat-select name="teamLeadUserId" [(ngModel)]="teamLeadUserId" required>
+            @for (l of leads(); track l.user.id) {
+              <mat-option [value]="l.user.id" [disabled]="!!l.otherTeam">
+                {{ l.user.fullName }}
+                @if (l.otherTeam) { <span class="muted">(leads {{ l.otherTeam }})</span> }
+              </mat-option>
+            }
+          </mat-select>
+          @if (teamLeadUserId == null) {
+            <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
+          }
+        </mat-form-field>
+
+        @if (!leads().length) {
+          <p class="tm-note span-2">
+            No users have the TL (Team Lead) role yet. Give a user that role on the Users page first.
+          </p>
+        }
+      </form>
+
+      <div class="tm-members">
+        @if (selected(); as t) {
+          <div class="tm-members-head">
+            <span class="uf-label">Members</span>
+            <span class="tm-count" [class.full]="isFull()">{{ t.memberCount }} / {{ t.maxMembers }}</span>
+          </div>
+
+          @if (t.members.length) {
+            <ul class="tm-list">
+              @for (m of t.members; track m.userId) {
+                <li>
+                  <span class="tm-member">
+                    <span class="tm-name">{{ m.fullName }}</span>
+                    <span class="muted tm-email">{{ m.email }}</span>
+                  </span>
+                  <button type="button" mat-icon-button (click)="removeMember(m)"
+                          [attr.aria-label]="'Remove ' + m.fullName" matTooltip="Remove from team">
+                    <mat-icon>person_remove</mat-icon>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="muted tm-empty">No members yet.</p>
+          }
+
+          @if (isFull()) {
+            <p class="tm-note">This team is full. A {{ t.category }} team holds {{ t.maxMembers }} members.</p>
+          } @else {
+            <div class="tm-add">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Add a participant</mat-label>
+                <mat-select name="memberToAdd" [(ngModel)]="memberToAdd">
+                  @for (u of candidates(); track u.id) {
+                    <mat-option [value]="u.id">{{ u.fullName }} · {{ u.email }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <button type="button" mat-stroked-button (click)="addMember()"
+                      [disabled]="memberToAdd == null || saving()">
+                <mat-icon>person_add</mat-icon> Add
+              </button>
+            </div>
+          }
+        } @else {
+          <p class="muted tm-empty">Save the team to start adding members.</p>
+        }
+      </div>
+    </section>
+  </div>
+</div>

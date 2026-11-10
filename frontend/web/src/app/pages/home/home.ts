@@ -47,6 +47,7 @@ export class HomeComponent {
         { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
         { title: 'Meal Scanner', subtitle: 'Meal Stub Redemption', icon: 'restaurant', link: '/merchant/scan', category: 'Operations' },
         { title: 'Users', subtitle: 'People & Access', icon: 'group', link: '/admin/users', category: 'Admin' },
+        { title: 'Teams', subtitle: 'Leads & Members', icon: 'groups', link: '/admin/teams', category: 'Admin' },
         { title: 'Settings', subtitle: 'System Config', icon: 'settings', link: '/admin/settings', category: 'Admin' },
         account,
       ];
@@ -61,7 +62,8 @@ export class HomeComponent {
       { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
       { title: 'Calendar', subtitle: 'Event Dates & Invitations', icon: 'calendar_month', link: '/calendar', category: 'Events' },
       { title: 'Reminders', subtitle: 'Mail Reminder', icon: 'schedule_send', link: '/mail-planner', category: 'Events' },
-      { title: 'VOUCHER', subtitle: 'Airline Baggage', icon: 'luggage', link: '/voucher', category: 'Events' },
+      { title: 'My Team', subtitle: 'Team members', icon: 'group', link: '/team', category: 'Account'},
+      { title: 'Voucher', subtitle: 'Airline Baggage', icon: 'luggage', link: '/voucher', category: 'Events' },
       account,
     ];
     if (this.auth.canConfirm()) {

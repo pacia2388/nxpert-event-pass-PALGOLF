@@ -38,6 +38,48 @@ export interface UserDto {
   birthdate: string | null; // yyyy-MM-dd
 }
 
+// ---- Teams ----
+// The category sets the member cap (maxMembers comes from the server; the lead is not counted).
+export type TeamCategory = 'Senior' | 'Regular';
+export const TEAM_CATEGORIES: TeamCategory[] = ['Senior', 'Regular'];
+
+export interface TeamMemberDto {
+  userId: number;
+  fullName: string;
+  email: string;
+  addedAt: string;
+}
+export interface TeamDto {
+  id: number;
+  description: string;
+  category: TeamCategory;
+  teamLeadUserId: number;
+  teamLeadName: string;
+  memberCount: number;
+  maxMembers: number;
+  createdAt: string;
+}
+export interface TeamDetailDto extends TeamDto {
+  members: TeamMemberDto[];
+}
+export interface TeamUpsert {
+  description: string;
+  category: TeamCategory;
+  teamLeadUserId: number;
+}
+// Team Lead: add a member by name + email. An unknown email creates a Participant account.
+export interface TeamMemberCreate {
+  firstName: string;
+  middleInitial: string | null;
+  lastName: string;
+  email: string;
+}
+// created = a new account was made (it signs in with the default temporary password).
+export interface TeamMemberAddResult {
+  member: TeamMemberDto;
+  created: boolean;
+}
+
 // Where a member's entry pass + notifications are delivered. Viber/Both require a phone number.
 export type NotificationChannel = 'Email' | 'Viber' | 'Both';
 

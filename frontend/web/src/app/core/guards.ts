@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
 // The default landing page for a logged-in user, by role.
-function homeFor(auth: AuthService): string {
+export function homeFor(auth: AuthService): string {
   return auth.isMerchant() ? '/merchant/scan' : '/home';
 }
 
@@ -31,8 +31,9 @@ export const confirmerGuard: CanActivateFn = (_route, state) => {
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
-// Routes hidden from merchant accounts (e.g. Edit account). Merchants can only scan meal stubs,
-// so they're bounced to their scanner; everyone else logged-in passes.
+// Routes hidden from merchant and Team Lead accounts (e.g. Edit account). Merchants can only scan
+// meal stubs and Team Leads only manage their team, so both are bounced to their own page;
+// everyone else logged-in passes.
 export const nonMerchantGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -55,6 +56,15 @@ export const isTeamLead: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (auth.isTeamLead()) return true;
+  if (auth.isLoggedIn()) return router.createUrlTree([homeFor(auth)]);
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
+
+// The Voucher page: Participants and Team Leads only.
+export const voucherGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (auth.canUseVoucher()) return true;
   if (auth.isLoggedIn()) return router.createUrlTree([homeFor(auth)]);
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };

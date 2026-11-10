@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard, participantOrTlGuard, guestGuard } from './core/guards';
+import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard, participantOrTlGuard, guestGuard, voucherGuard, isTeamLead } from './core/guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -73,6 +73,22 @@ export const routes: Routes = [
     path: 'admin/users',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin/users/users').then((m) => m.UsersComponent),
+  },
+  {
+    path: 'admin/teams',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin/teams/teams').then((m) => m.TeamsComponent),
+  },
+  {
+    path: 'team',
+    canActivate: [isTeamLead],
+    loadComponent: () => import('./pages/team/team').then((m) => m.TeamComponent),
+  },
+  {
+    // Prototype: golf equipment voucher for a Philippine Airlines booking reference.
+    path: 'voucher',
+    canActivate: [voucherGuard],
+    loadComponent: () => import('./pages/voucher/voucher').then((m) => m.VoucherComponent),
   },
   {
     path: 'admin/settings',
