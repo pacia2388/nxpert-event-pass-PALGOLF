@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Status** | Not started (draft plan) |
-| **Last updated** | 2026-11-10 |
+| **Status** | 🚧 In progress |
+| **Last updated** | 2026-11-11 |
 | **Owner** | _TBD_ |
 
 > **Keep this plan current.** When work on the Teams module starts, update this file first: set
@@ -17,6 +17,22 @@
 
 Let admins group users into teams, each led by a Team Lead (`TL` role), and give TLs and team
 members their own pages. The data model is deliberately generic so it can be extended later.
+
+### Scope of the first build (2026-11-11)
+
+- **Admins** (Admin / SuperAdmin) create, edit and delete teams, assign the Team Lead, and add or
+  remove members on the admin **Teams** page.
+- A **TL can open only the Team page** (`/team`). Home, Browse Events, My Events, Calendar, Mail
+  Planner and Edit account all redirect there. This is enforced in the SPA (routes, landing page,
+  menu); the API endpoints a TL token can call are unchanged.
+- On the Team page the TL **adds Participants by first name, M.I., last name and email**:
+  - unknown email → a new Participant account is created with the shared default temporary
+    password (no forced change, no email sent) and joins the team;
+  - email of an existing **Participant** → that user joins the team, account untouched;
+  - email of any other role, or of someone already in a team → refused.
+- The TL page is add-only; removing members and editing the team stay with admins.
+- **Member caps: Senior = 8, Regular = 10** (`TeamCategories.MaxMembers`). The TL is not counted.
+- Not built yet: a page for team *members* (the `isTeamMember` shortcut stays).
 
 ## What already exists
 
@@ -38,7 +54,7 @@ Header / details: one `Teams` row per team, one `TeamMembers` row per user in th
 | Id | int | | PK, identity |
 | CompanyId | int | ✓ | Tenant id, same as `Users` / `Events` |
 | Description | nvarchar(200) | | Team name / description. Required, trimmed, 2–200 chars |
-| Category | nvarchar(20) | | **`Senior` · `Regular`** (C# constants class `TeamCategories`, same pattern as `EventStatus`) |
+| Category | nvarchar(20) | | **`Senior` · `Regular`** (C# constants class `TeamCategories`, same pattern as `EventStatus`). Sets the member cap: Senior 8, Regular 10 |
 | TeamLeadUserId | int | | FK → `Users.Id`, **Restrict** on delete. The user should have role `TL` |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
 | CreatedByUserId | int | | Admin who created it (no FK, like `Events.CreatedByUserId`) |
@@ -55,9 +71,9 @@ Generic membership list; add columns later (member role in team, joined/left dat
 | AddedAt | datetime2 | | DB default `GETUTCDATE()` |
 
 Indexes and constraints:
-- Unique `(TeamId, UserId)`: a user is listed once per team.
-- Index on `TeamMembers.UserId` (membership lookup at sign-in).
-- Index on `Teams.TeamLeadUserId`.
+- **Unique** index on `TeamMembers.UserId`: a user is in at most one team (question 1).
+- **Unique** index on `Teams.TeamLeadUserId`: a TL leads at most one team (question 2).
+- Index on `TeamMembers.TeamId` (member list and cap count).
 
 ### Relationships
 
@@ -66,42 +82,59 @@ Users 1─* Teams (as TeamLeadUserId)
 Teams 1─* TeamMembers *─1 Users
 ```
 
-## Open questions (answer when the module starts)
+## Open questions
 
-1. Can a user belong to more than one team?
-2. Can a TL lead more than one team?
-3. Is the TL also listed in `TeamMembers`, or implied by `TeamLeadUserId`?
-4. Must `TeamLeadUserId` have role `TL` (enforced on the server), and what happens to the team if that user's role changes?
-5. Who manages teams: Admin / SuperAdmin only?
-6. What can a TL do beyond a Participant (see team members, their registrations, attendance, confirm for team only)?
+Answered (2026-11-11):
+
+1. Can a user belong to more than one team? **No**, at most one (unique index).
+2. Can a TL lead more than one team? **No**, one team per TL (unique index).
+3. Is the TL also listed in `TeamMembers`? **No**, implied by `TeamLeadUserId`; the TL does not
+   count toward the member cap.
+4. Must `TeamLeadUserId` have role `TL`? **Yes**, enforced on create / update. While a user leads a
+   team an admin cannot change their role or delete them; reassign the team first.
+5. Who manages teams? **Admin / SuperAdmin** (create, edit, delete, add / remove members). A TL can
+   only add members to their own team.
+8. Do admins pass the `isTeamLead` / `isTeamMember` guards? **No**; admins use the admin Teams page.
+9. How is membership sent to the SPA? **`GET /api/teams/mine`** (204 when the TL has no team yet).
+
+Still open:
+
+6. What can a TL do beyond adding members (see their registrations, attendance, confirm for team only)?
 7. What does a team member see on the team page?
-8. Do admins pass the `isTeamLead` / `isTeamMember` guards?
-9. How is membership sent to the SPA: a JWT claim / `AuthResponse` field (`teamIds`), or a `GET /api/teams/mine` call? A claim only refreshes at next sign-in.
 
 ## Steps
 
-### Backend
-- [ ] Add `Team`, `TeamMember` entities and `TeamCategories` constants (`Models/`).
-- [ ] Register `DbSet`s and relationships in `AppDbContext` (keys, FKs, unique index).
-- [ ] Add EF migration (`dotnet ef migrations add Teams`).
-- [ ] `TeamsController` (`[Authorize(Roles = Admin, SuperAdmin)]`): list, get, create, update, delete teams; add / remove members.
-- [ ] Request DTOs with validation (description length, category value, user ids exist, TL user has role `TL`).
-- [ ] TL / member read endpoint, e.g. `GET /api/teams/mine`, with ownership checks.
-- [ ] Expose membership to the SPA (answer to question 9).
+### Backend ✅ Done (2026-11-11)
+- [x] Add `Team`, `TeamMember` entities and `TeamCategories` constants (`Models/`).
+- [x] Register `DbSet`s and relationships in `AppDbContext` (keys, FKs, unique index).
+- [x] Add EF migration (`dotnet ef migrations add Teams`).
+- [x] `TeamsController` (`[Authorize(Roles = Admin, SuperAdmin)]`): list, get, create, update, delete teams; add / remove members.
+- [x] Request DTOs with validation (description length, category value, user ids exist, TL user has role `TL`).
+- [x] TL read endpoint `GET /api/teams/mine` and add-member endpoint `POST /api/teams/mine/members`, scoped to the caller's own team.
+- [x] Expose membership to the SPA (answer to question 9).
+- [x] Member caps (Senior 8, Regular 10) on both add paths and on category change.
+- [x] `UsersController`: a lead or member keeps their role; a lead cannot be deleted; deleting a member drops the membership.
 
-### Frontend
-- [ ] Models for team header and members in `core/models.ts`; API calls in `core/api.service.ts`.
-- [ ] Admin page: Teams list + form (description, category, TL picker filtered to `TL` users, member picker).
-- [ ] Team page for TLs and members; routes guarded with `isTeamLead` / `isTeamMember`.
+### Tests ✅ Done (2026-11-11)
+- [x] `backend/EventRegistration.Api.Tests` (xUnit, real API over HTTP, own throwaway database): 33 tests for the TL add-member flow, admin team management and the Users rules.
+- [x] `frontend/web/src/app/core/guards.spec.ts` (Vitest via `ng test`): 11 tests for the TL lock-down.
+
+### Frontend 🚧 In progress
+- [x] Models for team header and members in `core/models.ts`; API calls in `core/api.service.ts`.
+- [x] Admin page: Teams list + form (description, category, TL picker filtered to `TL` users, member picker).
+- [x] Team page for TLs (`/team`, `isTeamLead`); a TL is redirected there from every other page.
+- [ ] Team page for members (question 7 still open).
 - [ ] Replace the `isTeamMember` shortcut with a real membership check.
-- [ ] Add menu / home tiles for the new pages.
+- [x] Add the admin "Teams" home tile.
 
-### Docs
-- [ ] Add `Teams` and `TeamMembers` to `documentation/database-table.md`.
-- [ ] Update TL and team capabilities in `documentation/roles.md`.
+### Docs ✅ Done (2026-11-11)
+- [x] Add `Teams` and `TeamMembers` to `documentation/database-table.md`.
+- [x] Update TL and team capabilities in `documentation/roles.md`.
 
 ## Change log
 
 | Date | Change |
 |---|---|
 | 2026-11-10 | Draft plan created: tables specified, guards and TL role already in place. |
+| 2026-11-11 | Work started. Scope set: admin team management, TL-only Team page with add-member (new account or existing Participant), member caps Senior 8 / Regular 10. Questions 1-5, 8, 9 answered; indexes changed to unique per user and per lead. |
+| 2026-11-11 | Backend, tests and docs done; admin Teams page and TL Team page built. Left: a page for team members and the real `isTeamMember` check. |

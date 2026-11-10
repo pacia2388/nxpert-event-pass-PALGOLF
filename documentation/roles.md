@@ -10,7 +10,7 @@ as a string in `Users.Role` (see [database-table.md](database-table.md)).
 | `SuperAdmin` | Same access as Admin wherever checked. **Cannot be assigned from the app** (not in the role picker, rejected by the API); only by editing the database. An existing SuperAdmin keeps the role when edited. |
 | `Admin` | Runs the system: events, users, settings, attendance, scanners, mail. |
 | `Participant` | Default role. Registers for events and uses their pass. |
-| `TL` (Team Lead) | Assignable by an admin on the Users page (form, CSV import). **Same capabilities as Participant for now**; wherever this doc says Participant, TL is included. |
+| `TL` (Team Lead) | Assignable by an admin on the Users page (form, CSV import). Leads one team, assigned by an admin on the Teams page. **The app shows a TL only the Team page** (`/team`), where they add Participants to their team. Lands on `/team`. |
 | `Merchant` | Vendor account that only scans and redeems meal stubs. Lands on `/merchant/scan`. |
 
 Plus one **permission** (not a role), the only per-user switch:
@@ -47,10 +47,21 @@ Plus one **permission** (not a role), the only per-user switch:
 | Dashboard | ✓ | ✓ | ✗ | ✗ | ✗ | – |
 | Users: create, import, edit role and permission, delete | ✓ | ✓ | ✗ | ✗ | ✗ | – |
 | Settings | ✓ | ✓ | ✗ | ✗ | ✗ | – |
+| Teams: create, edit, delete, assign lead, add / remove members | ✓ | ✓ | ✗ | ✗ | ✗ | – |
+
+**Team Lead (`TL`)** is not a column above. A TL can do exactly this in the app:
+
+| Capability | TL |
+|---|---|
+| See their own team and its members (`GET /api/teams/mine`) | ✓ |
+| Add a Participant to their team by name + email (`POST /api/teams/mine/members`); an unknown email creates the account | ✓, up to the cap (Senior 8, Regular 10) |
+| Remove members, rename the team, change its category | ✗ (admin only) |
+| Every other page (Home, Browse Events, My Events, Calendar, Mail Planner, Edit account, admin pages, scanners) | ✗, redirected to `/team` ³ |
 
 ¹ Bug: SuperAdmin is left out of the ownership checks in `RegistrationsController` (it checks
 `IsInRole(Admin)` only), so a SuperAdmin cannot act on other people's registrations there.
 ² The `/mail-planner` page opens for any non-merchant user, but the mail-plan API is Admin-only.
+³ UI only. The participant API endpoints still accept a TL token (see Known security gaps).
 
 Callers outside the role system:
 
@@ -66,7 +77,7 @@ Callers outside the role system:
 | Backend (authoritative) | `backend/EventRegistration.Api/Controllers/*` | `[Authorize(Roles = ...)]`, `[Authorize(Policy = "CanConfirmRegistrations")]`, `User.IsInRole(...)` inside actions |
 | Backend policy | `Program.cs` (`AddAuthorization`) | `CanConfirmRegistrations` = Admin OR SuperAdmin OR claim |
 | Backend role list | `Models/Entities.cs` (`Roles`), `UsersController.AssignableRoles` | Admin, Participant, TL, Merchant assignable |
-| Frontend (UI only) | `frontend/web/src/app/core/guards.ts` | `authGuard`, `adminGuard`, `confirmerGuard`, `nonMerchantGuard`, `merchantGuard` |
+| Frontend (UI only) | `frontend/web/src/app/core/guards.ts` | `authGuard`, `adminGuard`, `confirmerGuard`, `nonMerchantGuard`, `merchantGuard`, `isTeamLead`; `homeFor` picks the landing page |
 | Frontend routes | `frontend/web/src/app/app.routes.ts` | Guards attached per route |
 | Frontend helpers | `frontend/web/src/app/core/auth.service.ts`, `models.ts` | `isAdmin`, `isMerchant`, `canConfirm`; role type union |
 
@@ -77,10 +88,11 @@ Changing a role's capabilities means editing both projects and redeploying.
 | Route | Guard | Who gets in |
 |---|---|---|
 | `/login`, `/register`, `/verify/:token`, `/e/:slug`, `/r/:token` | none | Everyone |
-| `/home`, `/events`, `/my-events` | `authGuard` | Any signed-in user |
-| `/calendar`, `/mail-planner`, `/account` | `nonMerchantGuard` | Signed in, not Merchant |
-| `/admin/events`, `/admin/events/:id` | `confirmerGuard` | Admin, SuperAdmin, Can confirm |
-| `/admin/dashboard`, `/admin/users`, `/admin/settings`, `/admin/events/new`, `/admin/events/:id/edit`, `/scanner/:eventId`, `/scanner/:eventId/tv` | `adminGuard` | Admin, SuperAdmin |
+| `/home`, `/events`, `/my-events` | `authGuard` | Any signed-in user except TL |
+| `/calendar`, `/mail-planner`, `/account` | `nonMerchantGuard` | Signed in, not Merchant, not TL |
+| `/admin/events`, `/admin/events/:id` | `confirmerGuard` | Admin, SuperAdmin, Can confirm (not TL) |
+| `/team` | `isTeamLead` | TL only |
+| `/admin/dashboard`, `/admin/users`, `/admin/teams`, `/admin/settings`, `/admin/events/new`, `/admin/events/:id/edit`, `/scanner/:eventId`, `/scanner/:eventId/tv` | `adminGuard` | Admin, SuperAdmin |
 | `/merchant/scan` | `merchantGuard` | Merchant, Admin, SuperAdmin |
 
 ---
@@ -94,7 +106,8 @@ Every path goes through the backend. Each creates a row in `Users`.
 | 1 | **Self-registration** (`/register` page) | Anyone | `POST /api/auth/register` (`AuthController`) | Participant | Chosen by the user |
 | 2 | **Admin creates a user** (Users page form) | Admin, SuperAdmin | `POST /api/users` (`UsersController`) | Admin, Participant, TL or Merchant; Can confirm optional | Set by the admin |
 | 3 | **CSV import** (≤ 5000 rows) | Admin, SuperAdmin | `POST /api/users/import` (`UsersController`) | From CSV column (blank = Participant); Can confirm always off | Shared default |
-| 4 | **Seeder** (empty database only) | System at startup | `Data/DbSeeder.cs` | 1 Admin + 5 demo Participants | Fixed demo passwords |
+| 4 | **Team Lead adds a member** (Team page) | TL | `POST /api/teams/mine/members` (`TeamsController`) | Participant (never from input); joins the TL's team | Shared default |
+| 5 | **Seeder** (empty database only) | System at startup | `Data/DbSeeder.cs` | 1 Admin + 5 demo Participants | Fixed demo passwords |
 
 These do **not** create a user account:
 
@@ -125,6 +138,8 @@ registrations* confirms it (see `.claude/rules/registration-flow.md`).
 |---|---|---|
 | Seeder runs in every environment, so a new Production DB gets the demo admin and demo users | `Program.cs` calls `DbSeeder.SeedAsync` without an environment check | Seed demo admin in Development only |
 | All CSV-imported users share one short, numeric default password with no forced change | `UsersController.DefaultImportPassword` | Password policy (min 8, letter + digit) |
+| Accounts a Team Lead creates share one short default password with no forced change | `TeamsController.DefaultMemberPassword` | Password policy (min 8, letter + digit) |
+| A TL is limited to the Team page in the SPA only; participant API endpoints still accept a TL token | `core/guards.ts` vs. controllers | Server is authoritative |
 | Self-registration returns 409 "account already exists" | `AuthController.Register` | Register must not reveal existing emails |
 | Invite link signs the invitee in from the link alone; token not single-use or time-limited | `AuthController.ResolveInvite` | Invite tokens single-use, time-limited; no auth from link alone |
 | SuperAdmin missing from ownership checks | `RegistrationsController` | Consistency (functional bug) |
