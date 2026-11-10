@@ -23,6 +23,8 @@ public class AppDbContext : DbContext
     public DbSet<MailPlanDelivery> MailPlanDeliveries => Set<MailPlanDelivery>();
     public DbSet<MailPlanEventName> MailPlanEventNames => Set<MailPlanEventName>();
     public DbSet<MailPlanSavedCc> MailPlanSavedCcs => Set<MailPlanSavedCc>();
+    public DbSet<Team> Teams => Set<Team>();
+    public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -114,6 +116,21 @@ public class AppDbContext : DbContext
         b.Entity<MailPlanDelivery>().HasIndex(d => d.RemindAt).HasFilter("[RemindAt] IS NOT NULL AND [ReminderSentAt] IS NULL");
         b.Entity<MailPlanEventName>().HasIndex(n => n.Name).IsUnique();
         b.Entity<MailPlanSavedCc>().HasIndex(c => c.Email).IsUnique();
+
+        // Teams: a TL leads at most one team and a user is a member of at most one team (both
+        // unique). Users are never cascade-deleted through a team; a team's members are.
+        b.Entity<Team>().HasOne(t => t.TeamLead).WithMany()
+            .HasForeignKey(t => t.TeamLeadUserId).OnDelete(DeleteBehavior.Restrict);
+        b.Entity<Team>().HasIndex(t => t.TeamLeadUserId).IsUnique();
+        b.Entity<Team>().Property(t => t.CreatedAt)
+            .HasDefaultValueSql("GETUTCDATE()").ValueGeneratedOnAdd();
+        b.Entity<TeamMember>().HasOne(m => m.Team).WithMany(t => t.Members)
+            .HasForeignKey(m => m.TeamId).OnDelete(DeleteBehavior.Cascade);
+        b.Entity<TeamMember>().HasOne(m => m.User).WithMany()
+            .HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Restrict);
+        b.Entity<TeamMember>().HasIndex(m => m.UserId).IsUnique();
+        b.Entity<TeamMember>().Property(m => m.AddedAt)
+            .HasDefaultValueSql("GETUTCDATE()").ValueGeneratedOnAdd();
 
         // One feedback per user per event (updatable).
         b.Entity<Feedback>().HasIndex(f => new { f.EventId, f.UserId }).IsUnique();

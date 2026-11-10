@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../core/auth.service';
+import { homeFor } from '../../core/guards';
 import { ToastService } from '../../core/toast.service';
 
 @Component({
@@ -42,10 +43,8 @@ export class LoginComponent {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
         if (returnUrl) {
           this.router.navigateByUrl(returnUrl);
-        } else if (this.auth.isMerchant()) {
-          this.router.navigate(['/merchant/scan']);
         } else {
-          this.router.navigate(['/home']);
+          this.router.navigate([homeFor(this.auth)]);
         }
       },
       error: (err) => {

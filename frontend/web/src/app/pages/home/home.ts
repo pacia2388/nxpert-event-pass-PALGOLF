@@ -47,6 +47,7 @@ export class HomeComponent {
         { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
         { title: 'Meal Scanner', subtitle: 'Meal Stub Redemption', icon: 'restaurant', link: '/merchant/scan', category: 'Operations' },
         { title: 'Users', subtitle: 'People & Access', icon: 'group', link: '/admin/users', category: 'Admin' },
+        { title: 'Teams', subtitle: 'Leads & Members', icon: 'groups', link: '/admin/teams', category: 'Admin' },
         { title: 'Settings', subtitle: 'System Config', icon: 'settings', link: '/admin/settings', category: 'Admin' },
         account,
       ];

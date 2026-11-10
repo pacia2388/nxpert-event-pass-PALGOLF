@@ -1,0 +1,106 @@
+// Teams-only additions; the split layout and form come from the User Master styles.
+.col-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+
+  &.full {
+    color: #b06000;
+    font-weight: 700;
+  }
+}
+
+.um-table th.col-num {
+  text-align: right;
+}
+
+.tm-note {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef7e0;
+  color: #8a4b00;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tm-members {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f6faf8;
+  border: 1px solid rgba(13, 148, 136, 0.12);
+}
+
+.tm-members-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.tm-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0d9488;
+  font-variant-numeric: tabular-nums;
+
+  &.full {
+    color: #b06000;
+  }
+}
+
+.tm-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  }
+
+  li:last-child {
+    border-bottom: none;
+  }
+}
+
+.tm-member {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tm-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.tm-email {
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.tm-empty {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+}
+
+.tm-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-form-field {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  button {
+    flex: none;
+  }
+}
