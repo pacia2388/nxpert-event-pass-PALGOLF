@@ -28,6 +28,7 @@ Full guide: [reference.md](reference.md). Organizer counterpart: the `admin-guid
 | Editing answers (account or edit link) | §6 |
 | My Account | §7 |
 | Event day | §8 |
+| VOUCHER (airline baggage voucher, PNG download) | §9 |
 | Quick answers | Appendix |
 
 ## Status meanings
@@ -46,4 +47,5 @@ XXXX) both required, optional display picture, optional face check-in (needs con
 - *No pass received* → passes go out after confirmation.
 - *Lost pass* → **My Events → Show pass / Re-send pass email** (once confirmed).
 - *Cancel* → **My Events → ⋮ → Cancel registration** unless already checked in.
+- *"Ticket number already has a voucher"* → each airline ticket number gets one voucher only; use the existing one in **VOUCHER → My vouchers**.
 - *Can't edit name / ID No. on the form* → they come from the account; change in **My Account**.

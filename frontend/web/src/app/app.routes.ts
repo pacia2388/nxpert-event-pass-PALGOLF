@@ -1,14 +1,16 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard } from './core/guards';
+import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard, participantOrTlGuard, guestGuard } from './core/guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   {
     path: 'login',
+    canActivate: [guestGuard],
     loadComponent: () => import('./pages/login/login').then((m) => m.LoginComponent),
   },
   {
     path: 'register',
+    canActivate: [guestGuard],
     loadComponent: () => import('./pages/register/register').then((m) => m.RegisterComponent),
   },
   {
@@ -116,6 +118,12 @@ export const routes: Routes = [
     path: 'merchant/scan',
     canActivate: [merchantGuard],
     loadComponent: () => import('./pages/merchant/meal-scanner').then((m) => m.MealScannerComponent),
+  },
+  {
+    // Airline baggage vouchers (golf equipment), Participant and TL only.
+    path: 'voucher',
+    canActivate: [participantOrTlGuard],
+    loadComponent: () => import('./pages/voucher/voucher').then((m) => m.VoucherComponent),
   },
   { path: '**', redirectTo: 'login' },
 ];

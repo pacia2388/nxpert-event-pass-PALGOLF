@@ -18,6 +18,7 @@ export class AuthService {
   });
   // A merchant can only scan/redeem meal stubs.
   readonly isMerchant = computed(() => this._auth()?.role === 'Merchant');
+  readonly isParticipant = computed(() => this._auth()?.role === 'Participant');
   readonly isTeamLead = computed(() => this._auth()?.role === 'TL');
   // shortcut: TLs only, until the teams tables exist; then true for users listed in a team's details.
   readonly isTeamMember = computed(() => this.isTeamLead());
@@ -110,7 +111,14 @@ export class AuthService {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     try {
-      return JSON.parse(raw) as AuthResponse;
+      const res = JSON.parse(raw) as AuthResponse;
+      // A cached session whose JWT has expired counts as signed out (avoids home -> 401 -> login bounce).
+      const exp = JSON.parse(atob(res.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp;
+      if (typeof exp === 'number' && exp * 1000 <= Date.now()) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return res;
     } catch {
       return null;
     }

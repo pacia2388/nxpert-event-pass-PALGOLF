@@ -16,6 +16,7 @@ import {
   InvitationMessageResult,
   InvitationEmail,
   CheckInResult,
+  Voucher,
   ClaimKitResult,
   ConfirmResult,
   CancelRegistrationsResult,
@@ -585,5 +586,13 @@ export class ApiService {
   // Guest-registration faces for an event (token-based), for facial-recognition check-in of guests.
   eventGuestFaceDescriptors(eventId: number): Observable<RegistrationFace[]> {
     return this.http.get<RegistrationFace[]>(this.url(`/api/events/${eventId}/guest-face-descriptors`));
+  }
+
+  // ---- Vouchers (airline baggage, golf equipment) ----
+  getMyVouchers(): Observable<Voucher[]> {
+    return this.http.get<Voucher[]>(this.url('/api/vouchers'));
+  }
+  createVoucher(ticketNumber: string): Observable<Voucher> {
+    return this.http.post<Voucher>(this.url('/api/vouchers'), { ticketNumber });
   }
 }

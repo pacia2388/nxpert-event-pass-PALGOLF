@@ -67,3 +67,18 @@ export const isTeamMember: CanActivateFn = (_route, state) => {
   if (auth.isLoggedIn()) return router.createUrlTree([homeFor(auth)]);
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
+
+// Participant or Team Lead (TL) only routes (e.g. the baggage Voucher page).
+export const participantOrTlGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (auth.isParticipant() || auth.isTeamLead()) return true;
+  if (auth.isLoggedIn()) return router.createUrlTree([homeFor(auth)]);
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
+
+// Sign-in / sign-up pages: a user who is already signed in goes to their landing page instead.
+export const guestGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  return auth.isLoggedIn() ? inject(Router).createUrlTree([homeFor(auth)]) : true;
+};

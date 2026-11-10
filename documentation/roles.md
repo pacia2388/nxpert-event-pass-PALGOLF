@@ -35,6 +35,7 @@ Plus one **permission** (not a role), the only per-user switch:
 | Mail inbox / My Reminders | ✓ | ✓ | ✓ | ✓ | ✓ (API only) | – |
 | Mail planner: create, edit, send plans | ✓ | ✓ | ✗ ² | ✗ ² | ✗ | – |
 | My Account (edit profile) | ✓ | ✓ | ✓ | ✓ | ✗ (UI only) | – |
+| VOUCHER: generate / preview / download own baggage vouchers (Participant and TL roles only) | ✗ | ✗ | ✓ | ✓ | ✗ | – |
 | Event list and details, offline bundle, face descriptors | ✓ | ✓ | ✓ | ✗ | ✗ | – |
 | Attendance: list, confirm, check in, resend pass, kit, meals, export | ✓ | ✓ | ✓ | ✗ | ✗ | – |
 | Attendance: cancel pending registration | ✓ | ✓ | ✓ | ✗ | ✗ | – |

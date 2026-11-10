@@ -1,0 +1,77 @@
+<div class="page-title">
+  <mat-icon color="primary">luggage</mat-icon>
+  <h1>VOUCHER</h1>
+</div>
+<p class="muted voucher-intro">Airline baggage voucher for golf equipment. One voucher per airline ticket number.</p>
+
+<mat-card class="voucher-card">
+  @if (saving()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+  <mat-card-content>
+    <div class="voucher-user">
+      <div>
+        <span class="label">Full name</span>
+        <span class="value">{{ auth.fullName() || '—' }}</span>
+      </div>
+      <div>
+        <span class="label">Email</span>
+        <span class="value">{{ email() || '—' }}</span>
+      </div>
+      <a mat-button routerLink="/account"><mat-icon>edit</mat-icon> Edit account</a>
+    </div>
+
+    <form class="voucher-form" #f="ngForm" (ngSubmit)="generate(f)">
+      <mat-form-field appearance="outline" class="ticket-field">
+        <mat-label>Airline ticket number</mat-label>
+        <input matInput name="ticketNumber" [(ngModel)]="ticketNumber" (ngModelChange)="ticketError.set('')"
+               maxlength="30" autocomplete="off" placeholder="e.g. PR-1234567890123" required />
+        @if (ticketError()) {
+          <mat-hint class="ticket-error" role="alert">{{ ticketError() }}</mat-hint>
+        } @else {
+          <mat-hint>4–30 letters, numbers or dashes</mat-hint>
+        }
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="!isValid() || saving()">
+        <mat-icon>add_card</mat-icon> Generate
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<h2 class="voucher-table-title">My vouchers</h2>
+@if (loading()) {
+  <div class="empty-state"><mat-icon>hourglass_top</mat-icon><p>Loading vouchers…</p></div>
+} @else if (vouchers().length === 0) {
+  <div class="empty-state"><mat-icon>luggage</mat-icon><p>No vouchers yet.</p></div>
+} @else {
+  <mat-card class="voucher-card">
+    <div class="table-scroll">
+      <table mat-table [dataSource]="vouchers()">
+        <ng-container matColumnDef="voucherNo">
+          <th mat-header-cell *matHeaderCellDef>Voucher No.</th>
+          <td mat-cell *matCellDef="let v">{{ v.voucherNo }}</td>
+        </ng-container>
+        <ng-container matColumnDef="ticketNumber">
+          <th mat-header-cell *matHeaderCellDef>Airline ticket number</th>
+          <td mat-cell *matCellDef="let v">{{ v.ticketNumber }}</td>
+        </ng-container>
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef>Generated on</th>
+          <td mat-cell *matCellDef="let v">{{ v.createdAt | date: 'MMM d, y, h:mm a' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+          <td mat-cell *matCellDef="let v" class="actions-col">
+            <button mat-icon-button (click)="preview(v)" matTooltip="Preview" [attr.aria-label]="'Preview voucher ' + v.voucherNo">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button (click)="download(v)" matTooltip="Download PNG" [attr.aria-label]="'Download voucher ' + v.voucherNo">
+              <mat-icon>download</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+    </div>
+  </mat-card>
+}

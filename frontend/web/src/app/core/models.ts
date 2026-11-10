@@ -849,3 +849,12 @@ export interface EventSubEventBreakdown {
   totalRegistrations: number;
   subEvents: SubEventCount[];
 }
+
+/** Airline baggage voucher (golf equipment). voucherNo is e.g. "GV-000123". */
+export interface Voucher {
+  id: number;
+  voucherNo: string;
+  fullName: string;
+  ticketNumber: string;
+  createdAt: string;
+}

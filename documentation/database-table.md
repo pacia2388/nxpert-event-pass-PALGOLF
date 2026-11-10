@@ -31,6 +31,7 @@ The facerog-engine has no database. It reads registrant photos from the API
 | `MailPlanEventNames` | Event names typed in the mail planner, saved for reuse. |
 | `MailPlanSavedCcs` | CC addresses saved from the mail planner, offered later. |
 | `Feedbacks` | Event rating and comment, one per user per event. |
+| `Vouchers` | Airline baggage vouchers (golf equipment); one per airline ticket number across all users. |
 | `AppSettings` | Key/value store for admin settings. |
 | `__EFMigrationsHistory` | EF Core's record of applied migrations (managed by EF). |
 
@@ -44,6 +45,7 @@ Users 1─* Registrations *─1 Events 1─* Sessions
                 │                ├─* InvitationEmails
                 │                ├─* Feedbacks (by EventId/UserId, no FK)
                 │                └─* MailPlans (EventId optional, SET NULL on delete)
+                ├─* Vouchers (CASCADE on user delete)
                 ├─* MealStubs
                 └─* MealRedemptions
 MailPlans 1─* MailPlanSends 1─* MailPlanDeliveries
@@ -320,6 +322,15 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | Rating | int | | 1–5 |
 | Comment | max | ✓ | ≤ 1000 chars (validation rule) |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
+
+### Vouchers
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| Id | int | | PK. Shown as voucher no. `GV-{Id:D6}` (e.g. GV-000123) |
+| UserId | int | | FK → Users (CASCADE) |
+| TicketNumber | nvarchar(30) | | **Unique** (all users). Stored trimmed + upper-cased; 4–30 letters, digits, dashes |
+| CreatedAt | datetime2 | | UTC |
 
 ### AppSettings
 

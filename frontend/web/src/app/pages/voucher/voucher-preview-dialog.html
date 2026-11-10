@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>Voucher {{ data.voucherNo }}</h2>
+<mat-dialog-content>
+  @if (image(); as src) {
+    <img class="voucher-img" [src]="src" [alt]="'Voucher ' + data.voucherNo + ' for ticket ' + data.ticketNumber" />
+  } @else {
+    <p class="muted">Rendering voucher…</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+  <button mat-flat-button color="primary" (click)="download()" [disabled]="!image()">
+    <mat-icon>download</mat-icon> Download
+  </button>
+</mat-dialog-actions>

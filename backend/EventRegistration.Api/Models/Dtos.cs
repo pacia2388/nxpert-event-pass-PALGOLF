@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EventRegistration.Api.Models;
 
 // Email holds the login identifier — an email address OR a username.
@@ -348,3 +350,8 @@ public record EventChapterBreakdown(
 public record SubEventCount(int SessionId, string Title, DateTime StartsAt, int Count, int? Capacity);
 public record EventSubEventBreakdown(
     int EventId, string EventTitle, int TotalRegistrations, List<SubEventCount> SubEvents);
+
+// ---- Vouchers (airline baggage, golf equipment) ----
+// Exact format (4–30 chars, letters/digits/dashes) is checked after trimming in VouchersController.
+public record CreateVoucherRequest([Required, MaxLength(64)] string TicketNumber);
+public record VoucherDto(int Id, string VoucherNo, string FullName, string TicketNumber, DateTime CreatedAt);

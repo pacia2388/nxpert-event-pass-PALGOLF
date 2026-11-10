@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<MailPlanDelivery> MailPlanDeliveries => Set<MailPlanDelivery>();
     public DbSet<MailPlanEventName> MailPlanEventNames => Set<MailPlanEventName>();
     public DbSet<MailPlanSavedCc> MailPlanSavedCcs => Set<MailPlanSavedCc>();
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -32,6 +33,11 @@ public class AppDbContext : DbContext
         b.Entity<User>().HasIndex(u => u.Username).IsUnique();
 
         b.Entity<Event>().HasIndex(e => e.PublicSlug).IsUnique();
+
+        b.Entity<Voucher>().HasIndex(v => v.TicketNumber).IsUnique();
+        b.Entity<Voucher>()
+            .HasOne(v => v.User).WithMany()
+            .HasForeignKey(v => v.UserId).OnDelete(DeleteBehavior.Cascade);
 
         b.Entity<Registration>().HasIndex(r => r.Token).IsUnique();
         // Soft-deleted registrations (and their meal stubs/redemptions) are hidden from every

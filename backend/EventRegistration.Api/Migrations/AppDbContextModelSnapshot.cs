@@ -929,6 +929,35 @@ namespace EventRegistration.Api.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("EventRegistration.Api.Models.Voucher", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TicketNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketNumber")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Vouchers");
+                });
+
             modelBuilder.Entity("EventRegistration.Api.Models.Invitation", b =>
                 {
                     b.HasOne("EventRegistration.Api.Models.Event", "Event")
@@ -1057,6 +1086,17 @@ namespace EventRegistration.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.Voucher", b =>
+                {
+                    b.HasOne("EventRegistration.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EventRegistration.Api.Models.Event", b =>

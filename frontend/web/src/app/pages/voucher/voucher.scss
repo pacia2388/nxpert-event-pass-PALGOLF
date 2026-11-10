@@ -1,0 +1,37 @@
+.voucher-intro { margin: -8px 0 16px; }
+.voucher-card { margin-bottom: 20px; }
+
+.voucher-user {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 32px;
+  margin-bottom: 16px;
+
+  > div { display: flex; flex-direction: column; min-width: 0; }
+  .label { font-size: 12px; opacity: 0.7; }
+  .value { font-weight: 600; overflow-wrap: anywhere; }
+  a { margin-left: auto; }
+}
+
+.voucher-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+
+  .ticket-field { flex: 1 1 260px; }
+  button { margin-top: 8px; }
+}
+
+.ticket-error { color: var(--mat-sys-error, #b3261e); }
+
+.voucher-table-title { font-size: 18px; margin: 8px 0 12px; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; }
+.actions-col { text-align: right; white-space: nowrap; }
+
+// Phones: drop the date column so both action buttons stay visible without scrolling.
+@media (max-width: 600px) {
+  .mat-column-createdAt { display: none; }
+}

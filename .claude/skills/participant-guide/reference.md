@@ -165,6 +165,22 @@ For an **online** event, just click **Join online meeting** in your email or **J
 
 ---
 
+## 9. VOUCHER (airline baggage voucher — golf equipment)
+
+Participants and Team Leads open **Home → VOUCHER**.
+
+1. The top shows your **full name** and **email** (fix them in **My Account**).
+2. Type your **airline ticket number** (4–30 letters, numbers or dashes) and tap **Generate**.
+3. The new voucher appears in **My vouchers** at the bottom. Each row has **Preview** (eye icon)
+   and **Download** (saves a PNG image to show at the airline counter or print).
+
+The voucher shows your full name, the ticket number, a QR code, the voucher number (GV-…) and
+when it was generated. **Each airline ticket number can be used for one voucher only** — if it
+was already used (by anyone), Generate shows *"This airline ticket number already has a
+voucher."*
+
+---
+
 ## Appendix — Participant quick answers
 
 | Question | Answer |

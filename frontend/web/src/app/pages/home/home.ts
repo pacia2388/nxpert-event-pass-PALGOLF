@@ -60,7 +60,8 @@ export class HomeComponent {
       { title: 'Browse Events', subtitle: 'Open Registrations', icon: 'travel_explore', link: '/events', category: 'Events' },
       { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
       { title: 'Calendar', subtitle: 'Event Dates & Invitations', icon: 'calendar_month', link: '/calendar', category: 'Events' },
-      { title: 'Mail Planner', subtitle: 'Mail Reminders', icon: 'schedule_send', link: '/mail-planner', category: 'Events' },
+      { title: 'Reminders', subtitle: 'Mail Reminder', icon: 'schedule_send', link: '/mail-planner', category: 'Events' },
+      { title: 'VOUCHER', subtitle: 'Airline Baggage', icon: 'luggage', link: '/voucher', category: 'Events' },
       account,
     ];
     if (this.auth.canConfirm()) {
