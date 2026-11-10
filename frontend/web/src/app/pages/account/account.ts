@@ -15,6 +15,8 @@ import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { NotificationChannel, ProfileUpdate } from '../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { BIRTHDATE_MIN, birthdateMax, fromIsoDate, isValidBirthdate, toIsoDate } from '../../shared/birthdate';
 
 @Component({
   selector: 'app-account',
@@ -24,6 +26,7 @@ import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDatepickerModule,
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
@@ -52,6 +55,9 @@ export class AccountComponent implements OnInit {
   organization = '';
   phone = '';
   notificationChannel: NotificationChannel = 'Email';
+  birthdate: Date | null = null;
+  readonly birthdateMin = BIRTHDATE_MIN;
+  readonly birthdateMax = birthdateMax();
 
   // Viber passes are delivered to the phone number, so it's mandatory when Viber is chosen.
   phoneRequired = () => this.notificationChannel === 'Viber';
@@ -86,6 +92,7 @@ export class AccountComponent implements OnInit {
         this.organization = p.organization ?? '';
         this.phone = p.phone ?? '';
         this.notificationChannel = p.notificationChannel ?? 'Email';
+        this.birthdate = fromIsoDate(p.birthdate);
         this.existingPhoto.set(p.photoUrl);
         this.hadFace = p.hasFace;
         this.loading.set(false);
@@ -180,7 +187,7 @@ export class AccountComponent implements OnInit {
     const names = !!this.firstName.trim() && !!this.lastName.trim();
     const pwOk = !this.newPassword || (this.newPassword.length >= 8 && !!this.currentPassword);
     const phoneOk = !this.phoneRequired() || !!this.phone.trim();
-    return names && pwOk && phoneOk;
+    return names && pwOk && phoneOk && isValidBirthdate(this.birthdate);
   }
 
   save(): void {
@@ -200,6 +207,7 @@ export class AccountComponent implements OnInit {
       newPassword: this.newPassword || null,
       notificationChannel: this.notificationChannel,
       face: this.facePayload(),
+      birthdate: toIsoDate(this.birthdate),
     };
 
     this.api.updateMyProfile(body).subscribe({

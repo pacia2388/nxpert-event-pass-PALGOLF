@@ -35,8 +35,9 @@
       </button>
       <input #fileInput type="file" accept=".csv,text/csv" hidden (change)="onFile($event)" />
       <p class="cols">
-        Required columns: <strong>First Name</strong>, <strong>Last Name</strong>, <strong>Email</strong>.
-        Optional: Middle Initial, Username, ID No, Designation, Organization, Phone, Role, Notification Channel.
+        Use the template: its header row must stay exactly as downloaded (same columns, same order).
+        Required: <strong>First Name</strong>, <strong>Last Name</strong>, <strong>Email</strong>,
+        <strong>Birthdate</strong> (yyyy-MM-dd or M/d/yyyy). Columns marked "(optional)" may be left blank.
       </p>
       <button mat-button (click)="downloadTemplate()">
         <mat-icon>download</mat-icon> Download template
@@ -61,7 +62,7 @@
       <div class="preview-wrap">
         <table class="preview-table">
           <thead>
-            <tr><th>First</th><th>Last</th><th>Email</th><th>Role</th><th>Phone</th></tr>
+            <tr><th>First</th><th>Last</th><th>Email</th><th>Role</th><th>Phone</th><th>Birthdate</th></tr>
           </thead>
           <tbody>
             @for (u of preview(); track $index) {
@@ -71,6 +72,7 @@
                 <td>{{ u.email || '—' }}</td>
                 <td>{{ u.role || 'Participant' }}</td>
                 <td>{{ u.phone || '—' }}</td>
+                <td>{{ u.birthdate || '—' }}</td>
               </tr>
             }
           </tbody>
@@ -90,7 +92,7 @@
     <button mat-button (click)="cancel()">Cancel</button>
     <button mat-flat-button color="primary" (click)="runImport()"
             [disabled]="importing() || rows().length === 0">
-      <mat-icon>group_add</mat-icon> Import {{ rows().length || '' }}
+      <mat-icon>group_add</mat-icon> Import {{ rows().length ? '(' + rows().length + ')'  : '' }}
     </button>
   }
 </mat-dialog-actions>

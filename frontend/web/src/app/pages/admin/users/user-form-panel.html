@@ -60,6 +60,15 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline">
+    <mat-label>Birthdate</mat-label>
+    <input matInput [matDatepicker]="birthdatePicker" name="birthdate" [(ngModel)]="birthdate"
+           required [min]="birthdateMin" [max]="birthdateMax" placeholder="MM/DD/YYYY" />
+    <mat-datepicker-toggle matIconSuffix [for]="birthdatePicker"></mat-datepicker-toggle>
+    <mat-datepicker #birthdatePicker startView="multi-year"></mat-datepicker>
+    @if (!birthdate) { <mat-error>Birthdate is required.</mat-error> }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
     <mat-label>Username</mat-label>
     <input matInput name="username" [(ngModel)]="username" maxlength="100"
            placeholder="Auto-generated if blank" />
@@ -88,7 +97,7 @@
     <input matInput name="senateNo" [(ngModel)]="senateNo" maxlength="50" />
   </mat-form-field>
 
-  <mat-form-field appearance="outline">
+  <mat-form-field appearance="outline" class="span-2">
     <mat-label>Designation</mat-label>
     <input matInput name="level" [(ngModel)]="level" maxlength="100" />
   </mat-form-field>

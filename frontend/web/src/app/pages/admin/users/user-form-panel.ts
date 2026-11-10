@@ -13,6 +13,8 @@ import { ToastService } from '../../../core/toast.service';
 import { AdminUserUpsert, NotificationChannel, UserDto } from '../../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../../shared/face-capture-dialog';
 import { formatPhMobile } from '../../../shared/ph-phone';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { BIRTHDATE_MIN, birthdateMax, fromIsoDate, isValidBirthdate, toIsoDate } from '../../../shared/birthdate';
 
 // Right-hand form of the User Master screen. Shows the selected user (edit) or a blank
 // record (new); the page toolbar drives it through save() / isDirty().
@@ -23,6 +25,7 @@ import { formatPhMobile } from '../../../shared/ph-phone';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDatepickerModule,
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
@@ -56,6 +59,9 @@ export class UserFormPanelComponent {
   phone = '';
   notificationChannel: NotificationChannel = 'Email';
   canConfirmRegistrations = false;
+  birthdate: Date | null = null;
+  readonly birthdateMin = BIRTHDATE_MIN;
+  readonly birthdateMax = birthdateMax();
 
   // Photo state. existingPhoto = current photo (loaded on edit); newPhoto = a freshly picked
   // data URL; clearPhoto = the admin removed the existing one. On save: newPhoto wins, else
@@ -111,6 +117,7 @@ export class UserFormPanelComponent {
     this.phone = formatPhMobile(u?.phone);
     this.notificationChannel = u?.notificationChannel ?? 'Email';
     this.canConfirmRegistrations = u?.canConfirmRegistrations ?? false;
+    this.birthdate = fromIsoDate(u?.birthdate);
     this.hadFace = u?.hasFace ?? false;
 
     this.existingPhoto.set(null);
@@ -151,6 +158,7 @@ export class UserFormPanelComponent {
       phone: this.phone,
       organization: this.organization,
       canConfirm: this.canConfirmRegistrations,
+      birthdate: this.birthdate,
     };
   }
 
@@ -243,7 +251,7 @@ export class UserFormPanelComponent {
     const phone = this.phone.trim();
     const phoneComplete = /^\+63 \d{3} \d{3} \d{4}$/.test(phone);
     const phoneOk = phone ? phoneComplete : !this.phoneRequired();
-    return hasNames && hasEmail && pwOk && !!this.role && phoneOk;
+    return hasNames && hasEmail && pwOk && !!this.role && phoneOk && isValidBirthdate(this.birthdate);
   }
 
   save(): void {
@@ -271,6 +279,7 @@ export class UserFormPanelComponent {
       photo: this.photoPayload(),
       face: this.facePayload(),
       notificationChannel: this.notificationChannel,
+      birthdate: toIsoDate(this.birthdate),
     };
 
     const current = this.user();

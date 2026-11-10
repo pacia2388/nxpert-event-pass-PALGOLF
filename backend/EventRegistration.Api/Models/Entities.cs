@@ -97,6 +97,8 @@ public class User
     [MaxLength(20)] public string Role { get; set; } = Roles.Participant;
     [MaxLength(40)] public string? Phone { get; set; }
     [MaxLength(200)] public string? Organization { get; set; }
+    // Nullable so accounts created before this field existed stay valid; the UI requires it.
+    public DateOnly? Birthdate { get; set; }
     // Where to deliver the entry pass + notifications: "Email" (default) or "Viber".
     // Viber delivery uses Phone, so Phone is required whenever this is "Viber".
     [MaxLength(10)] public string NotificationChannel { get; set; } = NotificationChannels.Email;

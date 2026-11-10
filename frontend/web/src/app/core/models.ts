@@ -35,6 +35,7 @@ export interface UserDto {
   createdAt: string;
   photoUrl: string | null;
   hasFace: boolean;
+  birthdate: string | null; // yyyy-MM-dd
 }
 
 // Where a member's entry pass + notifications are delivered. Viber/Both require a phone number.
@@ -192,6 +193,7 @@ export interface UserImportRow {
   phone?: string | null;
   role?: string | null;
   notificationChannel?: string | null;
+  birthdate?: string | null;
 }
 export interface UserImportError {
   row: number;
@@ -221,6 +223,7 @@ export interface AdminUserUpsert {
   photo?: string | null;
   face?: string | null; // JSON array of 128 floats; null = unchanged, "" = clear
   notificationChannel: NotificationChannel;
+  birthdate: string | null; // yyyy-MM-dd
 }
 
 export interface VerifyEmailResult {
@@ -242,6 +245,7 @@ export interface ProfileDto {
   photoUrl: string | null;
   role: string;
   hasFace: boolean;
+  birthdate: string | null; // yyyy-MM-dd
 }
 
 export interface ProfileUpdate {
@@ -257,6 +261,7 @@ export interface ProfileUpdate {
   newPassword?: string | null;
   notificationChannel: NotificationChannel;
   face?: string | null; // JSON array of 128 floats; null = unchanged, "" = clear
+  birthdate: string | null; // yyyy-MM-dd
 }
 
 export interface InviteResolveResult {

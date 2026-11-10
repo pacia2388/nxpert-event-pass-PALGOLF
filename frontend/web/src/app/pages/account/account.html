@@ -89,6 +89,15 @@
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Birthdate</mat-label>
+          <input matInput [matDatepicker]="birthdatePicker" name="birthdate" [(ngModel)]="birthdate"
+                 required [min]="birthdateMin" [max]="birthdateMax" placeholder="MM/DD/YYYY" />
+          <mat-datepicker-toggle matIconSuffix [for]="birthdatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #birthdatePicker startView="multi-year"></mat-datepicker>
+          @if (!birthdate) { <mat-hint>Required — please add your birthdate.</mat-hint> }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
           <input matInput [value]="email" readonly />
           <mat-icon matSuffix>lock</mat-icon>

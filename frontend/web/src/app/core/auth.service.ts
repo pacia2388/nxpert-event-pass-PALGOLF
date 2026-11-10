@@ -61,6 +61,7 @@ export class AuthService {
     phone?: string;
     organization?: string;
     photo?: string | null;
+    birthdate: string; // yyyy-MM-dd
   }): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${API_BASE}/api/auth/register`, body)

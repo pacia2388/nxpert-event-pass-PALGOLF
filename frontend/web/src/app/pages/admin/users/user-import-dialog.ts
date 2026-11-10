@@ -6,56 +6,46 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ApiService } from '../../../core/api.service';
 import { UserImportResult, UserImportRow } from '../../../core/models';
 
-// Header aliases → the UserImportRow field they map to (headers are normalized first).
-const HEADER_MAP: Record<string, keyof UserImportRow> = {
-  firstname: 'firstName',
-  first: 'firstName',
-  givenname: 'firstName',
-  middleinitial: 'middleInitial',
-  middle: 'middleInitial',
-  mi: 'middleInitial',
-  lastname: 'lastName',
-  last: 'lastName',
-  surname: 'lastName',
-  familyname: 'lastName',
-  email: 'email',
-  emailaddress: 'email',
-  username: 'username',
-  user: 'username',
-  login: 'username',
-  idno: 'senateNo',
-  id: 'senateNo',
-  idnumber: 'senateNo',
-  senateno: 'senateNo',
-  senate: 'senateNo',
-  senatenumber: 'senateNo',
-  designation: 'level',
-  level: 'level',
-  membership: 'level',
-  membershiplevel: 'level',
-  organization: 'organization',
-  org: 'organization',
-  company: 'organization',
-  phone: 'phone',
-  phonenumber: 'phone',
-  mobile: 'phone',
-  contact: 'phone',
-  contactnumber: 'phone',
-  role: 'role',
-  notificationchannel: 'notificationChannel',
-  channel: 'notificationChannel',
-  notify: 'notificationChannel',
-  notification: 'notificationChannel',
-  passvia: 'notificationChannel',
-};
+// The import file's header row is fixed to this list: same columns, same order (it is also the
+// downloadable template). Cells are read by position. "(optional)" columns may be left blank.
+const COLUMNS: { header: string; field: keyof UserImportRow }[] = [
+  { header: 'First Name', field: 'firstName' },
+  { header: 'Middle Initial (optional)', field: 'middleInitial' },
+  { header: 'Last Name', field: 'lastName' },
+  { header: 'Email', field: 'email' },
+  { header: 'Username (optional)', field: 'username' },
+  { header: 'ID No (optional)', field: 'senateNo' },
+  { header: 'Designation (optional)', field: 'level' },
+  { header: 'Organization (optional)', field: 'organization' },
+  { header: 'Phone (optional)', field: 'phone' },
+  { header: 'Role (optional)', field: 'role' },
+  { header: 'Notification Channel (optional)', field: 'notificationChannel' },
+  { header: 'Birthdate', field: 'birthdate' },
+];
 
-const TEMPLATE_HEADERS =
-  'First Name,Middle Initial,Last Name,Email,Username,ID No,Designation,Organization,Phone,Role,Notification Channel';
+const TEMPLATE_HEADERS = COLUMNS.map((c) => c.header).join(',');
 const TEMPLATE_SAMPLE =
-  'Juan,D,Dela Cruz,juan.delacruz@example.com,,12345,Senator,Acme Corp,+639171234567,Participant,Email';
+  'Juan,D,Dela Cruz,juan.delacruz@example.com,,12345,Senator,Acme Corp,+639171234567,Participant,Email,1990-01-31';
 
+// Case and surrounding spaces don't count as a difference; trim() also drops an Excel BOM (U+FEFF).
 function normalizeHeader(h: string): string {
-  return h.trim().toLowerCase().replace(/[\s._#-]+/g, '');
+  return h.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+/** Returns an error message when the header row is not exactly the template header, else null. */
+export function headerError(headerRow: string[]): string | null {
+  const got = headerRow.map(normalizeHeader);
+  // Trailing empty cells (e.g. a stray comma Excel kept) are not columns.
+  while (got.length && !got[got.length - 1]) got.pop();
+  for (let i = 0; i < Math.max(got.length, COLUMNS.length); i++) {
+    const want = COLUMNS[i]?.header;
+    const cell = (headerRow[i] ?? '').trim();
+    if (want === undefined) return `Unexpected extra column "${cell}" (column ${i + 1}).`;
+    if (i >= got.length) return `Missing column "${want}" (column ${i + 1}).`;
+    if (got[i] !== normalizeHeader(want))
+      return `Column ${i + 1} must be "${want}" but is "${cell || '(blank)'}".`;
+  }
+  return null;
 }
 
 // Parse CSV text into rows of string cells (handles quoted fields, embedded commas/newlines).
@@ -173,19 +163,19 @@ export class UserImportDialogComponent {
         this.parseError.set('The file needs a header row and at least one data row.');
         return;
       }
-      const headers = table[0].map(normalizeHeader);
-      const fields = headers.map((h) => HEADER_MAP[h] ?? null);
-      if (!fields.includes('firstName') || !fields.includes('lastName') || !fields.includes('email')) {
-        this.parseError.set('The header row must include First Name, Last Name, and Email columns.');
+      const mismatch = headerError(table[0]);
+      if (mismatch) {
+        this.parseError.set(
+          `${mismatch} The header row must match the template exactly: ${TEMPLATE_HEADERS}. ` +
+            'Download the template and copy your data into it.',
+        );
         return;
       }
       const parsed: UserImportRow[] = table.slice(1).map((cells) => {
         const r: UserImportRow = {};
-        fields.forEach((field, i) => {
-          if (field) {
-            const v = (cells[i] ?? '').trim();
-            if (v) r[field] = v;
-          }
+        COLUMNS.forEach(({ field }, i) => {
+          const v = (cells[i] ?? '').trim();
+          if (v) r[field] = v;
         });
         return r;
       });

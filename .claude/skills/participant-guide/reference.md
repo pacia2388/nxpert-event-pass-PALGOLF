@@ -23,6 +23,7 @@ To create an account, choose **Create a participant account** and fill in:
 - **First name**, **M.I.** (optional), **Last name**
 - **ID No.** — **required**
 - **Designation** — **required**; type your designation or title
+- **Birthdate** — **required**
 - **Email** and **password** (at least 8 characters, with a letter and a number)
 - **Phone** (optional) and **chapter**
 - **Profile photo** (optional) — **Add photo**; shown on the welcome screen when you check in
@@ -144,7 +145,8 @@ You can change your answers to an event's questions until you check in or the ev
 ## 7. My Account
 
 **My Account** lets you update your **profile photo**, **face recognition** (**Register face** /
-**Re-capture face** / **Remove face**), **name**, **ID No.**, **Designation**, **chapter**,
+**Re-capture face** / **Remove face**), **name**, **ID No.**, **Designation**, **birthdate**
+(required — accounts without one must add it before saving), **chapter**,
 **Send my pass via** (Email or Viber — a phone is needed for Viber), and **change your password**
 (current password required). To change your email, contact an administrator.
 

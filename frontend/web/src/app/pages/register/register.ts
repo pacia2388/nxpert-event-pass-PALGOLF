@@ -9,6 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ToastService } from '../../core/toast.service';
 import { AuthService } from '../../core/auth.service';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { BIRTHDATE_MIN, birthdateMax, isValidBirthdate, toIsoDate } from '../../shared/birthdate';
 
 @Component({
   selector: 'app-register',
@@ -18,6 +20,7 @@ import { AuthService } from '../../core/auth.service';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDatepickerModule,
     MatButtonModule,
     MatIconModule,
     MatProgressBarModule,
@@ -40,6 +43,9 @@ export class RegisterComponent {
   password = '';
   phone = '';
   organization = '';
+  birthdate: Date | null = null;
+  readonly birthdateMin = BIRTHDATE_MIN;
+  readonly birthdateMax = birthdateMax();
   photo: string | null = null;
   photoError = signal<string | null>(null);
   loading = signal(false);
@@ -91,6 +97,10 @@ export class RegisterComponent {
   }
 
   submit(): void {
+    if (!isValidBirthdate(this.birthdate)) {
+      this.toast.warning('Please enter a valid birthdate (not in the future).');
+      return;
+    }
     this.loading.set(true);
     this.auth
       .register({
@@ -104,6 +114,7 @@ export class RegisterComponent {
         phone: this.phone || undefined,
         organization: this.organization || undefined,
         photo: this.photo,
+        birthdate: toIsoDate(this.birthdate)!,
       })
       .subscribe({
         next: () => {

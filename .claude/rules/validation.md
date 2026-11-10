@@ -17,6 +17,7 @@ Source: `validation-spec` skill. The server is authoritative; the client is UX o
 | Email | Trimmed, lower-cased, RFC 5322 format, ≤ 256 |
 | Password | 8–128 chars, ≥ 1 letter and ≥ 1 digit, not equal to email |
 | Phone | Optional, 7–40 chars, `^[0-9+()\-\s]+$`, ≥ 7 digits |
+| Birthdate | Required in UI/requests (DB nullable for legacy rows); `yyyy-MM-dd`, 1900-01-01 .. today; CSV also accepts `M/d/yyyy` |
 | Organization | Optional, ≤ 200 |
 | Event title | Required, trimmed, 3–300 |
 | Description | Optional, ≤ 4000 |

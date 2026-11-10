@@ -835,6 +835,9 @@ namespace EventRegistration.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateOnly?>("Birthdate")
+                        .HasColumnType("date");
+
                     b.Property<bool>("CanConfirmRegistrations")
                         .HasColumnType("bit");
 

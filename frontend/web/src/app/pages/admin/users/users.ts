@@ -187,11 +187,11 @@ export class UsersComponent implements OnInit {
       this.toast.info('No users to export.');
       return;
     }
-    const header = ['Name', 'Username', 'Email', 'ID No.', 'Chapter', 'Role', 'Designation', 'Phone', 'Pass via', 'Can confirm'];
+    const header = ['Name', 'Username', 'Email', 'ID No.', 'Chapter', 'Role', 'Designation', 'Phone', 'Pass via', 'Can confirm', 'Birthdate'];
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = rows.map((u) =>
       [u.fullName, u.username, u.email, u.senateNo, u.organization, u.role, u.level, u.phone,
-        u.notificationChannel, u.canConfirmRegistrations ? 'Yes' : 'No'].map(esc).join(','),
+        u.notificationChannel, u.canConfirmRegistrations ? 'Yes' : 'No', u.birthdate].map(esc).join(','),
     );
     const blob = new Blob(['﻿' + [header.map(esc).join(','), ...lines].join('\r\n')], {
       type: 'text/csv;charset=utf-8',

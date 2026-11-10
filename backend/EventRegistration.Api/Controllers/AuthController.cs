@@ -53,6 +53,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Designation is required." });
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(req.Password))
             return BadRequest(new { message = "Email and password are required." });
+        if (BirthdateRules.Validate(req.Birthdate) is { } registerBirthdateError)
+            return BadRequest(new { message = registerBirthdateError });
 
         if (await _db.Users.AnyAsync(u => u.Email == email))
             return Conflict(new { message = "An account with that email already exists." });
@@ -83,6 +85,7 @@ public class AuthController : ControllerBase
             Role = Roles.Participant,
             Phone = req.Phone,
             Organization = req.Organization,
+            Birthdate = req.Birthdate,
             CompanyId = 1,
             EmailVerified = !RequireVerification,
             EmailVerificationToken = RequireVerification ? Guid.NewGuid() : null,
@@ -106,7 +109,7 @@ public class AuthController : ControllerBase
         return Ok(new ProfileDto(
             u.Id, u.FirstName, u.MiddleInitial, u.LastName, u.SenateNo, u.Level,
             u.Email, u.Organization, u.Phone, u.NotificationChannel, u.PhotoUrl, u.Role,
-            !string.IsNullOrEmpty(u.FaceDescriptor)));
+            !string.IsNullOrEmpty(u.FaceDescriptor), u.Birthdate));
     }
 
     [HttpPut("me")]
@@ -118,6 +121,9 @@ public class AuthController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(req.FirstName) || string.IsNullOrWhiteSpace(req.LastName))
             return BadRequest(new { message = "First and last name are required." });
+
+        if (BirthdateRules.Validate(req.Birthdate) is { } birthdateError)
+            return BadRequest(new { message = birthdateError });
 
         var photoError = ValidatePhoto(req.Photo) ?? ValidateFace(req.Face);
         if (photoError is not null) return BadRequest(new { message = photoError });
@@ -165,6 +171,7 @@ public class AuthController : ControllerBase
         u.Organization = string.IsNullOrWhiteSpace(req.Organization) ? null : req.Organization.Trim();
         u.Phone = phone;
         u.NotificationChannel = channel;
+        u.Birthdate = req.Birthdate;
         var photoChanged = false;
         if (req.Photo is not null) // null = leave unchanged; "" = clear
         {

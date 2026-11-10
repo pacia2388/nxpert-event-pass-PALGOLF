@@ -292,7 +292,7 @@ Click a row to load that user into the form.
 
 **Form fields:** **Profile photo**, **First name**, **M.I.**, **Last name** (required), **Email**
 (required), **Username** (auto-generated if blank), **Password** (min. 8 characters; when editing,
-leave blank to keep), **Role** (Participant / Admin / Merchant), **ID No.**, **Designation**
+leave blank to keep), **Birthdate** (required), **Role** (Participant / Admin / Merchant), **ID No.**, **Designation**
 (free text), **Chapter**, **Send pass via** (Email / Viber / Both), **Phone** (+63 format;
 required for Viber/Both), and **Can confirm registrations**. Required fields that are empty show a
 red **!**.
@@ -307,9 +307,14 @@ camera — a poor capture makes face check-in less reliable.
 **Import → Download template**, fill it in, then **Choose CSV file** → check the preview →
 **Import N**.
 
-- Required columns: **First Name, Last Name, Email**. Optional: Middle Initial, Username, **ID No**,
-  **Designation**, Organization, Phone, Role, Notification Channel. (Old files with "Senate No" /
-  "Level" headings still work.)
+- The header row must match the template **exactly** — same 12 columns, same order:
+  First Name, Middle Initial (optional), Last Name, Email, Username (optional), ID No (optional),
+  Designation (optional), Organization (optional), Phone (optional), Role (optional),
+  Notification Channel (optional), **Birthdate**. A missing, extra, renamed or reordered column
+  rejects the whole file (case and spaces don't matter). Files made from an older template are
+  rejected — download the new one.
+- Required values: **First Name, Last Name, Email, Birthdate** (`yyyy-MM-dd` or `M/d/yyyy`, not in
+  the future). A row with a blank or invalid birthdate fails.
 - Up to 5,000 rows. New accounts get the password **12345**; existing emails are skipped; blank
   role = Participant; Viber/Both needs a phone. A summary shows created / skipped / failed rows.
 

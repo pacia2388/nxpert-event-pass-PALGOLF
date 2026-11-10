@@ -5,7 +5,7 @@ public record LoginRequest(string Email, string Password);
 public record RegisterRequest(
     string FirstName, string? MiddleInitial, string LastName, string SenateNo,
     string Email, string Password, string? Phone, string? Organization, string? Level,
-    string? Photo);
+    string? Photo, DateOnly? Birthdate);
 public record AuthResponse(string Token, int UserId, string FullName, string Email, string Role,
     bool EmailVerified, bool VerificationRequired, string? SenateNo,
     string? FirstName, string? MiddleInitial, string? LastName, string? Level, string? PhotoUrl,
@@ -16,7 +16,8 @@ public record UserDto(
     int Id, string FullName, string? FirstName, string? MiddleInitial, string? LastName,
     string? SenateNo, string? Level, string Email, string Username, string Role, string? Organization, string? Phone,
     string NotificationChannel,
-    bool CanConfirmRegistrations, bool EmailVerified, DateTime CreatedAt, string? PhotoUrl, bool HasFace);
+    bool CanConfirmRegistrations, bool EmailVerified, DateTime CreatedAt, string? PhotoUrl, bool HasFace,
+    DateOnly? Birthdate);
 
 // Password is required on create, optional on update (blank = keep current).
 // Face: a JSON array of 128 floats (the face descriptor) captured during facial registration;
@@ -26,13 +27,13 @@ public record AdminUserUpsertRequest(
     string FirstName, string? MiddleInitial, string LastName, string? SenateNo, string? Level,
     string Email, string? Password, string Role, string? Organization, string? Phone,
     bool CanConfirmRegistrations, string? Photo, string? Face, string? NotificationChannel,
-    string? Username);
+    string? Username, DateOnly? Birthdate);
 
 // ---- Bulk user import (spreadsheet upload). Each created account gets the default password. ----
 public record UserImportRow(
     string? FirstName, string? MiddleInitial, string? LastName, string? SenateNo, string? Level,
     string? Email, string? Username, string? Organization, string? Phone, string? Role,
-    string? NotificationChannel);
+    string? NotificationChannel, string? Birthdate);
 public record UserImportRequest(List<UserImportRow>? Rows);
 public record UserImportError(int Row, string Name, string Message);
 public record UserImportResult(int Created, int Skipped, int Failed, List<UserImportError> Errors);
@@ -99,7 +100,7 @@ public record VerifyEmailResult(bool Success, string Message);
 public record ProfileDto(
     int Id, string? FirstName, string? MiddleInitial, string? LastName, string? SenateNo,
     string? Level, string Email, string? Organization, string? Phone, string NotificationChannel,
-    string? PhotoUrl, string Role, bool HasFace);
+    string? PhotoUrl, string Role, bool HasFace, DateOnly? Birthdate);
 
 // Password change is optional: supply CurrentPassword + NewPassword to change it.
 // NotificationChannel: "Email" (default) or "Viber". When "Viber", Phone is required.
@@ -107,7 +108,7 @@ public record ProfileDto(
 public record ProfileUpdateRequest(
     string FirstName, string? MiddleInitial, string LastName, string? SenateNo, string? Level,
     string? Organization, string? Phone, string? Photo, string? CurrentPassword, string? NewPassword,
-    string? NotificationChannel, string? Face);
+    string? NotificationChannel, string? Face, DateOnly? Birthdate);
 // Result of opening an invite magic-link: if the invited email has an account, Auth is
 // populated for auto-login; otherwise the caller prefills the guest form with Email.
 public record InviteResolveResult(bool Registered, string Email, string EventSlug, AuthResponse? Auth);

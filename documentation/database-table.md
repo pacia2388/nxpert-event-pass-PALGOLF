@@ -80,6 +80,7 @@ Null = column allows NULL.
 | Role | nvarchar(20) | | **`Admin` · `Participant` (default) · `TL` (Team Lead) · `SuperAdmin` · `Merchant`** — see [roles.md](roles.md) |
 | Phone | nvarchar(40) | ✓ | Required when channel uses Viber |
 | Organization | nvarchar(200) | ✓ | |
+| Birthdate | date | ✓ | Required in the UI (admin form, My Account, sign-up, CSV import); NULL only for accounts created before the field existed |
 | NotificationChannel | nvarchar(10) | | **`Email` (default) · `Viber` · `Both`** |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
 | EmailVerified | bit | | |

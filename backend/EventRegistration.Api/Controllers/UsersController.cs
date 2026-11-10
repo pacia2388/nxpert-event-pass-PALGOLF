@@ -30,7 +30,7 @@ public class UsersController : ControllerBase
         u.Id, u.FullName, u.FirstName, u.MiddleInitial, u.LastName, u.SenateNo, u.Level,
         u.Email, u.Username, u.Role, u.Organization, u.Phone, u.NotificationChannel,
         u.CanConfirmRegistrations, u.EmailVerified, u.CreatedAt,
-        includePhoto ? u.PhotoUrl : null, !string.IsNullOrEmpty(u.FaceDescriptor));
+        includePhoto ? u.PhotoUrl : null, !string.IsNullOrEmpty(u.FaceDescriptor), u.Birthdate);
 
     // Resolve the username: use the admin-supplied one (normalized, must be unique) or auto-generate
     // "<first-initial><lastname>" made unique. Returns an error message when a supplied name is taken.
@@ -124,6 +124,8 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "A password of at least 8 characters is required." });
         if (!AssignableRoles.Contains(req.Role))
             return BadRequest(new { message = "Invalid role." });
+        if (BirthdateRules.Validate(req.Birthdate) is { } createBirthdateError)
+            return BadRequest(new { message = createBirthdateError });
         if (await _db.Users.AnyAsync(u => u.Email == email))
             return Conflict(new { message = "An account with that email already exists." });
 
@@ -161,6 +163,7 @@ public class UsersController : ControllerBase
             NotificationChannel = channel,
             PhotoUrl = string.IsNullOrEmpty(req.Photo) ? null : req.Photo,
             FaceDescriptor = string.IsNullOrEmpty(req.Face) ? null : req.Face,
+            Birthdate = req.Birthdate,
             CanConfirmRegistrations = req.CanConfirmRegistrations,
             CompanyId = 1,
             EmailVerified = true, // admin-created accounts are pre-verified
@@ -228,6 +231,19 @@ public class UsersController : ControllerBase
                 continue;
             }
 
+            var birthdate = BirthdateRules.ParseCsv(row.Birthdate);
+            var birthdateError = string.IsNullOrWhiteSpace(row.Birthdate)
+                ? "Birthdate is required."
+                : birthdate is null
+                    ? $"Invalid birthdate '{row.Birthdate.Trim()}'. Use yyyy-MM-dd or M/d/yyyy."
+                    : BirthdateRules.Validate(birthdate);
+            if (birthdateError is not null)
+            {
+                errors.Add(new UserImportError(line, label, birthdateError));
+                failed++;
+                continue;
+            }
+
             var role = ResolveImportRole(row.Role);
             if (role is null)
             {
@@ -268,6 +284,7 @@ public class UsersController : ControllerBase
                 Organization = string.IsNullOrWhiteSpace(row.Organization) ? null : row.Organization.Trim(),
                 Phone = phone,
                 NotificationChannel = channel,
+                Birthdate = birthdate,
                 CanConfirmRegistrations = false,
                 CompanyId = 1,
                 EmailVerified = true, // admin-created accounts are pre-verified
@@ -305,6 +322,8 @@ public class UsersController : ControllerBase
         var email = req.Email.Trim().ToLowerInvariant();
         if (email != user.Email && await _db.Users.AnyAsync(u => u.Email == email && u.Id != id))
             return Conflict(new { message = "An account with that email already exists." });
+        if (BirthdateRules.Validate(req.Birthdate) is { } birthdateError)
+            return BadRequest(new { message = birthdateError });
 
         var photoError = ValidatePhoto(req.Photo) ?? ValidateFace(req.Face);
         if (photoError is not null) return BadRequest(new { message = photoError });
@@ -346,6 +365,7 @@ public class UsersController : ControllerBase
         user.Organization = string.IsNullOrWhiteSpace(req.Organization) ? null : req.Organization.Trim();
         user.Phone = phone;
         user.NotificationChannel = channel;
+        user.Birthdate = req.Birthdate;
         var photoChanged = false;
         if (req.Photo is not null) // null = leave unchanged; "" = clear
         {
