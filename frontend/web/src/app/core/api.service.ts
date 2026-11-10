@@ -53,6 +53,11 @@ import {
   RegistrationFace,
   RegistrationFormDto,
   SyncCheckInResult,
+  TeamDetailDto,
+  TeamDto,
+  TeamMemberAddResult,
+  TeamMemberCreate,
+  TeamUpsert,
   UserDto,
   UserImportRow,
   UserImportResult,
@@ -578,6 +583,38 @@ export class ApiService {
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(this.url(`/api/users/${id}`));
   }
+  // ---- Teams (admin) ----
+  listTeams(): Observable<TeamDto[]> {
+    return this.http.get<TeamDto[]>(this.url('/api/teams'));
+  }
+  getTeam(id: number): Observable<TeamDetailDto> {
+    return this.http.get<TeamDetailDto>(this.url(`/api/teams/${id}`));
+  }
+  createTeam(body: TeamUpsert): Observable<TeamDetailDto> {
+    return this.http.post<TeamDetailDto>(this.url('/api/teams'), body);
+  }
+  updateTeam(id: number, body: TeamUpsert): Observable<TeamDetailDto> {
+    return this.http.put<TeamDetailDto>(this.url(`/api/teams/${id}`), body);
+  }
+  deleteTeam(id: number): Observable<void> {
+    return this.http.delete<void>(this.url(`/api/teams/${id}`));
+  }
+  addTeamMember(teamId: number, userId: number): Observable<TeamMemberAddResult> {
+    return this.http.post<TeamMemberAddResult>(this.url(`/api/teams/${teamId}/members`), { userId });
+  }
+  removeTeamMember(teamId: number, userId: number): Observable<void> {
+    return this.http.delete<void>(this.url(`/api/teams/${teamId}/members/${userId}`));
+  }
+
+  // ---- Teams (Team Lead) ----
+  // null when no team has been assigned to this Team Lead yet (204).
+  getMyTeam(): Observable<TeamDetailDto | null> {
+    return this.http.get<TeamDetailDto | null>(this.url('/api/teams/mine'));
+  }
+  addMyTeamMember(body: TeamMemberCreate): Observable<TeamMemberAddResult> {
+    return this.http.post<TeamMemberAddResult>(this.url('/api/teams/mine/members'), body);
+  }
+
   // Registered face descriptors, for facial-recognition check-in.
   faceDescriptors(): Observable<FaceDescriptorDto[]> {
     return this.http.get<FaceDescriptorDto[]>(this.url('/api/users/face-descriptors'));

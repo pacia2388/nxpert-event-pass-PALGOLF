@@ -1,5 +1,12 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard } from './core/guards';
+import {
+  authGuard,
+  adminGuard,
+  confirmerGuard,
+  isTeamLead,
+  merchantGuard,
+  nonMerchantGuard,
+} from './core/guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -71,6 +78,17 @@ export const routes: Routes = [
     path: 'admin/users',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin/users/users').then((m) => m.UsersComponent),
+  },
+  {
+    path: 'admin/teams',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin/teams/teams').then((m) => m.TeamsComponent),
+  },
+  {
+    // The only page a Team Lead can open: their team and its members.
+    path: 'team',
+    canActivate: [isTeamLead],
+    loadComponent: () => import('./pages/team/team').then((m) => m.TeamComponent),
   },
   {
     path: 'admin/settings',
