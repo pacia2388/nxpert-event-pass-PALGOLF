@@ -21,6 +21,11 @@ export class AuthService {
   readonly isTeamLead = computed(() => this._auth()?.role === 'TL');
   // shortcut: TLs only, until the teams tables exist; then true for users listed in a team's details.
   readonly isTeamMember = computed(() => this.isTeamLead());
+  // The Voucher page is for Participants and Team Leads only.
+  readonly canUseVoucher = computed(() => {
+    const r = this._auth()?.role;
+    return r === 'Participant' || r === 'TL';
+  });
   // Can this user confirm event registrations? Admins always can; others need the grant.
   readonly canConfirmRegistrations = computed(() => !!this._auth()?.canConfirmRegistrations);
   readonly canConfirm = computed(() => this.isAdmin() || this.canConfirmRegistrations());
