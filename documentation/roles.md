@@ -10,7 +10,7 @@ as a string in `Users.Role` (see [database-table.md](database-table.md)).
 | `SuperAdmin` | Same access as Admin wherever checked. **Cannot be assigned from the app** (not in the role picker, rejected by the API); only by editing the database. An existing SuperAdmin keeps the role when edited. |
 | `Admin` | Runs the system: events, users, settings, attendance, scanners, mail. |
 | `Participant` | Default role. Registers for events and uses their pass. |
-| `TL` (Team Lead) | Assignable by an admin on the Users page (form, CSV import). Leads one team, assigned by an admin on the Teams page. **The app shows a TL only the Team page** (`/team`), where they add Participants to their team. Lands on `/team`. |
+| `TL` (Team Lead) | Assignable by an admin on the Users page (form, CSV import). Leads one team, assigned by an admin on the Teams page. **The app shows a TL only the Team page** (`/team`), where they add Participants to their team, and the prototype Voucher page (`/voucher`). Lands on `/team`. |
 | `Merchant` | Vendor account that only scans and redeems meal stubs. Lands on `/merchant/scan`. |
 
 Plus one **permission** (not a role), the only per-user switch:
@@ -56,6 +56,7 @@ Plus one **permission** (not a role), the only per-user switch:
 | See their own team and its members (`GET /api/teams/mine`) | ✓ |
 | Add a Participant to their team by name + email (`POST /api/teams/mine/members`); an unknown email creates the account | ✓, up to the cap (Senior 8, Regular 10) |
 | Remove members, rename the team, change its category | ✗ (admin only) |
+| Voucher page (`/voucher`, prototype): enter a Philippine Airlines booking reference, get a golf equipment voucher code. Also open to Participants; reached from the account menu | ✓ |
 | Every other page (Home, Browse Events, My Events, Calendar, Mail Planner, Edit account, admin pages, scanners) | ✗, redirected to `/team` ³ |
 
 ¹ Bug: SuperAdmin is left out of the ownership checks in `RegistrationsController` (it checks
@@ -77,7 +78,7 @@ Callers outside the role system:
 | Backend (authoritative) | `backend/EventRegistration.Api/Controllers/*` | `[Authorize(Roles = ...)]`, `[Authorize(Policy = "CanConfirmRegistrations")]`, `User.IsInRole(...)` inside actions |
 | Backend policy | `Program.cs` (`AddAuthorization`) | `CanConfirmRegistrations` = Admin OR SuperAdmin OR claim |
 | Backend role list | `Models/Entities.cs` (`Roles`), `UsersController.AssignableRoles` | Admin, Participant, TL, Merchant assignable |
-| Frontend (UI only) | `frontend/web/src/app/core/guards.ts` | `authGuard`, `adminGuard`, `confirmerGuard`, `nonMerchantGuard`, `merchantGuard`, `isTeamLead`; `homeFor` picks the landing page |
+| Frontend (UI only) | `frontend/web/src/app/core/guards.ts` | `authGuard`, `adminGuard`, `confirmerGuard`, `nonMerchantGuard`, `merchantGuard`, `isTeamLead`, `voucherGuard`; `homeFor` picks the landing page |
 | Frontend routes | `frontend/web/src/app/app.routes.ts` | Guards attached per route |
 | Frontend helpers | `frontend/web/src/app/core/auth.service.ts`, `models.ts` | `isAdmin`, `isMerchant`, `canConfirm`; role type union |
 
@@ -92,6 +93,7 @@ Changing a role's capabilities means editing both projects and redeploying.
 | `/calendar`, `/mail-planner`, `/account` | `nonMerchantGuard` | Signed in, not Merchant, not TL |
 | `/admin/events`, `/admin/events/:id` | `confirmerGuard` | Admin, SuperAdmin, Can confirm (not TL) |
 | `/team` | `isTeamLead` | TL only |
+| `/voucher` (prototype) | `voucherGuard` | Participant, TL |
 | `/admin/dashboard`, `/admin/users`, `/admin/teams`, `/admin/settings`, `/admin/events/new`, `/admin/events/:id/edit`, `/scanner/:eventId`, `/scanner/:eventId/tv` | `adminGuard` | Admin, SuperAdmin |
 | `/merchant/scan` | `merchantGuard` | Merchant, Admin, SuperAdmin |
 

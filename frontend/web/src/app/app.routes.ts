@@ -6,6 +6,7 @@ import {
   isTeamLead,
   merchantGuard,
   nonMerchantGuard,
+  voucherGuard,
 } from './core/guards';
 
 export const routes: Routes = [
@@ -89,6 +90,12 @@ export const routes: Routes = [
     path: 'team',
     canActivate: [isTeamLead],
     loadComponent: () => import('./pages/team/team').then((m) => m.TeamComponent),
+  },
+  {
+    // Prototype: golf equipment voucher for a Philippine Airlines booking reference.
+    path: 'voucher',
+    canActivate: [voucherGuard],
+    loadComponent: () => import('./pages/voucher/voucher').then((m) => m.VoucherComponent),
   },
   {
     path: 'admin/settings',

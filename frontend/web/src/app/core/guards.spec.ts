@@ -16,6 +16,7 @@ import {
   isTeamLead,
   merchantGuard,
   nonMerchantGuard,
+  voucherGuard,
 } from './guards';
 
 type Role = AuthResponse['role'];
@@ -61,6 +62,27 @@ describe('route guards', () => {
     it('is sent to the Team page from Attendance even with the confirm grant', () => {
       signIn('TL', true);
       expect(visit(confirmerGuard, '/admin/events')).toBe('/team');
+    });
+  });
+
+  describe('the Voucher page is for Participants and Team Leads', () => {
+    it.each(['Participant', 'TL'] as Role[])('lets a %s open it', (role) => {
+      signIn(role);
+      expect(visit(voucherGuard, '/voucher')).toBe('allowed');
+    });
+
+    it.each([
+      ['Admin', '/home'],
+      ['SuperAdmin', '/home'],
+      ['Merchant', '/merchant/scan'],
+    ] as [Role, string][])('sends a %s to %s', (role, landing) => {
+      signIn(role);
+      expect(visit(voucherGuard, '/voucher')).toBe(landing);
+    });
+
+    it('sends a signed-out visitor to login with a return URL', () => {
+      signIn(null);
+      expect(visit(voucherGuard, '/voucher')).toBe('/login?returnUrl=%2Fvoucher');
     });
   });
 

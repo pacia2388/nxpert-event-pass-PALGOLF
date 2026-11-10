@@ -64,6 +64,15 @@ export const isTeamLead: CanActivateFn = (_route, state) => {
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
+// The Voucher page: Participants and Team Leads only.
+export const voucherGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (auth.canUseVoucher()) return true;
+  if (auth.isLoggedIn()) return router.createUrlTree([homeFor(auth)]);
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
+
 // Routes for members of a team (see AuthService.isTeamMember).
 export const isTeamMember: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
