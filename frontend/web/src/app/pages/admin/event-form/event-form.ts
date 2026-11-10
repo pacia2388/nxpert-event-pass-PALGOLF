@@ -10,6 +10,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../core/api.service';
 import { ToastService } from '../../../core/toast.service';
 import { EventFormat, EventUpsert, FieldType, SessionUpsert } from '../../../core/models';
@@ -99,6 +100,7 @@ function combine(date: Date | null, time: string): string {
     MatSelectModule,
     MatDatepickerModule,
     MatButtonToggleModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './event-form.html',
 })

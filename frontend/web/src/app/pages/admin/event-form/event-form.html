@@ -579,8 +579,14 @@
           color="primary"
           type="submit"
           [disabled]="saving() || !isValid"
+          [attr.aria-busy]="saving()"
         >
-          {{ isEdit ? 'Save changes' : 'Create event' }}
+          @if (saving()) {
+            <mat-spinner diameter="18" style="display: inline-block; margin-right: 6px; vertical-align: middle"></mat-spinner>
+            {{ isEdit ? 'Saving…' : 'Creating…' }}
+          } @else {
+            {{ isEdit ? 'Save changes' : 'Create event' }}
+          }
         </button>
       </div>
     </form>
