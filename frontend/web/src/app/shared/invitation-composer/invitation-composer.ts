@@ -20,6 +20,7 @@ import { AuthService } from '../../core/auth.service';
 import { ALL_USERS, expandRecipients, invitationErrorMessage, recipientAddress } from '../../core/invitation.util';
 import { MatDialog } from '@angular/material/dialog';
 import { formatScheduleLabel, openScheduleDateDialog } from './schedule-date-dialog';
+import { openInviteTeamsDialog } from './invite-teams-dialog';
 import { IMAGE_TYPES, cleanNode, imageBudget, insertAtSelection, newImage, pasteMessage, readPaste, toPng } from '../rich-text/rich-text';
 
 type RecipientField = 'to' | 'cc';
@@ -423,6 +424,18 @@ export class InvitationComposerComponent implements OnChanges {
       const input = this.recipientInputs?.get(this.fields.indexOf(field))?.nativeElement;
       if (input) input.value = '';
     }
+  }
+
+  // Team picker: the chosen members join To as ordinary addresses.
+  inviteTeams(event: MouseEvent): void {
+    // Keep the click from focusing the input and opening the saved-address dropdown.
+    event.stopPropagation();
+    if (this.sending()) return;
+    openInviteTeamsDialog(this.dialog, { alreadyInTo: this.recipients.to.filter((a) => a !== ALL_USERS) })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((emails) => {
+        if (emails?.length) this.add('to', emails.join(','));
+      });
   }
 
   remove(field: RecipientField, address: string): void {

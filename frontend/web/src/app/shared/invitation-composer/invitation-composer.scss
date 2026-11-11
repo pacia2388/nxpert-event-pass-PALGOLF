@@ -227,6 +227,19 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 mat-chip-row { max-width: 100%; }
 .group-chip { --mdc-chip-elevated-container-color: #e6f6f3; --mat-chip-elevated-container-color: #e6f6f3; font-weight: 700; }
 
+// "Invite teams" sits inside the To field, pinned to its top-right as chips wrap.
+.invite-teams-btn {
+  align-self: flex-start;
+  margin: 4px 6px 0 4px;
+  white-space: nowrap;
+  color: #0f766e;
+}
+@media (max-width: 560px) {
+  .invite-teams-btn { min-width: 0; padding: 0 10px; }
+  .invite-teams-btn mat-icon { margin-right: 0; }
+  .invite-teams-label { display: none; }
+}
+
 .saved-option ::ng-deep .mdc-list-item__primary-text { display: flex; align-items: center; gap: 8px; width: 100%; }
 .saved-address { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .forget-address { flex: none; color: var(--mat-sys-on-surface-variant); }

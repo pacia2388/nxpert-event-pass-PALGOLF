@@ -5,7 +5,8 @@
         <h3>{{ editingEmail ? 'Edit scheduled email' : 'Compose invitation' }}</h3>
         <p class="muted">
           Type email addresses, separated by commas (e.g. ana&#64;gmail.com, ben&#64;gmail.com), or click To or CC to
-          pick a saved one. Use <strong>&#64;n-pax</strong> to include all {{ directoryCount }} system users.
+          pick a saved one. Use <strong>&#64;n-pax</strong> to include all {{ directoryCount }} system users, or
+          <strong>Invite teams</strong> to pick team members.
         </p>
       </div>
       @if (counts.to.length + counts.cc.length > 0) {
@@ -33,6 +34,13 @@
                    (keydown)="key($event, field, trigger)" (paste)="pasteRecipients($event, field)"
                    [disabled]="sending()" />
           </mat-chip-grid>
+          @if (field === 'to') {
+            <!-- Pick recipients from the teams: single members or a whole team. -->
+            <button type="button" mat-button matSuffix class="invite-teams-btn" aria-label="Invite teams"
+                    matTooltip="Pick team members to invite" (click)="inviteTeams($event)" [disabled]="sending()">
+              <mat-icon>groups</mat-icon> <span class="invite-teams-label">Invite teams</span>
+            </button>
+          }
           <!-- Addresses this admin saved; the box still accepts any typed address. -->
           <mat-autocomplete #options="matAutocomplete" (optionSelected)="add(field, $event.option.value)">
             @for (address of suggestions(field); track address) {
