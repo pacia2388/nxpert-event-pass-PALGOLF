@@ -172,7 +172,11 @@ export class InviteTeamsDialogComponent {
   }
 
   tickTeam(team: TeamDto, change: MatCheckboxChange): void {
-    const pickAll = (list: TeamMemberDto[]) => this.picked.set(toggleTeam(list, this.picked(), this.added()));
+    const pickAll = (list: TeamMemberDto[]) => {
+      this.picked.set(toggleTeam(list, this.picked(), this.added()));
+      // Keep the box in step when nothing could be picked (everyone is already in To).
+      change.source.checked = this.state(team) === 'all';
+    };
     const list = this.members()[team.id];
     if (list) return pickAll(list);
     // Not loaded yet: load, then take everyone. A failed load leaves the box unticked.

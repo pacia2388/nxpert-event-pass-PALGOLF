@@ -147,6 +147,17 @@ describe('Invite teams picker', () => {
     expect(closedWith).toEqual(['ben@example.com']);
   });
 
+  it('leaves a team unticked when all its members are already in To', () => {
+    open(['ana@example.com', 'ben@example.com']);
+    serveTeams([eagles]);
+    tick(teamBox('Eagles'));
+    serveMembers(detail(eagles, ['ana@example.com', 'ben@example.com']));
+
+    expect(teamBox('Eagles').checked).toBe(false);
+    expect(teamBox('Eagles').disabled).toBe(true);
+    expect(addButton().disabled).toBe(true);
+  });
+
   it('cannot tick a team with no members', () => {
     open();
     serveTeams([empty]);
