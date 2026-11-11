@@ -138,3 +138,4 @@ Still open:
 | 2026-11-10 | Draft plan created: tables specified, guards and TL role already in place. |
 | 2026-11-11 | Work started. Scope set: admin team management, TL-only Team page with add-member (new account or existing Participant), member caps Senior 8 / Regular 10. Questions 1-5, 8, 9 answered; indexes changed to unique per user and per lead. |
 | 2026-11-11 | Backend, tests and docs done; admin Teams page and TL Team page built. Left: a page for team members and the real `isTeamMember` check. |
+| 2026-11-11 | Teams can now be invited to events: the invitation composer's **Invite teams** picker reads `GET /api/teams` and `GET /api/teams/{id}` (see `plans/invite-teams.md`). No Teams API change. |
