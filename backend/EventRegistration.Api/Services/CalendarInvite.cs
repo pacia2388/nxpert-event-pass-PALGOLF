@@ -93,7 +93,7 @@ public static class CalendarInvite
         var lines = new List<string>
         {
             "BEGIN:VCALENDAR",
-            "PRODID:-//NXPass//Event Registration//EN",
+            $"PRODID:-//{Branding.AppName.Replace("/", " ")}//Event Registration//EN",
             "VERSION:2.0",
             "CALSCALE:GREGORIAN",
             $"METHOD:{(cancel ? "CANCEL" : "REQUEST")}",
