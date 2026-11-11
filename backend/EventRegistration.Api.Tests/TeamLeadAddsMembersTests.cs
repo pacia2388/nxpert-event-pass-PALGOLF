@@ -172,4 +172,36 @@ public class TeamLeadAddsMembersTests(ApiFixture api)
         Assert.Equal(HttpStatusCode.Forbidden, asAdmin.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, signedOut.StatusCode);
     }
+
+    [Fact]
+    public async Task A_participant_member_views_their_team_but_cannot_change_it()
+    {
+        var admin = await api.AdminAsync();
+        var team = await api.CreateTeamAsync(admin, "Regular");
+        var participant = await api.CreateUserAsync(admin, "Participant");
+        await team.LeadClient.PostAsJsonAsync("/api/teams/mine/members", ApiFixture.Member(participant.Email));
+        var client = await api.SignInAsync(participant.Email, ApiFixture.UserPassword);
+
+        var mine = await MyTeam(client);
+        var add = await client.PostAsJsonAsync("/api/teams/mine/members", ApiFixture.Member(ApiFixture.NewEmail()));
+        var notice = await client.PostAsJsonAsync("/api/teams/mine/registration-notice",
+            new { userIds = new[] { participant.Id } });
+
+        Assert.Equal(team.Id, mine.Id);
+        Assert.Equal(participant.Email, Assert.Single(mine.Members!).Email);
+        Assert.Equal(HttpStatusCode.Forbidden, add.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, notice.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_participant_outside_any_team_sees_no_team()
+    {
+        var admin = await api.AdminAsync();
+        var participant = await api.CreateUserAsync(admin, "Participant");
+        var client = await api.SignInAsync(participant.Email, ApiFixture.UserPassword);
+
+        var res = await client.GetAsync("/api/teams/mine");
+
+        Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+    }
 }

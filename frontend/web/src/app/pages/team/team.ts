@@ -7,9 +7,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
-import { TeamDetailDto } from '../../core/models';
+import { ConfirmService } from '../../core/confirm.service';
+import { AuthService } from '../../core/auth.service';
+import { TeamDetailDto, TeamMemberDto } from '../../core/models';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -26,6 +29,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     MatIconModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
+    MatCheckboxModule,
   ],
   templateUrl: './team.html',
   styleUrl: './team.scss',
@@ -33,6 +37,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export class TeamComponent implements OnInit {
   private api = inject(ApiService);
   private toast = inject(ToastService);
+  private confirmer = inject(ConfirmService);
+  private auth = inject(AuthService);
+
+  /** Team Leads manage their team; Participants only view the team they belong to. */
+  readonly canEdit = this.auth.isTeamLead;
 
   private readonly form = viewChild(NgForm);
 
@@ -40,6 +49,18 @@ export class TeamComponent implements OnInit {
   saving = signal(false);
   /** null = no team has been assigned to this Team Lead yet. */
   team = signal<TeamDetailDto | null>(null);
+
+  sending = signal(false);
+  /** userIds checked to receive the registration notice. Only unregistered members can be checked. */
+  selected = signal<ReadonlySet<number>>(new Set());
+
+  /** Members who can still get the notice (account not completed yet). */
+  readonly pending = computed(() => this.team()?.members.filter((m) => !m.registered) ?? []);
+  readonly allChecked = computed(() => {
+    const p = this.pending();
+    return p.length > 0 && p.every((m) => this.selected().has(m.userId));
+  });
+  readonly someChecked = computed(() => this.selected().size > 0 && !this.allChecked());
 
   readonly isFull = computed(() => {
     const t = this.team();
@@ -60,9 +81,56 @@ export class TeamComponent implements OnInit {
     this.api.getMyTeam().subscribe({
       next: (t) => {
         this.team.set(t);
+        this.resetSelection();
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  /** Default: unregistered members not notified yet. */
+  private resetSelection(): void {
+    this.selected.set(new Set(this.pending().filter((m) => !m.notificationFlag).map((m) => m.userId)));
+  }
+
+  isChecked(m: TeamMemberDto): boolean {
+    return this.selected().has(m.userId);
+  }
+
+  toggle(m: TeamMemberDto, checked: boolean): void {
+    const next = new Set(this.selected());
+    if (checked) next.add(m.userId);
+    else next.delete(m.userId);
+    this.selected.set(next);
+  }
+
+  toggleAll(checked: boolean): void {
+    this.selected.set(new Set(checked ? this.pending().map((m) => m.userId) : []));
+  }
+
+  async sendNotice(): Promise<void> {
+    const ids = [...this.selected()];
+    if (!ids.length || this.sending()) return;
+    const ok = await this.confirmer.confirm({
+      title: 'Send registration notice?',
+      message: `Email a registration link to ${ids.length} member${ids.length === 1 ? '' : 's'}. Any earlier link they received stops working.`,
+      confirmText: 'Send',
+    });
+    if (!ok) return;
+    this.sending.set(true);
+    this.api.sendTeamRegistrationNotice(ids).subscribe({
+      next: (res) => {
+        this.sending.set(false);
+        this.team.update((t) => (t ? { ...t, members: res.members } : t));
+        this.resetSelection();
+        const msg = `Registration notice sent to ${res.sent} member${res.sent === 1 ? '' : 's'}.`;
+        if (res.failed) this.toast.warning(`${msg} ${res.failed} could not be sent; try again.`);
+        else this.toast.success(msg);
+      },
+      error: (err) => {
+        this.sending.set(false);
+        this.toast.error(err?.error?.message ?? 'Could not send the registration notice.');
+      },
     });
   }
 
@@ -97,6 +165,7 @@ export class TeamComponent implements OnInit {
                 }
               : t,
           );
+          if (!res.member.registered) this.toggle(res.member, true);
           this.form()?.resetForm({ firstName: '', middleInitial: '', lastName: '', email: '' });
           this.toast.success(
             res.created

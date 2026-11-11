@@ -880,6 +880,15 @@ namespace EventRegistration.Api.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<bool>("NotificationFlag")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("RegistrationToken")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("RegistrationTokenExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("TeamId")
                         .HasColumnType("int");
 
@@ -887,6 +896,10 @@ namespace EventRegistration.Api.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RegistrationToken")
+                        .IsUnique()
+                        .HasFilter("[RegistrationToken] IS NOT NULL");
 
                     b.HasIndex("TeamId");
 
@@ -1157,17 +1170,6 @@ namespace EventRegistration.Api.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("EventRegistration.Api.Models.Voucher", b =>
-                {
-                    b.HasOne("EventRegistration.Api.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("EventRegistration.Api.Models.Team", b =>
                 {
                     b.HasOne("EventRegistration.Api.Models.User", "TeamLead")
@@ -1194,6 +1196,17 @@ namespace EventRegistration.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.Voucher", b =>
+                {
+                    b.HasOne("EventRegistration.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

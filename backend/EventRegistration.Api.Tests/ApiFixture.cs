@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using EventRegistration.Api.Data;
@@ -104,6 +105,15 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         return new TestTeam(team!.Id, lead, await SignInAsync(lead.Email, UserPassword));
     }
 
+    // The current team registration link token of a member (only the emailed link carries it).
+    public async Task<Guid?> RegistrationTokenAsync(int userId)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await db.TeamMembers.Where(m => m.UserId == userId)
+            .Select(m => m.RegistrationToken).SingleAsync();
+    }
+
     public static string NewEmail() => $"member-{Guid.NewGuid():N}@example.com";
 
     public static object Member(string email, string firstName = "Mia", string lastName = "Santos") =>
@@ -116,7 +126,7 @@ public record TestTeam(int Id, TestUser Lead, HttpClient LeadClient);
 // Response shapes the tests read (camelCase JSON, matched case-insensitively).
 public record AuthBody(string Token, int UserId, string Role);
 public record UserBody(int Id, string Email, string Role);
-public record MemberBody(int UserId, string FullName, string Email);
+public record MemberBody(int UserId, string FullName, string Email, bool NotificationFlag = false, bool Registered = false);
 public record TeamBody(int Id, string Description, string Category, int TeamLeadUserId,
     int MemberCount, int MaxMembers, List<MemberBody>? Members);
 public record AddResultBody(MemberBody Member, bool Created);

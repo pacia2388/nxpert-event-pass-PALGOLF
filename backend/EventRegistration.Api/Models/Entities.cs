@@ -149,6 +149,13 @@ public class TeamMember
     public int UserId { get; set; }
     public User? User { get; set; }
     public DateTime AddedAt { get; set; }
+    // Registration notice: set once the TL's "complete your registration" email was sent.
+    public bool NotificationFlag { get; set; }
+    // Set when a Team Lead creates the account (the member is "unregistered"); replaced on each
+    // notice and cleared when the member completes registration. Usable only before the expiry,
+    // which is set when a notice is sent.
+    public Guid? RegistrationToken { get; set; }
+    public DateTime? RegistrationTokenExpiresAt { get; set; }
 }
 
 public class Event

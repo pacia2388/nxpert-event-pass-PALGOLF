@@ -80,8 +80,9 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin/teams/teams').then((m) => m.TeamsComponent),
   },
   {
+    // TL: view + manage their team. Participant: view the team they belong to (read-only).
     path: 'team',
-    canActivate: [isTeamLead],
+    canActivate: [participantOrTlGuard],
     loadComponent: () => import('./pages/team/team').then((m) => m.TeamComponent),
   },
   {

@@ -58,6 +58,8 @@ import {
   TeamDto,
   TeamMemberAddResult,
   TeamMemberCreate,
+  TeamRegistrationNoticeResult,
+  TeamRegistrationPrefill,
   TeamUpsert,
   UserDto,
   UserImportRow,
@@ -614,6 +616,13 @@ export class ApiService {
   }
   addMyTeamMember(body: TeamMemberCreate): Observable<TeamMemberAddResult> {
     return this.http.post<TeamMemberAddResult>(this.url('/api/teams/mine/members'), body);
+  }
+  sendTeamRegistrationNotice(userIds: number[]): Observable<TeamRegistrationNoticeResult> {
+    return this.http.post<TeamRegistrationNoticeResult>(this.url('/api/teams/mine/registration-notice'), { userIds });
+  }
+  // Team registration link (anonymous): pre-fill, then complete the account the TL created.
+  getTeamRegistration(token: string): Observable<TeamRegistrationPrefill> {
+    return this.http.get<TeamRegistrationPrefill>(this.url(`/api/auth/team-registration/${encodeURIComponent(token)}`));
   }
 
   // Registered face descriptors, for facial-recognition check-in.

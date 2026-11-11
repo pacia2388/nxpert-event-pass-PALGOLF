@@ -29,13 +29,13 @@ export class HomeComponent {
 
   // Modules available to the signed-in user, mirroring the role-based navigation.
   readonly modules = computed<AppModule[]>(() => {
-    const account: AppModule = {
-      title: 'My Account',
-      subtitle: 'Profile & Password',
-      icon: 'manage_accounts',
-      link: '/account',
-      category: 'Account',
-    };
+    // const account: AppModule = {
+    //   title: 'My Account',
+    //   subtitle: 'Profile & Password',
+    //   icon: 'manage_accounts',
+    //   link: '/account',
+    //   category: 'Account',
+    // };
 
     if (this.auth.isAdmin()) {
       return [
@@ -48,8 +48,8 @@ export class HomeComponent {
         { title: 'Meal Scanner', subtitle: 'Meal Stub Redemption', icon: 'restaurant', link: '/merchant/scan', category: 'Operations' },
         { title: 'Users', subtitle: 'People & Access', icon: 'group', link: '/admin/users', category: 'Admin' },
         { title: 'Teams', subtitle: 'Leads & Members', icon: 'groups', link: '/admin/teams', category: 'Admin' },
-        { title: 'Settings', subtitle: 'System Config', icon: 'settings', link: '/admin/settings', category: 'Admin' },
-        account,
+        { title: 'Settings', subtitle: 'System Config', icon: 'settings', link: '/admin/settings', category: 'Admin' }
+        // account,
       ];
     }
     if (this.auth.isMerchant()) {
@@ -59,12 +59,12 @@ export class HomeComponent {
     }
     const participant: AppModule[] = [
       { title: 'Browse Events', subtitle: 'Open Registrations', icon: 'travel_explore', link: '/events', category: 'Events' },
-      { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
+      // { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
       { title: 'Calendar', subtitle: 'Event Dates & Invitations', icon: 'calendar_month', link: '/calendar', category: 'Events' },
-      { title: 'Reminders', subtitle: 'Mail Reminder', icon: 'schedule_send', link: '/mail-planner', category: 'Events' },
+      // { title: 'Reminders', subtitle: 'Mail Reminder', icon: 'schedule_send', link: '/mail-planner', category: 'Events' },
       { title: 'My Team', subtitle: 'Team members', icon: 'group', link: '/team', category: 'Account'},
-      { title: 'Voucher', subtitle: 'Airline Baggage', icon: 'luggage', link: '/voucher', category: 'Events' },
-      account,
+      { title: 'Voucher', subtitle: 'Airline Baggage', icon: 'luggage', link: '/voucher', category: 'Events' }
+      // account,
     ];
     if (this.auth.canConfirm()) {
       return [

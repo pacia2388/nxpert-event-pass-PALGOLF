@@ -66,6 +66,22 @@ public static class EmailTemplates
            </p>
            <p style=""color:#888;font-size:13px"">Or paste this link: {registerUrl}</p>");
 
+    // Team Lead asks a member to complete the account the TL created for them.
+    public static string TeamRegistrationNotice(string memberName, string teamName, string leadName,
+        string registerUrl, int validDays) => Shell(
+        "Complete your registration",
+        $@"<p>Hi {System.Net.WebUtility.HtmlEncode(memberName)},</p>
+           <p>{System.Net.WebUtility.HtmlEncode(leadName)} added you to the team
+              <strong>{System.Net.WebUtility.HtmlEncode(teamName)}</strong>.
+              Please complete your registration and set your own password.</p>
+           <p style=""text-align:center;margin:28px 0"">
+             <a href=""{registerUrl}"" style=""background:{Accent};color:#fff;text-decoration:none;
+                padding:12px 28px;border-radius:8px;display:inline-block;font-weight:600"">
+                Register now</a>
+           </p>
+           <p style=""color:#888;font-size:13px"">Or paste this link: {registerUrl}</p>
+           <p style=""color:#888;font-size:13px"">This link works once and expires in {validDays} days.</p>");
+
     public static string Verification(User user, string verifyUrl) => Shell(
         "Confirm your email",
         $@"<p>Hi {user.FullName},</p>

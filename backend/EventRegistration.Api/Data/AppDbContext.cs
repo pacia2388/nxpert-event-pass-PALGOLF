@@ -135,6 +135,8 @@ public class AppDbContext : DbContext
         b.Entity<TeamMember>().HasOne(m => m.User).WithMany()
             .HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Restrict);
         b.Entity<TeamMember>().HasIndex(m => m.UserId).IsUnique();
+        b.Entity<TeamMember>().HasIndex(m => m.RegistrationToken).IsUnique()
+            .HasFilter("[RegistrationToken] IS NOT NULL");
         b.Entity<TeamMember>().Property(m => m.AddedAt)
             .HasDefaultValueSql("GETUTCDATE()").ValueGeneratedOnAdd();
 

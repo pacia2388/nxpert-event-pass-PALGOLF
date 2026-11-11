@@ -4,7 +4,8 @@ namespace EventRegistration.Api.Models;
 
 // ---- Teams ----
 // MaxMembers comes from the team's category (TeamCategories.MaxMembers); the lead is not counted.
-public record TeamMemberDto(int UserId, string FullName, string Email, DateTime AddedAt);
+// Registered = false while the account a Team Lead created is not yet completed by the member.
+public record TeamMemberDto(int UserId, string FullName, string Email, DateTime AddedAt, bool NotificationFlag, bool Registered);
 public record TeamDto(
     int Id, string Description, string Category, int TeamLeadUserId, string TeamLeadName,
     int MemberCount, int MaxMembers, DateTime CreatedAt);
@@ -20,6 +21,11 @@ public record TeamAddMemberRequest([Range(1, int.MaxValue)] int UserId);
 public record TeamMemberCreateRequest(
     [StringLength(100)] string FirstName, [StringLength(10)] string? MiddleInitial,
     [StringLength(100)] string LastName, [StringLength(256)] string Email);
+// Team Lead: email the "complete your registration" link to these members of their own team.
+public record TeamRegistrationNoticeRequest([MaxLength(50)] List<int> UserIds);
+public record TeamRegistrationNoticeResult(int Sent, int Failed, List<TeamMemberDto> Members);
+// Pre-fill for the register page opened from a team registration link.
+public record TeamRegistrationPrefill(string FirstName, string? MiddleInitial, string LastName, string Email);
 // Created = a new account was made (it signs in with the default temporary password).
 public record TeamMemberAddResult(TeamMemberDto Member, bool Created);
 

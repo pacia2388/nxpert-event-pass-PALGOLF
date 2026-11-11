@@ -73,6 +73,11 @@
   grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
   gap: 16px;
   align-items: start;
+
+  // Participants see only the members table, full width.
+  &.read-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .tp-card {
@@ -137,6 +142,50 @@
 
 .col-date {
   white-space: nowrap;
+}
+
+.tp-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tp-table th.col-check,
+.tp-table td.col-check {
+  width: 1%;
+  padding-right: 0;
+}
+
+.col-status {
+  white-space: nowrap;
+}
+
+.st {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.st-done {
+  color: #0d9488;
+}
+
+.st-sent {
+  color: #1d4ed8;
+}
+
+.st-none {
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 .tp-empty {

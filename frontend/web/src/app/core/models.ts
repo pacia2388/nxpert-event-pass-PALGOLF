@@ -48,6 +48,10 @@ export interface TeamMemberDto {
   fullName: string;
   email: string;
   addedAt: string;
+  /** true once the "complete your registration" email was sent to this member. */
+  notificationFlag: boolean;
+  /** false while the account a Team Lead created is not yet completed by the member. */
+  registered: boolean;
 }
 export interface TeamDto {
   id: number;
@@ -69,6 +73,18 @@ export interface TeamUpsert {
 }
 // Team Lead: add a member by name + email. An unknown email creates a Participant account.
 export interface TeamMemberCreate {
+  firstName: string;
+  middleInitial: string | null;
+  lastName: string;
+  email: string;
+}
+export interface TeamRegistrationNoticeResult {
+  sent: number;
+  failed: number;
+  members: TeamMemberDto[];
+}
+/** Pre-fill for the register page opened from a team registration link. */
+export interface TeamRegistrationPrefill {
   firstName: string;
   middleInitial: string | null;
   lastName: string;

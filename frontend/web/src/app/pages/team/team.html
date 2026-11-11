@@ -7,12 +7,20 @@
         <h1 class="tp-title">{{ t.description }}</h1>
         <span class="tp-cat">{{ t.category }} team</span>
       </div>
-      <div class="tp-count" [class.full]="isFull()">
-        <strong>{{ t.memberCount }}</strong> / {{ t.maxMembers }} members
+      <div class="tp-actions">
+        <div class="tp-count" [class.full]="isFull()">
+          <strong>{{ t.memberCount }}</strong> / {{ t.maxMembers }} members
+        </div>
+        @if (canEdit()) {
+          <button mat-stroked-button color="primary" type="button" (click)="sendNotice()"
+                  [disabled]="sending() || !selected().size">
+            <mat-icon>mail</mat-icon> Send registration notice ({{ selected().size }})
+          </button>
+        }
       </div>
     </header>
 
-    <div class="tp-grid">
+    <div class="tp-grid" [class.read-only]="!canEdit()">
       <section class="tp-card" aria-label="Team members">
         <h2 class="tp-card-title"><mat-icon>groups</mat-icon> Members</h2>
         @if (t.members.length) {
@@ -20,27 +28,54 @@
             <table class="tp-table">
               <thead>
                 <tr>
+                  @if (canEdit()) {
+                  <th class="col-check">
+                    <mat-checkbox aria-label="Select all unregistered members"
+                                  [checked]="allChecked()" [indeterminate]="someChecked()"
+                                  [disabled]="!pending().length" (change)="toggleAll($event.checked)">
+                    </mat-checkbox>
+                  </th>
+                  }
                   <th>Name</th>
                   <th>Email</th>
                   <th class="col-date">Added</th>
+                  <th class="col-status">Notified</th>
                 </tr>
               </thead>
               <tbody>
                 @for (m of t.members; track m.userId) {
                   <tr>
+                    @if (canEdit()) {
+                    <td class="col-check">
+                      <mat-checkbox [attr.aria-label]="'Select ' + m.fullName"
+                                    [checked]="isChecked(m)" [disabled]="m.registered"
+                                    (change)="toggle(m, $event.checked)">
+                      </mat-checkbox>
+                    </td>
+                    }
                     <td class="m-name">{{ m.fullName }}</td>
                     <td>{{ m.email }}</td>
                     <td class="col-date">{{ m.addedAt | date: 'MMM d, y' }}</td>
+                    <td class="col-status">
+                      @if (m.registered) {
+                        <span class="st st-done"><mat-icon>how_to_reg</mat-icon> Registered</span>
+                      } @else if (m.notificationFlag) {
+                        <span class="st st-sent"><mat-icon>mark_email_read</mat-icon> Sent</span>
+                      } @else {
+                        <span class="st st-none">Not yet</span>
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
         } @else {
-          <p class="tp-empty">No members yet. Add the first one with the form.</p>
+          <p class="tp-empty">No members yet.@if (canEdit()) { Add the first one with the form.}</p>
         }
       </section>
 
+      @if (canEdit()) {
       <section class="tp-card" aria-label="Add a member">
         <h2 class="tp-card-title"><mat-icon>person_add</mat-icon> Add a member</h2>
 
@@ -91,13 +126,19 @@
           person joins the team and keeps their password.
         </p>
       </section>
+      }
     </div>
   </div>
 } @else {
   <div class="tp-state">
     <mat-icon class="tp-state-icon">group_off</mat-icon>
-    <h1 class="tp-title">No team assigned yet</h1>
-    <p class="muted">An administrator needs to create your team and set you as its Team Lead.</p>
+    @if (canEdit()) {
+      <h1 class="tp-title">No team assigned yet</h1>
+      <p class="muted">An administrator needs to create your team and set you as its Team Lead.</p>
+    } @else {
+      <h1 class="tp-title">You are not in a team yet</h1>
+      <p class="muted">Your team lead or an administrator adds you to a team.</p>
+    }
     <button mat-stroked-button type="button" (click)="load()">
       <mat-icon>sync</mat-icon> Check again
     </button>

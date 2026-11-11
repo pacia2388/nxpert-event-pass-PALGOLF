@@ -16,6 +16,7 @@ import {
   isTeamLead,
   merchantGuard,
   nonMerchantGuard,
+  participantOrTlGuard,
   voucherGuard,
 } from './guards';
 
@@ -46,7 +47,7 @@ describe('route guards', () => {
   describe('a Team Lead can open only the Team page', () => {
     it('opens the Team page', () => {
       signIn('TL');
-      expect(visit(isTeamLead, '/team')).toBe('allowed');
+      expect(visit(participantOrTlGuard, '/team')).toBe('allowed');
     });
 
     it.each([
@@ -98,18 +99,18 @@ describe('route guards', () => {
       expect(visit(confirmerGuard, '/admin/events')).toBe('allowed');
     });
 
-    it('keeps participants and admins out of the Team page', () => {
+    it('lets a participant view the Team page and keeps admins out', () => {
       signIn('Participant');
-      expect(visit(isTeamLead, '/team')).toBe('/home');
+      expect(visit(participantOrTlGuard, '/team')).toBe('allowed');
       TestBed.resetTestingModule();
       signIn('Admin');
-      expect(visit(isTeamLead, '/team')).toBe('/home');
+      expect(visit(participantOrTlGuard, '/team')).toBe('/home');
     });
 
     it('still sends a merchant to the meal scanner', () => {
       signIn('Merchant');
       expect(visit(nonMerchantGuard, '/account')).toBe('/merchant/scan');
-      expect(visit(isTeamLead, '/team')).toBe('/merchant/scan');
+      expect(visit(participantOrTlGuard, '/team')).toBe('/merchant/scan');
     });
 
     it('sends a signed-out visitor to login with a return URL', () => {
