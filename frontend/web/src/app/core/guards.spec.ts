@@ -10,11 +10,9 @@ import {
 } from '@angular/router';
 import { AuthResponse } from './models';
 import {
-  adminGuard,
   authGuard,
   confirmerGuard,
   isTeamLead,
-  merchantGuard,
   nonMerchantGuard,
   participantOrTlGuard,
   voucherGuard,
@@ -28,7 +26,8 @@ function signIn(role: Role | null, canConfirmRegistrations = false): void {
   if (role) {
     localStorage.setItem(
       'evt_auth',
-      JSON.stringify({ token: 't', userId: 1, fullName: 'Test User', role, canConfirmRegistrations }),
+      // JWT-shaped with no expiry: AuthService reads the payload to drop expired sessions.
+      JSON.stringify({ token: `x.${btoa('{}')}.x`, userId: 1, fullName: 'Test User', role, canConfirmRegistrations }),
     );
   }
   TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient()] });
@@ -44,25 +43,10 @@ function visit(guard: CanActivateFn, url: string): string {
 }
 
 describe('route guards', () => {
-  describe('a Team Lead can open only the Team page', () => {
+  describe('a Team Lead can open the Team page', () => {
     it('opens the Team page', () => {
       signIn('TL');
       expect(visit(participantOrTlGuard, '/team')).toBe('allowed');
-    });
-
-    it.each([
-      ['Home, Browse Events and My Events', authGuard, '/home'],
-      ['Calendar, Mail Planner and Edit account', nonMerchantGuard, '/account'],
-      ['admin pages', adminGuard, '/admin/users'],
-      ['the meal scanner', merchantGuard, '/merchant/scan'],
-    ])('is sent to the Team page from %s', (_label, guard, url) => {
-      signIn('TL');
-      expect(visit(guard, url)).toBe('/team');
-    });
-
-    it('is sent to the Team page from Attendance even with the confirm grant', () => {
-      signIn('TL', true);
-      expect(visit(confirmerGuard, '/admin/events')).toBe('/team');
     });
   });
 

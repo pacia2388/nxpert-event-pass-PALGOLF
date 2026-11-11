@@ -23,7 +23,7 @@ $soft-surface: #f8fbfa;
 fieldset {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -36,6 +36,16 @@ fieldset {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
+
+  .status-pill { flex: none; white-space: nowrap; }
+}
+
+// To, CC and Subject are roomier than the rest of the composer: 52px for a single line.
+.compose-field { @include mat.form-field-density(-1); }
+// A chip row is 40px (32px chip + 4px margins); 6px padding keeps To / CC at 52px, empty or not.
+:host ::ng-deep .compose-field:has(.mat-mdc-chip-grid) {
+  .mat-mdc-form-field-infix { padding-top: 6px; padding-bottom: 6px; }
+  .mat-mdc-chip-input { min-height: 40px; }
 }
 
 h3 { margin: 0; font-size: 15px; font-weight: 700; color: #0f172a; }
@@ -227,6 +237,22 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 mat-chip-row { max-width: 100%; }
 .group-chip { --mdc-chip-elevated-container-color: #e6f6f3; --mat-chip-elevated-container-color: #e6f6f3; font-weight: 700; }
 
+// "Invite teams" sits inside the To field, pinned to its top-right as chips wrap.
+:host ::ng-deep .mat-mdc-form-field-icon-suffix:has(.invite-teams-btn) { align-self: flex-start; }
+.invite-teams-btn {
+  // 36px button + 8px above and below = the field's 52px single-line height: centered on the
+  // first row of chips, and in the empty field.
+  height: 36px;
+  margin: 8px 6px 8px 4px;
+  white-space: nowrap;
+  color: #0f766e;
+}
+@media (max-width: 560px) {
+  .invite-teams-btn { min-width: 0; padding: 0 10px; }
+  .invite-teams-btn mat-icon { margin-right: 0; }
+  .invite-teams-label { display: none; }
+}
+
 .saved-option ::ng-deep .mdc-list-item__primary-text { display: flex; align-items: center; gap: 8px; width: 100%; }
 .saved-address { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .forget-address { flex: none; color: var(--mat-sys-on-surface-variant); }
@@ -237,7 +263,7 @@ mat-chip-row { max-width: 100%; }
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: -4px;
+  margin-top: -8px; // sits closer to its own field than to the next one
   font-size: 12.5px;
   color: var(--mat-sys-on-surface-variant);
 
