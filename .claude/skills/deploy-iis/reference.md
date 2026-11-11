@@ -103,15 +103,18 @@ in the site — below). Put real values there — never ship dev secrets:
 
 ## 2. Build & publish the frontend (Angular)
 
-### Point the SPA at the API **before** building
+### Point the SPA at the API (runtime, no rebuild)
 
-`apiBaseUrl` is compiled into the bundle. Edit
-[`frontend/web/src/environments/environment.ts`](frontend/web/src/environments/environment.ts) to the API site's
-public URL **including its port**:
+Settings live in `appSettings.json` next to `index.html` (source
+[`frontend/web/public/appSettings.json`](frontend/web/public/appSettings.json)), fetched at app
+start. After copying the build, edit it on the server to the API site's public URL **including its
+port**:
 
-```ts
-apiBaseUrl: 'https://SERVER:5001',
+```json
+{ "apiBaseUrl": "https://SERVER:5001", "faceEngineBaseUrl": "/face-api" }
 ```
+
+It is public — never put secrets in it. It is fetched with `no-cache`, so a reload picks up edits.
 
 ### Build
 
@@ -161,4 +164,5 @@ Output lands in **`dist/web/browser`** (includes the `web.config` from `public/`
   restarts on file change; `iisreset` if a DLL is locked.
 - **Frontend:** re-run `npm run build`, replace the contents of `C:\inetpub\EventReg\web`
   (hashed filenames avoid stale-cache issues).
-- Changed `apiBaseUrl`? You **must rebuild** the frontend — it's baked into the bundle.
+- Changed `apiBaseUrl`? Edit `appSettings.json` on the server and reload — no rebuild. A new build
+  overwrites it with dev values: restore the server copy after each frontend deploy.

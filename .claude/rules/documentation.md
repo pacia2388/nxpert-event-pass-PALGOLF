@@ -5,7 +5,6 @@
 - Exceptions: per-project `README.md` files and `.claude/` rules and skills stay where they are.
 - Implementation plans go in **`plans/`** (one Markdown file per feature). When work on a planned
   module starts, update its plan first (status, open questions, tables, steps) and keep it current.
-  - Teams module: `plans/team-page.md`. Update it when the Teams module is started.
 - Mark progress in every plan: tick each step (`- [x]`) as it lands, and add a marker to each
   section heading when the whole section is done, e.g. `### Backend ✅ Done (2026-11-12)`.
   Use `🚧 In progress` while a section is partly done. Add a change-log row for each update.

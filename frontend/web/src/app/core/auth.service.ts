@@ -34,8 +34,6 @@ export class AuthService {
   readonly isMerchant = computed(() => this._auth()?.role === 'Merchant');
   readonly isParticipant = computed(() => this._auth()?.role === 'Participant');
   readonly isTeamLead = computed(() => this._auth()?.role === 'TL');
-  // shortcut: TLs only, until the teams tables exist; then true for users listed in a team's details.
-  readonly isTeamMember = computed(() => this.isTeamLead());
   // The Voucher page is for Participants and Team Leads only.
   readonly canUseVoucher = computed(() => {
     const r = this._auth()?.role;

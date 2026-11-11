@@ -67,11 +67,11 @@ Dev Kestrel ports (5088/7088 in `launchSettings.json`) are ignored under IIS.
 
 ## 2. Frontend (Angular)
 
-`apiBaseUrl` is compiled into the bundle — set it **before** building in
-`frontend/web/src/environments/environment.ts`:
+Settings live in `appSettings.json` (source `frontend/web/public/appSettings.json`), read at app
+start — **not** compiled in. After copying the build, edit it on the server:
 
-```ts
-apiBaseUrl: 'https://SERVER:5001',
+```json
+{ "apiBaseUrl": "https://SERVER:5001", "faceEngineBaseUrl": "/face-api" }
 ```
 
 From `frontend/web`:
@@ -107,4 +107,5 @@ Browse `https://SERVER:8443/` → sign-in page.
   restarts on file change; `iisreset` if a DLL is locked.
 - **Frontend:** re-run `npm run build`, replace contents of `C:\inetpub\EventReg\web` (hashed
   filenames avoid stale cache).
-- Changed `apiBaseUrl`? **Rebuild the frontend** — it is baked into the bundle.
+- Changed `apiBaseUrl`? Edit `appSettings.json` on the server and reload — no rebuild. A new build
+  overwrites it with dev values: restore the server copy after each frontend deploy.

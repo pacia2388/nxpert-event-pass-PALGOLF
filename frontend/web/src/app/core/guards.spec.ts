@@ -13,7 +13,6 @@ import {
   adminGuard,
   authGuard,
   confirmerGuard,
-  isTeamLead,
   merchantGuard,
   nonMerchantGuard,
   participantOrTlGuard,
@@ -115,7 +114,7 @@ describe('route guards', () => {
 
     it('sends a signed-out visitor to login with a return URL', () => {
       signIn(null);
-      expect(visit(isTeamLead, '/team')).toBe('/login?returnUrl=%2Fteam');
+      expect(visit(participantOrTlGuard, '/team')).toBe('/login?returnUrl=%2Fteam');
       expect(visit(authGuard, '/home')).toBe('/login?returnUrl=%2Fhome');
     });
   });

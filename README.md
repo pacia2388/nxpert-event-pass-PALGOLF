@@ -133,7 +133,7 @@ your phone, expose both servers over HTTPS with ngrok:
 1. Tunnel the **API**:  `ngrok http 5088`  → copy the `https://…` URL.
 2. Tunnel the **web app**:  `ngrok http 4200` (a second tunnel/agent) → copy that URL.
 3. Point the SPA at the API tunnel: edit
-   `frontend/web/src/environments/environment.development.ts` and set `apiBaseUrl` to the API's ngrok URL.
+   `frontend/web/public/appSettings.json` and set `apiBaseUrl` to the API's ngrok URL, then reload.
 4. Set `App:FrontendBaseUrl` in `appsettings.json` to the web app's ngrok URL so
    invite links point at the right place.
 5. Open the web ngrok URL on your phone, sign in as admin, go to **Scanner**, and

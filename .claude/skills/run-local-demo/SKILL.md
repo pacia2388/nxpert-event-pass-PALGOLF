@@ -81,7 +81,7 @@ The camera API (`getUserMedia`) needs HTTPS except on `localhost`. Expose both s
 
 1. API tunnel: `ngrok http 5088` → copy the `https://…` URL.
 2. Web tunnel: `ngrok http 4200` (second agent) → copy that URL.
-3. Set `apiBaseUrl` in `frontend/web/src/environments/environment.development.ts` to the **API** ngrok URL.
+3. Set `apiBaseUrl` in `frontend/web/public/appSettings.json` to the **API** ngrok URL, then reload (no rebuild).
 4. Set `App:FrontendBaseUrl` in `appsettings.json` to the **web** ngrok URL (invite links).
 5. Open the web ngrok URL on the phone, sign in as admin → **Scanner** → allow camera.
 

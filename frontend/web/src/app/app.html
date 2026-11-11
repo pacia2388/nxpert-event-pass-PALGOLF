@@ -76,6 +76,11 @@
           <mat-icon>install_mobile</mat-icon> Install app
         </button>
       }
+      @if(auth.isAdmin()){
+        <a mat-menu-item routerLink="/admin/settings">
+          <mat-icon>manage_accounts</mat-icon> Settings
+        </a>
+      }
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon> Sign out
       </button>

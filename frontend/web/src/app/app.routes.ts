@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard, participantOrTlGuard, guestGuard, voucherGuard, isTeamLead } from './core/guards';
+import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard, participantOrTlGuard, guestGuard, voucherGuard } from './core/guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
