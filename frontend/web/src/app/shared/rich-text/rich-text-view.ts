@@ -15,7 +15,7 @@ import { richNodes } from './rich-text';
       h3 { font-size: 1em; }
       ul, ol { padding-left: 20px; }
       blockquote { padding-left: 10px; border-left: 3px solid #e2e8f0; color: #475569; }
-      a { color: #0f766e; text-decoration: underline; }
+      a { color: var(--pg-blue-deep); text-decoration: underline; }
       img { max-width: min(100%, 480px); margin: 6px 0; border-radius: 6px; }
     }
   `,

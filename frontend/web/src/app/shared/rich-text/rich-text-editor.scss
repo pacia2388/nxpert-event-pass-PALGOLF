@@ -1,8 +1,8 @@
 // Same look as the invitation composer's message box.
 @use '@angular/material' as mat;
 
-$hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
-$soft-surface: #f8fbfa;
+$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
+$soft-surface: #f8fafd;
 
 :host {
   display: block;
@@ -10,12 +10,12 @@ $soft-surface: #f8fbfa;
 }
 
 .message-box {
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
 
-  &:focus-within { border-color: rgba(13, 148, 136, 0.5); }
+  &:focus-within { border-color: rgba(15, 95, 184, 0.5); }
   &.invalid { border-color: #dc2626; }
 }
 
@@ -24,35 +24,35 @@ $soft-surface: #f8fbfa;
   flex-wrap: wrap;
   align-items: center;
   padding: 2px 6px;
-  border-bottom: $hairline-teal;
+  border-bottom: $hairline-brand;
   background: $soft-surface;
 
-  button { color: #0f766e; }
+  button { color: var(--pg-blue-deep); }
 }
 
 .toolbar-sep {
   width: 1px;
   height: 20px;
   margin: 0 4px;
-  background: rgba(13, 148, 136, 0.2);
+  background: rgba(15, 95, 184, 0.2);
 }
 
 .link-row {
   display: flex;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: $hairline-teal;
+  border-bottom: $hairline-brand;
 
   input {
     flex: 1;
     min-width: 0;
     padding: 8px 10px;
-    border: $hairline-teal;
+    border: $hairline-brand;
     border-radius: 10px;
     font: inherit;
     outline: none;
 
-    &:focus { border-color: #0d9488; }
+    &:focus { border-color: var(--pg-blue); }
   }
 }
 
@@ -75,7 +75,7 @@ $soft-surface: #f8fbfa;
     p, h1, h2, h3, blockquote, ul, ol { margin: 0 0 8px; }
     ul, ol { padding-left: 22px; }
     blockquote { padding-left: 10px; border-left: 3px solid #e2e8f0; color: #475569; }
-    a { color: #0f766e; text-decoration: underline; }
+    a { color: var(--pg-blue-deep); text-decoration: underline; }
     img { margin: 8px 0; border-radius: 6px; }
   }
 }

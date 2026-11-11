@@ -1,9 +1,9 @@
-// Invitation composer: same two-column card layout and teal accents as the event detail tabs.
+// Invitation composer: same two-column card layout and blue accents as the event detail tabs.
 // Compact density so the whole composer (fields, editor, summary) fits a laptop screen.
 @use '@angular/material' as mat;
 
-$hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
-$soft-surface: #f8fbfa;
+$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
+$soft-surface: #f8fafd;
 
 :host {
   display: block;
@@ -53,7 +53,7 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 
 .full-width { width: 100%; }
 
-.schedule-controls { display: grid; gap: 10px; padding: 12px; border: $hairline-teal; border-radius: 12px; background: $soft-surface; }
+.schedule-controls { display: grid; gap: 10px; padding: 12px; border: $hairline-brand; border-radius: 12px; background: $soft-surface; }
 .schedule-toggle { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .schedule-row {
   display: flex;
@@ -62,11 +62,11 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 
   mat-form-field { flex: 0 1 360px; min-width: 0; }
   .schedule-field input { cursor: pointer; }
-  button { color: #0f766e; }
+  button { color: var(--pg-blue-deep); }
 }
 .schedule-error { margin: -6px 0 0; color: #b91c1c; font-size: 12px; }
 // ---- Email history ----
-.email-history { margin-top: 20px; padding-top: 14px; border-top: $hairline-teal; }
+.email-history { margin-top: 20px; padding-top: 14px; border-top: $hairline-brand; }
 
 .history-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 
@@ -83,15 +83,15 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   cursor: pointer;
 
   &:hover { background: $soft-surface; }
-  &:focus-visible { outline: 2px solid rgba(13, 148, 136, 0.45); }
+  &:focus-visible { outline: 2px solid rgba(15, 95, 184, 0.45); }
 }
 
 .history-count {
   min-width: 20px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: #e6f6f3;
-  color: #0f766e;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
   font-size: 11.5px;
   font-weight: 700;
   text-align: center;
@@ -138,12 +138,12 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 .history-list {
   max-height: 420px;
   overflow: auto;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 10px;
 }
 
 .history-item {
-  border-top: $hairline-teal;
+  border-top: $hairline-brand;
 
   &:first-child { border-top: 0; }
   &.open { background: $soft-surface; }
@@ -164,13 +164,13 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 
   &:hover:not(:disabled) { background: $soft-surface; }
   &:disabled { cursor: default; }
-  &:focus-visible { outline: 2px solid rgba(13, 148, 136, 0.45); outline-offset: -2px; }
+  &:focus-visible { outline: 2px solid rgba(15, 95, 184, 0.45); outline-offset: -2px; }
   .history-chevron { font-size: 20px; width: 20px; height: 20px; }
 }
 
 .history-content { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
 .history-subject, .history-recipients { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.history-subject { flex: 0 1 auto; max-width: 55%; font-weight: 600; color: #0f766e; }
+.history-subject { flex: 0 1 auto; max-width: 55%; font-weight: 600; color: var(--pg-blue-deep); }
 .history-recipients { flex: 1 1 0; font-size: 12.5px; color: #64748b; }
 .history-date { font-size: 12px; color: #64748b; white-space: nowrap; }
 
@@ -198,7 +198,7 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   max-height: 280px;
   overflow: auto;
   padding: 10px 12px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 8px;
   background: #fff;
   overflow-wrap: anywhere;
@@ -235,7 +235,7 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 }
 
 mat-chip-row { max-width: 100%; }
-.group-chip { --mdc-chip-elevated-container-color: #e6f6f3; --mat-chip-elevated-container-color: #e6f6f3; font-weight: 700; }
+.group-chip { --mdc-chip-elevated-container-color: #e8f0fb; --mat-chip-elevated-container-color: #e8f0fb; font-weight: 700; }
 
 // "Invite teams" sits inside the To field, pinned to its top-right as chips wrap.
 :host ::ng-deep .mat-mdc-form-field-icon-suffix:has(.invite-teams-btn) { align-self: flex-start; }
@@ -245,7 +245,7 @@ mat-chip-row { max-width: 100%; }
   height: 36px;
   margin: 8px 6px 8px 4px;
   white-space: nowrap;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 }
 @media (max-width: 560px) {
   .invite-teams-btn { min-width: 0; padding: 0 10px; }
@@ -267,7 +267,7 @@ mat-chip-row { max-width: 100%; }
   font-size: 12.5px;
   color: var(--mat-sys-on-surface-variant);
 
-  > mat-icon { font-size: 16px; width: 16px; height: 16px; color: #0d9488; }
+  > mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
   > span { min-width: 0; overflow-wrap: anywhere; }
 }
 
@@ -277,13 +277,13 @@ mat-chip-row { max-width: 100%; }
   gap: 4px;
   height: 28px;
   padding: 0 10px;
-  border: 1.5px solid rgba(13, 148, 136, 0.45);
+  border: 1.5px solid rgba(15, 95, 184, 0.45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
   cursor: pointer;
 
   mat-icon { font-size: 15px; width: 15px; height: 15px; }
@@ -292,7 +292,7 @@ mat-chip-row { max-width: 100%; }
 
 // ---- Message editor ----
 .message-box {
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
@@ -303,10 +303,10 @@ mat-chip-row { max-width: 100%; }
   flex-wrap: wrap;
   align-items: center;
   padding: 2px 6px;
-  border-bottom: $hairline-teal;
+  border-bottom: $hairline-brand;
   background: $soft-surface;
 
-  button { color: #0f766e; }
+  button { color: var(--pg-blue-deep); }
   .token-button { height: 30px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; }
 }
 
@@ -314,25 +314,25 @@ mat-chip-row { max-width: 100%; }
   width: 1px;
   height: 20px;
   margin: 0 4px;
-  background: rgba(13, 148, 136, 0.2);
+  background: rgba(15, 95, 184, 0.2);
 }
 
 .link-row {
   display: flex;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: $hairline-teal;
+  border-bottom: $hairline-brand;
 
   input {
     flex: 1;
     min-width: 0;
     padding: 8px 10px;
-    border: $hairline-teal;
+    border: $hairline-brand;
     border-radius: 10px;
     font: inherit;
     outline: none;
 
-    &:focus { border-color: #0d9488; }
+    &:focus { border-color: var(--pg-blue); }
   }
 }
 
@@ -346,7 +346,7 @@ mat-chip-row { max-width: 100%; }
   overflow-wrap: anywhere;
   line-height: 1.6;
 
-  &:focus { box-shadow: inset 0 0 0 2px rgba(13, 148, 136, 0.45); }
+  &:focus { box-shadow: inset 0 0 0 2px rgba(15, 95, 184, 0.45); }
   &:empty::before { content: attr(data-placeholder); color: var(--mat-sys-on-surface-variant); pointer-events: none; }
 }
 
@@ -359,7 +359,7 @@ mat-chip-row { max-width: 100%; }
   gap: 8px;
   min-width: 0;
   padding: 14px 16px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 12px;
   background: $soft-surface;
 }
@@ -377,7 +377,7 @@ mat-chip-row { max-width: 100%; }
   gap: 6px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 
   mat-icon { font-size: 16px; width: 16px; height: 16px; }
 }
@@ -413,7 +413,7 @@ mat-chip-row { max-width: 100%; }
   position: relative;
   flex: 1 1 auto;
   min-height: 240px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 10px;
   background: #fff;
   overflow: hidden;
@@ -428,14 +428,14 @@ mat-chip-row { max-width: 100%; }
   line-height: 1.5;
   color: #333;
 
-  &:focus-visible { outline: 2px solid rgba(13, 148, 136, 0.45); outline-offset: -2px; }
+  &:focus-visible { outline: 2px solid rgba(15, 95, 184, 0.45); outline-offset: -2px; }
   p { margin: 0; }
 }
 
 .mail-meta {
   padding: 8px 10px;
-  border-bottom: 1px solid #eef2f1;
-  background: #fbfcfc;
+  border-bottom: 1px solid #eef2f8;
+  background: #fbfcfe;
 }
 
 .mail-subject {
@@ -485,7 +485,7 @@ mat-chip-row { max-width: 100%; }
 
 .mail-card-head {
   padding: 7px 10px;
-  background: #0d9488;
+  background: var(--pg-blue);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -502,16 +502,16 @@ mat-chip-row { max-width: 100%; }
   margin: 2px 0 !important;
   font-size: 13px;
   font-weight: 700;
-  color: #0d9488;
+  color: var(--pg-blue);
   overflow-wrap: anywhere;
 }
 
 .mail-desc {
   margin: 4px 0 2px !important;
   padding: 6px 8px;
-  border-left: 2px solid #0d9488;
+  border-left: 2px solid var(--pg-blue);
   border-radius: 4px;
-  background: #f6faf8;
+  background: #f5f8fc;
   white-space: pre-line;
   overflow-wrap: anywhere;
   display: -webkit-box;
@@ -525,7 +525,7 @@ mat-chip-row { max-width: 100%; }
   margin: 8px 0 4px;
   padding: 5px 14px;
   border-radius: 6px;
-  background: #0d9488;
+  background: var(--pg-blue);
   color: #fff;
   font-weight: 600;
 }
@@ -557,7 +557,7 @@ mat-chip-row { max-width: 100%; }
   font-size: 10.5px;
   color: #475569;
 
-  mat-icon { flex: none; font-size: 16px; width: 16px; height: 16px; color: #0d9488; }
+  mat-icon { flex: none; font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
 }
 
 @media (max-width: 960px) {

@@ -97,11 +97,11 @@
   }
 }
 
-/* Cards: same language as the rest of the app — white surface, teal hairline, soft shadow, and a
-   heading with a soft teal icon tile. */
+/* Cards: same language as the rest of the app — white surface, blue hairline, soft shadow, and a
+   heading with a soft blue icon tile. */
 .scan-panel {
   background: #fff;
-  border: 1px solid rgba(13, 148, 136, 0.14);
+  border: 1px solid rgba(15, 95, 184, 0.14);
   border-radius: 18px;
   box-shadow: var(--card-shadow);
   padding: 16px 18px 18px;
@@ -133,8 +133,8 @@
   border-radius: 10px;
   font-size: 20px;
   line-height: 20px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
 }
 
 .scanner-col .offline-bar {

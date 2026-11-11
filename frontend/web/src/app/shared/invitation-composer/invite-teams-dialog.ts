@@ -106,7 +106,7 @@ export interface InviteTeamsDialogData {
       .state { display: flex; align-items: center; gap: 10px; padding: 18px 4px; color: #475569; }
       .teams { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
       .teams li { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-      .teams li.open { border-color: #99d5cc; }
+      .teams li.open { border-color: #9dbfe8; }
       .team-head { display: flex; align-items: center; padding: 2px 6px 2px 2px; }
       .expand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 8px 4px; border: 0;
         background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
@@ -118,7 +118,7 @@ export interface InviteTeamsDialogData {
       .member mat-checkbox { flex: 1; min-width: 0; }
       .member-name { display: block; font-weight: 500; }
       .member-email { display: block; color: #64748b; font-size: 12.5px; overflow-wrap: anywhere; }
-      .added { color: #0f766e; font-size: 12px; font-weight: 600; white-space: nowrap; }
+      .added { color: var(--pg-blue-deep); font-size: 12px; font-weight: 600; white-space: nowrap; }
       .added.removing { color: #b45309; }
       .muted { margin: 8px 0 4px; color: #64748b; font-size: 13px; }
     `,

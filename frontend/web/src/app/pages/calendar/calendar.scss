@@ -1,9 +1,9 @@
 // Event calendar: header, toolbar card, month / week grid card and a day agenda side card.
-// Same teal tokens as the Events list (.ev-btn and .status-pill come from styles.scss).
+// Same blue tokens as the Events list (.ev-btn and .status-pill come from styles.scss).
 
-$hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
+$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
 $grid-line: 1px solid rgba(15, 23, 42, 0.07);
-$soft-surface: #f8fbfa;
+$soft-surface: #f8fafd;
 
 .cal-page {
   display: flex;
@@ -33,7 +33,7 @@ $soft-surface: #f8fbfa;
   flex-wrap: wrap;
   gap: 12px;
   padding: 12px 16px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 16px;
   background: #fff;
   box-shadow: var(--card-shadow);
@@ -59,7 +59,7 @@ $soft-surface: #f8fbfa;
   font: inherit;
   font-size: 13.5px;
 
-  &:focus { outline: none; border-color: #0d9488; }
+  &:focus { outline: none; border-color: var(--pg-blue); }
 }
 
 .cal-view { border-radius: 12px !important; }
@@ -86,7 +86,7 @@ $soft-surface: #f8fbfa;
 
 .cal-shell {
   overflow: hidden;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 16px;
   background: #fff;
   box-shadow: var(--card-shadow);
@@ -98,8 +98,8 @@ $soft-surface: #f8fbfa;
 .weekday {
   padding: 10px 0;
   background: $soft-surface;
-  border-bottom: $hairline-teal;
-  color: #0f766e;
+  border-bottom: $hairline-brand;
+  color: var(--pg-blue-deep);
   font-size: 12.5px;
   font-weight: 800;
   text-align: center;
@@ -115,8 +115,8 @@ $soft-surface: #f8fbfa;
   border-bottom: $grid-line;
 
   &:nth-child(7n) { border-right: 0; }
-  &.outside { background: #fbfcfc; .day-number { opacity: 0.45; } }
-  &.selected { box-shadow: inset 0 0 0 2px rgba(13, 148, 136, 0.55); }
+  &.outside { background: #fbfcfe; .day-number { opacity: 0.45; } }
+  &.selected { box-shadow: inset 0 0 0 2px rgba(15, 95, 184, 0.55); }
 }
 
 .day-number {
@@ -132,8 +132,8 @@ $soft-surface: #f8fbfa;
   font-weight: 700;
   cursor: pointer;
 
-  &:hover { background: #e6f6f3; color: #0f766e; }
-  &.today { background: var(--brand-grad); color: #fff; box-shadow: 0 3px 10px rgba(13, 148, 136, 0.3); }
+  &:hover { background: #e8f0fb; color: var(--pg-blue-deep); }
+  &.today { background: var(--brand-grad); color: #fff; box-shadow: 0 3px 10px rgba(15, 95, 184, 0.3); }
 }
 
 .appointment {
@@ -141,17 +141,17 @@ $soft-surface: #f8fbfa;
   margin-top: 4px;
   padding: 4px 7px;
   overflow: hidden;
-  border-left: 3px solid #0d9488;
+  border-left: 3px solid var(--pg-blue);
   border-radius: 6px;
-  background: #e6f6f3;
-  color: #0f514b;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-decoration: none;
 
-  &:hover { background: #d3efe9; }
+  &:hover { background: #d6e4f7; }
   .appt-time { font-size: 10.5px; font-weight: 700; opacity: 0.8; }
 }
 
@@ -165,7 +165,7 @@ $soft-surface: #f8fbfa;
   padding: 4px;
   border: 0;
   background: transparent;
-  color: #0d9488;
+  color: var(--pg-blue);
   font: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -185,7 +185,7 @@ $soft-surface: #f8fbfa;
   z-index: 2;
   padding: 6px 0;
   background: $soft-surface;
-  border-bottom: $hairline-teal;
+  border-bottom: $hairline-brand;
 
   button {
     margin: 0 4px;
@@ -198,8 +198,8 @@ $soft-surface: #f8fbfa;
     font-weight: 700;
     cursor: pointer;
 
-    &:hover { background: #e6f6f3; }
-    &.selected { box-shadow: inset 0 0 0 2px rgba(13, 148, 136, 0.55); }
+    &:hover { background: #e8f0fb; }
+    &.selected { box-shadow: inset 0 0 0 2px rgba(15, 95, 184, 0.55); }
     &.today { background: var(--brand-grad); color: #fff; }
   }
 }
@@ -232,11 +232,11 @@ $soft-surface: #f8fbfa;
   min-height: 18px;
   padding: 4px 6px;
   overflow: hidden;
-  border-left: 3px solid #0d9488;
+  border-left: 3px solid var(--pg-blue);
   border-right: 2px solid #fff;
   border-radius: 6px;
-  background: #e6f6f3;
-  color: #0f514b;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
   font-size: 12px;
   text-decoration: none;
 
@@ -249,7 +249,7 @@ $soft-surface: #f8fbfa;
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 16px;
   background: $soft-surface;
   position: sticky;
@@ -263,14 +263,14 @@ $soft-surface: #f8fbfa;
   display: flex;
   gap: 12px;
   padding: 12px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 12px;
   background: #fff;
   color: inherit;
   text-decoration: none;
   transition: box-shadow 0.15s ease, border-color 0.15s ease;
 
-  &:hover { border-color: rgba(13, 148, 136, 0.4); box-shadow: var(--card-shadow); }
+  &:hover { border-color: rgba(15, 95, 184, 0.4); box-shadow: var(--card-shadow); }
 }
 
 .agenda-icon {
@@ -280,8 +280,8 @@ $soft-surface: #f8fbfa;
   padding: 7px;
   box-sizing: border-box;
   border-radius: 11px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
   font-size: 22px;
 }
 
@@ -305,7 +305,7 @@ $soft-surface: #f8fbfa;
   font-size: 12px;
 
   span { display: inline-flex; align-items: center; gap: 6px; }
-  .dot { width: 10px; height: 10px; border-radius: 3px; background: #0d9488; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; background: var(--pg-blue); }
   .dot.registered { background: #16a34a; }
 }
 
