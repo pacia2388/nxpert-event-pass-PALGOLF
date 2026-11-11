@@ -83,6 +83,7 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
             email,
             password = UserPassword,
             role,
+            birthdate = "1990-05-01",
             canConfirmRegistrations = false,
         });
         res.EnsureSuccessStatusCode();

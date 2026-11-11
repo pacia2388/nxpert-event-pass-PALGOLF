@@ -376,6 +376,15 @@ public class RegistrationsController : ControllerBase
         if (!IsValidEmail(email))
             return BadRequest(new { message = "Please enter a valid email address." });
 
+        // An email that belongs to an account must register through that account; a guest row
+        // would be invisible to it and lead to a duplicate attendee once the member signs in.
+        if (await _db.Users.AnyAsync(u => u.Email == email))
+            return Conflict(new
+            {
+                message = "This email already has an account. Please sign in to register. If your Team Lead "
+                        + "added you, complete your registration first using the link they emailed you.",
+            });
+
         if (phoneRaw is null)
             return BadRequest(new { message = "A mobile number is required." });
         var phone = NormalizePhMobile(phoneRaw);
