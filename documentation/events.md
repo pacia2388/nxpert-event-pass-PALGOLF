@@ -174,7 +174,7 @@ are checked in through the normal check-in endpoints, so the same rules apply.
 
 | Tab / button | Purpose |
 |---|---|
-| Invite | Type or pick saved addresses, use `@n-pax` for all users, or click **Invite teams** in the To field to tick team members (one by one, or a whole team; the Team Lead is not listed). Send now or schedule (≤ 500 recipient entries per send) |
+| Invite | Type or pick saved addresses, use `@n-pax` for all users, or click **Invite teams** in the To field to tick team members (one by one, or a whole team; the Team Lead is not listed). Untick a member already in To to remove them. Send now or schedule (≤ 500 recipient entries per send) |
 | Attendance | Live roster; confirm, check in, cancel, export CSV |
 | Kit Claiming | Mark kits claimed (self or on behalf), clear claims |
 | Meal Stubs | Issued stubs; manual redeem / clear (see [meals-stub.md](meals-stub.md)) |

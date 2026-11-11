@@ -26,9 +26,12 @@ inside the To field and tick members of a team, or a whole team, to add them as 
 - A team's members load the first time the team is opened or ticked.
 - Ticking a team picks all its members; ticking again clears them. A partly picked team shows a
   partial checkbox.
-- Members already in To are shown ticked, disabled and marked "Already added".
+- Members already in To are shown ticked and marked "Already added". Unticking one marks them
+  "Will be removed" and takes them out of To on confirm. Ticking a team that is not opened yet
+  never unticks anyone.
 - A team with no members cannot be ticked. A member without a usable email cannot be picked.
 - **Add N** adds the picked addresses to To (the picker's description says so); the composer validates and de-duplicates them as usual.
+  The button reads **Remove N** or **Add N, remove M** when members were unticked.
 - The server's limit of 500 recipient entries per send still applies.
 
 ## Steps
@@ -53,3 +56,5 @@ inside the To field and tick members of a team, or a whole team, to add them as 
 |---|---|
 | 2026-11-11 | Plan created and built: selection helpers, picker dialog, To-field button, specs and docs. |
 | 2026-11-11 | Picker's primary button shortened to **Add N**; the description now says picks go to the To field. |
+| 2026-11-11 | To, CC and Subject made taller with a wider gap; **Invite teams** aligned to the first chip row. |
+| 2026-11-11 | Members already in To can be unticked in the picker to remove them from To. |
