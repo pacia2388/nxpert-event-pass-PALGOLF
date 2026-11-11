@@ -13,7 +13,7 @@ function team(id: number, description: string, memberCount: number): TeamDto {
 
 function detail(base: TeamDto, emails: string[]): TeamDetailDto {
   return { ...base, members: emails.map((email, i) => ({ userId: base.id * 10 + i, fullName: `Member ${email.split('@')[0]}`,
-    email, addedAt: '2026-11-10T00:00:00Z' })) };
+    email, addedAt: '2026-11-10T00:00:00Z', notificationFlag: false, registered: true })) };
 }
 
 const eagles = team(1, 'Eagles', 2);

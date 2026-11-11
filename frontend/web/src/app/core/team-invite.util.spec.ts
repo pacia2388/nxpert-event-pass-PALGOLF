@@ -2,7 +2,7 @@ import { TeamMemberDto } from './models';
 import { selectableEmails, selectionChanges, teamCheckState, toggleMember, toggleTeam } from './team-invite.util';
 
 function member(email: string, userId = 1): TeamMemberDto {
-  return { userId, fullName: `User ${userId}`, email, addedAt: '2026-11-11T00:00:00Z' };
+  return { userId, fullName: `User ${userId}`, email, addedAt: '2026-11-11T00:00:00Z', notificationFlag: false, registered: true };
 }
 
 const ana = member('Ana@Example.com', 1);
