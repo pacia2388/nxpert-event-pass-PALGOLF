@@ -16,7 +16,7 @@
 
     <fieldset [disabled]="sending()">
       @for (field of fields; track field) {
-        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+        <mat-form-field appearance="outline" class="full-width compose-field" subscriptSizing="dynamic">
           <mat-label>{{ field === 'to' ? 'To' : 'CC' }}</mat-label>
           <mat-chip-grid #grid [attr.aria-label]="field === 'to' ? 'To recipients' : 'CC recipients'">
             @for (address of recipients[field]; track address) {
@@ -65,7 +65,7 @@
         }
       }
 
-      <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+      <mat-form-field appearance="outline" class="full-width compose-field" subscriptSizing="dynamic">
         <mat-label>Subject</mat-label>
         <input matInput [(ngModel)]="subject" name="subject" maxlength="200" [disabled]="sending()" />
       </mat-form-field>
