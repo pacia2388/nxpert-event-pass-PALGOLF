@@ -311,9 +311,19 @@
   background-clip: text;
   color: transparent;
   opacity: 0.8;
+}
 
-  strong {
-    font-weight: 800;
+// On the login page the footer sits on the poster's navy instead of the app's white bar.
+.app-content:has(.login-shell) + .branding-footer {
+  background: #051f63;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top-color: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+
+  .branding-footer__text {
+    background: none;
+    color: #c3d4f3;
     opacity: 1;
   }
 }

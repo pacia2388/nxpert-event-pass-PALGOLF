@@ -10,7 +10,7 @@
     <span class="brand" routerLink="/home">
       <span class="brand-badge"><mat-icon>grid_view</mat-icon></span>
       <span class="brand-lines">
-        <span class="brand-text">NXPass</span>
+        <span class="brand-text">{{ appName }}</span>
         <span class="brand-sub">Event Registration</span>
       </span>
     </span>
@@ -100,12 +100,12 @@
   <div class="install-banner">
     <mat-icon class="install-icon">install_mobile</mat-icon>
     @if (pwa.canInstall()) {
-      <span class="install-text">Install <strong>NXPass</strong> for quick access and offline check-in.</span>
+      <span class="install-text">Install <strong>{{ appName }}</strong> for quick access and offline check-in.</span>
       <span class="spacer"></span>
       <button mat-flat-button color="primary" (click)="pwa.install()">Install</button>
     } @else {
       <span class="install-text">
-        Install <strong>NXPass</strong>: tap <mat-icon class="inline-share">ios_share</mat-icon>
+        Install <strong>{{ appName }}</strong>: tap <mat-icon class="inline-share">ios_share</mat-icon>
         <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
       </span>
       <span class="spacer"></span>
@@ -122,6 +122,6 @@
 
 <footer class="branding-footer">
   <span class="branding-footer__text">
-    Powered by <strong>@NOW</strong> &mdash; NXPERT OFFICE WORKSPACE
+    {{ footerText }}
   </span>
 </footer>

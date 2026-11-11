@@ -1,6 +1,6 @@
 # Events
 
-How events work in NXPass: what an event holds, its lifecycle, sub-events, formats, registration,
+How events work in PAL GOLF: what an event holds, its lifecycle, sub-events, formats, registration,
 confirmation and check-in. Table columns are in [database-table.md](database-table.md); who can do
 what is in [roles.md](roles.md); meal stubs are in [meals-stub.md](meals-stub.md).
 

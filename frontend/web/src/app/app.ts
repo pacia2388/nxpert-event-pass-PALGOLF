@@ -10,6 +10,7 @@ import { ToastService } from './core/toast.service';
 import { RealtimeService } from './core/realtime.service';
 import { PwaInstallService } from './core/pwa-install.service';
 import { AppNotification } from './core/models';
+import { BRANDING } from './core/config';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,10 @@ export class App {
   protected readonly pwa = inject(PwaInstallService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+
+  // Wording from appSettings.json.
+  protected readonly appName = BRANDING.appName;
+  protected readonly footerText = BRANDING.footerText;
 
   // "Vien Dexter" -> "VD" for the header avatar.
   protected readonly initials = computed(() => {

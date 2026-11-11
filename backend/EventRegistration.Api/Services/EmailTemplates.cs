@@ -41,7 +41,7 @@ public static class EmailTemplates
     {inner}
   </div>
   <div style=""padding:16px 28px;background:#fafafa;color:#999;font-size:12px;border-top:1px solid #eee"">
-    Event Registration · this is an automated message
+    {System.Net.WebUtility.HtmlEncode(Branding.AppName)} · this is an automated message
   </div>
 </div>";
 
