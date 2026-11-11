@@ -1,42 +1,37 @@
 <!-- auth-shell keeps the app shell's full-bleed layout (see app.scss); login-shell carries the look. -->
 <div class="auth-shell login-shell">
   <div class="login-frame">
-    <!-- Brand panel -->
-    <aside class="login-brand">
-      <span class="deco deco-1"></span>
-      <span class="deco deco-2"></span>
-
-      <div class="brand-row">
-        <span class="brand-tile"><mat-icon>grid_view</mat-icon></span>
-        <span class="brand-lines">
-          <span class="brand-name">NXPass</span>
-          <span class="brand-sub">Event Management</span>
-        </span>
+    <!-- Tournament poster. Its wording is baked into the image, so the same wording follows as
+         text: hidden on wide screens (read by screen readers), shown on phones where the image
+         is cropped above the dates. -->
+    <aside class="login-poster">
+      <img
+        src="brand/pal-interclub-2027-poster.jpg"
+        width="1200"
+        height="1200"
+        alt="Philippine Airlines tournament poster: a golfer mid-swing above a golf course"
+      />
+      <div class="poster-text">
+        <p class="poster-title">78th PAL Interclub Golf Tournament 2027</p>
+        <ul class="poster-dates">
+          <li>Seniors Division: <span>Feb 17–24, 2027</span></li>
+          <li>Men’s/Regular Division: <span>Feb 25–Mar 4, 2027</span></li>
+        </ul>
+        <p class="poster-venue">Cagayan de Oro | Bukidnon</p>
       </div>
-
-      <div class="brand-copy">
-        <h2>Events, check-ins and passes, all in one place.</h2>
-        <p>Sign in to register for events, show your pass, and manage attendance.</p>
-      </div>
-
-      <ul class="brand-points">
-        <li><span><mat-icon>qr_code_2</mat-icon></span> QR entry passes</li>
-        <li><span><mat-icon>face</mat-icon></span> Face check-in</li>
-        <li><span><mat-icon>notifications_active</mat-icon></span> Live updates</li>
-      </ul>
-
-      <span class="brand-foot">Powered by <strong>&#64;NOW</strong></span>
     </aside>
 
     <!-- Sign-in form -->
     <section class="login-card">
       @if (loading()) {
-        <mat-progress-bar mode="indeterminate" class="login-progress"></mat-progress-bar>
+        <div class="login-progress" role="progressbar" aria-label="Signing in"></div>
       }
 
-      <span class="login-icon"><mat-icon>lock_person</mat-icon></span>
-      <h1 class="login-title">Welcome back</h1>
-      <p class="login-sub">Sign in to your account to continue.</p>
+      <!-- Announced when it changes; the button itself goes disabled and says nothing. -->
+      <p class="login-status" role="status">{{ loading() ? 'Signing in…' : '' }}</p>
+
+      <h1 class="login-title">Sign in</h1>
+      <p class="login-sub">Use the username or email on your account.</p>
 
       <form #f="ngForm" (ngSubmit)="submit()" class="login-form">
         <mat-form-field appearance="outline" class="full-width">
@@ -72,7 +67,7 @@
           @if (pwdCtrl.hasError('required')) { <mat-error>Password is required.</mat-error> }
         </mat-form-field>
 
-        <button type="submit" class="login-btn" [disabled]="loading() || f.invalid">
+        <button type="submit" class="login-btn" [class.is-loading]="loading()" [disabled]="loading() || f.invalid">
           @if (loading()) {
             <span>Signing in…</span>
           } @else {

@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { concatMap, finalize, firstValueFrom, from, interval } from 'rxjs';
 import { ApiService } from '../../core/api.service';
+import { BRANDING } from '../../core/config';
 import { ContactDto, EventDto, InvitationEmail, InvitationMessageRequest, InvitationMessageResult } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { ConfirmService } from '../../core/confirm.service';
@@ -73,6 +74,9 @@ export class InvitationComposerComponent implements OnChanges {
     const doc = new DOMParser().parseFromString(this.openedEmail()?.bodyHtml ?? '<div></div>', 'text/html');
     element.nativeElement.replaceChildren(...Array.from(doc.body.childNodes, (n) => cleanNode(n)));
   }
+
+  // Signs the email preview, as the API signs the real email (App:Name there).
+  protected readonly appName = BRANDING.appName;
 
   private api = inject(ApiService);
   private toast = inject(ToastService);

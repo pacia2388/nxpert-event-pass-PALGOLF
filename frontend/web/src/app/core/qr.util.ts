@@ -1,4 +1,5 @@
 import * as QRCode from 'qrcode';
+import { BRANDING } from './config';
 
 /** The QR payload matches the emailed pass and what the scanner expects. */
 export function passPayload(token: string): string {
@@ -75,7 +76,7 @@ export async function voucherPngDataUrl(v: VoucherImageData): Promise<string> {
   ctx.textBaseline = 'top';
   ctx.fillStyle = '#1a3d7c';
   ctx.fillRect(0, 0, W, 110);
-  text(22, 'NXPass', 40, '#ffffff', true);
+  text(22, BRANDING.appName, 40, '#ffffff', true);
   text(70, 'Airline Baggage Voucher — Golf Equipment', 24, '#ffffff');
   text(150, 'FULL NAME', 20, '#666666');
   text(178, v.fullName, 40, '#000000', true);

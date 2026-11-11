@@ -20,6 +20,9 @@ var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? 
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<JwtService>();
 
+// The name on what the API sends out; blank keeps the built-in one.
+Branding.AppName = builder.Configuration["App:Name"] ?? "";
+
 var emailSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings();
 builder.Services.AddSingleton(emailSettings);
 builder.Services.AddScoped<SettingsService>();

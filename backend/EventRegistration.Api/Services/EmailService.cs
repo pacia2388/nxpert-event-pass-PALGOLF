@@ -12,7 +12,7 @@ public class EmailSettings
     public int Port { get; set; } = 587;
     public string User { get; set; } = "";
     public string Password { get; set; } = "";
-    public string FromName { get; set; } = "Event Registration";
+    public string FromName { get; set; } = "PAL GOLF";
     public string FromAddress { get; set; } = "";
 }
 

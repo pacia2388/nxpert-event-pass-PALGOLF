@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, of } from 'rxjs';
+import { BRANDING } from '../../core/config';
 import { EventDto } from '../../core/models';
 import { TeamInviteChanges } from '../../core/team-invite.util';
 import { InvitationComposerComponent } from './invitation-composer';
@@ -53,6 +54,16 @@ describe('Invitation composer: Invite teams', () => {
   }
 
   afterEach(() => vi.restoreAllMocks());
+
+  it('signs the email preview with the app name', () => {
+    BRANDING.appName = 'Demo Cup';
+    try {
+      compose(undefined);
+      expect(root().querySelector('.mail-card-foot')?.textContent).toContain('Demo Cup · this is an automated message');
+    } finally {
+      BRANDING.appName = 'PAL GOLF';
+    }
+  });
 
   it('shows the Invite teams button in the To field only', () => {
     compose(undefined);
