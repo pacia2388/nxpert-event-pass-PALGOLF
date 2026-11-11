@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
+import { MatCheckbox, MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -137,6 +137,8 @@ export class InviteTeamsDialogComponent {
   failed = signal<ReadonlySet<number>>(new Set());
   private opened = signal<ReadonlySet<number>>(new Set());
   private loadingMembers = new Set<number>();
+  // Teams ticked before their members arrived, with the box to bring in step once they do.
+  private tickWhenLoaded = new Map<number, MatCheckbox>();
   // Ticked addresses. Starts as everyone already in To, so unticking one of them removes them.
   private selected = signal<ReadonlySet<string>>(new Set(this.data.alreadyInTo));
   private changes = computed(() => selectionChanges(this.selected(), this.data.alreadyInTo));
@@ -189,29 +191,21 @@ export class InviteTeamsDialogComponent {
   }
 
   tickTeam(team: TeamDto, change: MatCheckboxChange): void {
-    // Keep the box in step with the members (a team with no usable emails stays unticked).
-    const sync = () => (change.source.checked = this.state(team) === 'all');
     const list = this.members()[team.id];
     if (list) {
       this.selected.set(toggleTeam(list, this.selected()));
-      return void sync();
+      // Keep the box in step with the members (a team with no usable emails stays unticked).
+      change.source.checked = this.state(team) === 'all';
+      return;
     }
-    // Not loaded yet: load, then tick everyone. Members already in To stay; nothing is unticked
-    // unseen. A failed load leaves the box unticked.
-    this.loadMembers(
-      team,
-      (loaded) => {
-        this.selected.set(new Set([...this.selected(), ...selectableEmails(loaded)]));
-        sync();
-      },
-      () => {
-        change.source.checked = false;
-        this.opened.set(new Set(this.opened()).add(team.id));
-      },
-    );
+    // Not loaded yet: remember the tick (or its undoing) and apply it when the members arrive,
+    // whether this click or an earlier one started the load.
+    if (change.checked) this.tickWhenLoaded.set(team.id, change.source);
+    else this.tickWhenLoaded.delete(team.id);
+    this.loadMembers(team);
   }
 
-  loadMembers(team: TeamDto, then?: (list: TeamMemberDto[]) => void, failed?: () => void): void {
+  loadMembers(team: TeamDto): void {
     if (this.members()[team.id] || this.loadingMembers.has(team.id)) return;
     this.loadingMembers.add(team.id);
     this.setFailed(team.id, false);
@@ -219,12 +213,22 @@ export class InviteTeamsDialogComponent {
       next: (detail) => {
         this.loadingMembers.delete(team.id);
         this.members.set({ ...this.members(), [team.id]: detail.members });
-        then?.(detail.members);
+        const box = this.tickWhenLoaded.get(team.id);
+        this.tickWhenLoaded.delete(team.id);
+        if (!box) return;
+        // Tick everyone. Members already in To stay; nothing is unticked unseen.
+        this.selected.set(new Set([...this.selected(), ...selectableEmails(detail.members)]));
+        box.checked = this.state(team) === 'all';
       },
       error: () => {
         this.loadingMembers.delete(team.id);
         this.setFailed(team.id, true);
-        failed?.();
+        const box = this.tickWhenLoaded.get(team.id);
+        this.tickWhenLoaded.delete(team.id);
+        if (!box) return;
+        // A failed load leaves the box unticked and opens the team to show the retry.
+        box.checked = false;
+        this.opened.set(new Set(this.opened()).add(team.id));
       },
     });
   }

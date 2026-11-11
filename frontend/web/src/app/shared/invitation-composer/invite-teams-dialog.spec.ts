@@ -125,6 +125,28 @@ describe('Invite teams picker', () => {
     expect(closedWith).toEqual({ add: ['ana@example.com', 'ben@example.com'], remove: [] });
   });
 
+  it('ticking a team while its members are still loading picks them all', () => {
+    open();
+    serveTeams([eagles]);
+    expand('Eagles');
+    tick(teamBox('Eagles'));
+    serveMembers(detail(eagles, ['ana@example.com', 'ben@example.com']));
+
+    expect(teamBox('Eagles').checked).toBe(true);
+    expect(addButton().textContent?.trim()).toBe('Add 2');
+  });
+
+  it('unticking a team before its members arrive picks nobody', () => {
+    open();
+    serveTeams([eagles]);
+    tick(teamBox('Eagles'));
+    tick(teamBox('Eagles'));
+    serveMembers(detail(eagles, ['ana@example.com', 'ben@example.com']));
+
+    expect(teamBox('Eagles').checked).toBe(false);
+    expect(addButton().disabled).toBe(true);
+  });
+
   it('unticking a team clears its members', () => {
     open();
     serveTeams([eagles]);
