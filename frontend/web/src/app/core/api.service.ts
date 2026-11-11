@@ -609,8 +609,8 @@ export class ApiService {
     return this.http.delete<void>(this.url(`/api/teams/${teamId}/members/${userId}`));
   }
 
-  // ---- Teams (Team Lead) ----
-  // null when no team has been assigned to this Team Lead yet (204).
+  // ---- Teams (Captain) ----
+  // null when no team has been assigned to this Captain yet (204).
   getMyTeam(): Observable<TeamDetailDto | null> {
     return this.http.get<TeamDetailDto | null>(this.url('/api/teams/mine'));
   }
@@ -620,7 +620,7 @@ export class ApiService {
   sendTeamRegistrationNotice(userIds: number[]): Observable<TeamRegistrationNoticeResult> {
     return this.http.post<TeamRegistrationNoticeResult>(this.url('/api/teams/mine/registration-notice'), { userIds });
   }
-  // Team registration link (anonymous): pre-fill, then complete the account the TL created.
+  // Team registration link (anonymous): pre-fill, then complete the account the Captain created.
   getTeamRegistration(token: string): Observable<TeamRegistrationPrefill> {
     return this.http.get<TeamRegistrationPrefill>(this.url(`/api/auth/team-registration/${encodeURIComponent(token)}`));
   }

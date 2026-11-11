@@ -16,7 +16,7 @@ import { TeamDetailDto, TeamMemberDto } from '../../core/models';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// The Team Lead's only page: their team, its members, and a form to add a Participant by name
+// The Captain's only page: their team, its members, and a form to add a Participant by name
 // and email. An email that is not in the system yet creates the account.
 @Component({
   selector: 'app-team',
@@ -40,14 +40,14 @@ export class TeamComponent implements OnInit {
   private confirmer = inject(ConfirmService);
   private auth = inject(AuthService);
 
-  /** Team Leads manage their team; Participants only view the team they belong to. */
-  readonly canEdit = this.auth.isTeamLead;
+  /** Captains manage their team; Participants only view the team they belong to. */
+  readonly canEdit = this.auth.isCaptain;
 
   private readonly form = viewChild(NgForm);
 
   loading = signal(true);
   saving = signal(false);
-  /** null = no team has been assigned to this Team Lead yet. */
+  /** null = no team has been assigned to this Captain yet. */
   team = signal<TeamDetailDto | null>(null);
 
   sending = signal(false);

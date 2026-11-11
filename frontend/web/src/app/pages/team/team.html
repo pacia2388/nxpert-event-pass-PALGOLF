@@ -134,10 +134,10 @@
     <mat-icon class="tp-state-icon">group_off</mat-icon>
     @if (canEdit()) {
       <h1 class="tp-title">No team assigned yet</h1>
-      <p class="muted">An administrator needs to create your team and set you as its Team Lead.</p>
+      <p class="muted">An administrator needs to create your team and set you as its Captain.</p>
     } @else {
       <h1 class="tp-title">You are not in a team yet</h1>
-      <p class="muted">Your team lead or an administrator adds you to a team.</p>
+      <p class="muted">Your captain or an administrator adds you to a team.</p>
     }
     <button mat-stroked-button type="button" (click)="load()">
       <mat-icon>sync</mat-icon> Check again

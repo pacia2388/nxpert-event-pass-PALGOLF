@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace EventRegistration.Api.Tests;
 
-// The full flow: admin creates a team for a TL, the TL adds members, emails the unregistered ones
+// The full flow: admin creates a team for a Captain, the Captain adds members, emails the unregistered ones
 // a registration link, and each member completes their account through that link.
 [Collection("api")]
 public class TeamRegistrationNoticeTests(ApiFixture api)

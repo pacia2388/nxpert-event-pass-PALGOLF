@@ -14,7 +14,7 @@ import { UserDto, UserImportResult } from '../../../core/models';
 import { UserFormPanelComponent } from './user-form-panel';
 import { UserImportDialogComponent } from './user-import-dialog';
 
-type RoleFilter = 'All' | 'Admin' | 'Participant' | 'TL' | 'Merchant' | 'Confirmers';
+type RoleFilter = 'All' | 'Admin' | 'Participant' | 'Captain' | 'Merchant' | 'Confirmers';
 
 // User Master: list of users on the left, the selected (or new) record's form on the right.
 @Component({
@@ -46,7 +46,7 @@ export class UsersComponent implements OnInit {
   users = signal<UserDto[]>([]);
   search = signal('');
   roleFilter = signal<RoleFilter>('All');
-  readonly roleFilters: RoleFilter[] = ['All', 'Admin', 'Participant', 'TL', 'Merchant', 'Confirmers'];
+  readonly roleFilters: RoleFilter[] = ['All', 'Admin', 'Participant', 'Captain', 'Merchant', 'Confirmers'];
 
   /** The row shown in the form; null = a new, unsaved record. */
   selected = signal<UserDto | null>(null);
@@ -60,7 +60,7 @@ export class UsersComponent implements OnInit {
     return this.users().filter((u) => {
       if (rf === 'Confirmers' && !(u.canConfirmRegistrations || u.role === 'Admin' || u.role === 'SuperAdmin')) return false;
       if (rf === 'Admin' && u.role !== 'Admin' && u.role !== 'SuperAdmin') return false;
-      if ((rf === 'Participant' || rf === 'TL' || rf === 'Merchant') && u.role !== rf) return false;
+      if ((rf === 'Participant' || rf === 'Captain' || rf === 'Merchant') && u.role !== rf) return false;
       if (!q) return true;
       return (
         u.fullName.toLowerCase().includes(q) ||

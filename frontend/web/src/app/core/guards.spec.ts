@@ -14,7 +14,7 @@ import {
   confirmerGuard,
   merchantGuard,
   nonMerchantGuard,
-  participantOrTlGuard,
+  participantOrCaptainGuard,
   voucherGuard,
 } from './guards';
 
@@ -43,15 +43,15 @@ function visit(guard: CanActivateFn, url: string): string {
 }
 
 describe('route guards', () => {
-  describe('a Team Lead can open the Team page', () => {
+  describe('a Captain can open the Team page', () => {
     it('opens the Team page', () => {
-      signIn('TL');
-      expect(visit(participantOrTlGuard, '/team')).toBe('allowed');
+      signIn('Captain');
+      expect(visit(participantOrCaptainGuard, '/team')).toBe('allowed');
     });
   });
 
-  describe('the Voucher page is for Participants and Team Leads', () => {
-    it.each(['Participant', 'TL'] as Role[])('lets a %s open it', (role) => {
+  describe('the Voucher page is for Participants and Captains', () => {
+    it.each(['Participant', 'Captain'] as Role[])('lets a %s open it', (role) => {
       signIn(role);
       expect(visit(voucherGuard, '/voucher')).toBe('allowed');
     });
@@ -85,21 +85,21 @@ describe('route guards', () => {
 
     it('lets a participant view the Team page and keeps admins out', () => {
       signIn('Participant');
-      expect(visit(participantOrTlGuard, '/team')).toBe('allowed');
+      expect(visit(participantOrCaptainGuard, '/team')).toBe('allowed');
       TestBed.resetTestingModule();
       signIn('Admin');
-      expect(visit(participantOrTlGuard, '/team')).toBe('/home');
+      expect(visit(participantOrCaptainGuard, '/team')).toBe('/home');
     });
 
     it('still sends a merchant to the meal scanner', () => {
       signIn('Merchant');
       expect(visit(nonMerchantGuard, '/account')).toBe('/merchant/scan');
-      expect(visit(participantOrTlGuard, '/team')).toBe('/merchant/scan');
+      expect(visit(participantOrCaptainGuard, '/team')).toBe('/merchant/scan');
     });
 
     it('sends a signed-out visitor to login with a return URL', () => {
       signIn(null);
-      expect(visit(participantOrTlGuard, '/team')).toBe('/login?returnUrl=%2Fteam');
+      expect(visit(participantOrCaptainGuard, '/team')).toBe('/login?returnUrl=%2Fteam');
       expect(visit(authGuard, '/home')).toBe('/login?returnUrl=%2Fhome');
     });
   });

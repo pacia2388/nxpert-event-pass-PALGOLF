@@ -4,7 +4,7 @@ export interface AuthResponse {
   fullName: string;
   email: string;
   username: string;
-  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant' | 'TL';
+  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant' | 'Captain';
   emailVerified: boolean;
   verificationRequired: boolean;
   senateNo: string | null;
@@ -26,7 +26,7 @@ export interface UserDto {
   level: string | null;
   email: string;
   username: string;
-  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant' | 'TL';
+  role: 'Admin' | 'Participant' | 'SuperAdmin' | 'Merchant' | 'Captain';
   organization: string | null;
   phone: string | null;
   notificationChannel: NotificationChannel;
@@ -50,7 +50,7 @@ export interface TeamMemberDto {
   addedAt: string;
   /** true once the "complete your registration" email was sent to this member. */
   notificationFlag: boolean;
-  /** false while the account a Team Lead created is not yet completed by the member. */
+  /** false while the account a Captain created is not yet completed by the member. */
   registered: boolean;
 }
 export interface TeamDto {
@@ -71,7 +71,7 @@ export interface TeamUpsert {
   category: TeamCategory;
   teamLeadUserId: number;
 }
-// Team Lead: add a member by name + email. An unknown email creates a Participant account.
+// Captain: add a member by name + email. An unknown email creates a Participant account.
 export interface TeamMemberCreate {
   firstName: string;
   middleInitial: string | null;

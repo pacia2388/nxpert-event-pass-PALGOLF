@@ -22,7 +22,7 @@ public class UsersController : ControllerBase
         _notify = notify;
     }
 
-    private static readonly string[] AssignableRoles = { Roles.Admin, Roles.Participant, Roles.Merchant, Roles.TeamLead };
+    private static readonly string[] AssignableRoles = { Roles.Admin, Roles.Participant, Roles.Merchant, Roles.Captain };
 
     // includePhoto is false for the list so the payload stays light — the photo (a base64
     // data URL) is only sent for single-user fetch/create/update responses.
@@ -310,7 +310,7 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "First and last name are required." });
         if (!AssignableRoles.Contains(req.Role) && req.Role != user.Role)
             return BadRequest(new { message = "Invalid role." });
-        // A team's lead must stay a TL, and a team's members must stay Participants.
+        // A team's lead must stay a Captain, and a team's members must stay Participants.
         if (req.Role != user.Role)
         {
             if (await _db.Teams.AnyAsync(t => t.TeamLeadUserId == id))

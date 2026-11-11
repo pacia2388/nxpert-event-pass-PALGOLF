@@ -306,6 +306,11 @@
     background: var(--tint-primary);
     color: #0d9488;
   }
+
+  &.captain {
+    background: #fef3c7;
+    color: #b45309;
+  }
 }
 
 // Pager: "← 1 / N →" like the concept, centred under the list.

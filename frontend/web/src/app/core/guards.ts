@@ -31,8 +31,8 @@ export const confirmerGuard: CanActivateFn = (_route, state) => {
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
-// Routes hidden from merchant and Team Lead accounts (e.g. Edit account). Merchants can only scan
-// meal stubs and Team Leads only manage their team, so both are bounced to their own page;
+// Routes hidden from merchant and Captain accounts (e.g. Edit account). Merchants can only scan
+// meal stubs and Captains only manage their team, so both are bounced to their own page;
 // everyone else logged-in passes.
 export const nonMerchantGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
@@ -51,7 +51,7 @@ export const merchantGuard: CanActivateFn = (_route, state) => {
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
-// The Voucher page: Participants and Team Leads only.
+// The Voucher page: Participants and Captains only.
 export const voucherGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -60,11 +60,11 @@ export const voucherGuard: CanActivateFn = (_route, state) => {
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
-// Participant or Team Lead (TL) only routes (e.g. the baggage Voucher page).
-export const participantOrTlGuard: CanActivateFn = (_route, state) => {
+// Participant or Captain only routes (e.g. the baggage Voucher page).
+export const participantOrCaptainGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (auth.isParticipant() || auth.isTeamLead()) return true;
+  if (auth.isParticipant() || auth.isCaptain()) return true;
   if (auth.isLoggedIn()) return router.createUrlTree([homeFor(auth)]);
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };

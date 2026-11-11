@@ -107,7 +107,7 @@ public class AuthController : ControllerBase
         return null;
     }
 
-    // ---- Team registration link: a Team Lead created the account; the member completes it ----
+    // ---- Team registration link: a Captain created the account; the member completes it ----
 
     // Valid, unused, unexpired link → the team member row (with its user), else null.
     private Task<TeamMember?> FindTeamRegistrationAsync(Guid token) =>

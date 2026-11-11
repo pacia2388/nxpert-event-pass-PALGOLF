@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventRegistration.Api.Controllers;
 
-// Teams: admins create teams, assign the Team Lead and manage members. A Team Lead (role TL) can
+// Teams: admins create teams, assign the Captain and manage members. A Captain can
 // read their own team and add Participants to it, creating the account when the email is new.
 [ApiController]
 [Route("api/teams")]
@@ -17,7 +17,7 @@ public class TeamsController : ControllerBase
 {
     private const string AdminRoles = Roles.Admin + "," + Roles.SuperAdmin;
 
-    // Temporary password for accounts a Team Lead creates. Shared and below the normal password
+    // Temporary password for accounts a Captain creates. Shared and below the normal password
     // policy by product decision; members are expected to change it under Edit account.
     private const string DefaultMemberPassword = "char";
 
@@ -83,8 +83,8 @@ public class TeamsController : ControllerBase
             return BadRequest(new { message = "Category must be Senior or Regular." });
 
         var lead = await _db.Users.FindAsync(req.TeamLeadUserId);
-        if (lead is null || lead.Role != Roles.TeamLead)
-            return BadRequest(new { message = "The team lead must be a user with the TL role." });
+        if (lead is null || lead.Role != Roles.Captain)
+            return BadRequest(new { message = "The selected user must have the Captain role." });
         if (await _db.Teams.AnyAsync(t => t.TeamLeadUserId == lead.Id && (teamId == null || t.Id != teamId)))
             return Conflict(new { message = $"{lead.FullName} already leads another team." });
         return null;
@@ -112,7 +112,7 @@ public class TeamsController : ControllerBase
         }
         catch (DbUpdateException)
         {
-            return Conflict(new { message = "Could not save the team. The team lead may already lead another team." });
+            return Conflict(new { message = "Could not save the team. The captain may already lead another team." });
         }
         return Ok(ToDetailDto(await TeamsWithMembers().FirstAsync(t => t.Id == team.Id)));
     }
@@ -144,7 +144,7 @@ public class TeamsController : ControllerBase
         }
         catch (DbUpdateException)
         {
-            return Conflict(new { message = "Could not save the team. The team lead may already lead another team." });
+            return Conflict(new { message = "Could not save the team. The captain may already lead another team." });
         }
         return Ok(ToDetailDto(await TeamsWithMembers().FirstAsync(t => t.Id == id)));
     }
@@ -182,16 +182,16 @@ public class TeamsController : ControllerBase
         return NoContent();
     }
 
-    // ---- Team Lead: own team ----
+    // ---- Captain: own team ----
 
-    // The caller's team: the one a Team Lead leads, or the one a Participant is a member of
-    // (read-only for them; every write endpoint below stays TL-only). 204 when there is none.
+    // The caller's team: the one a Captain leads, or the one a Participant is a member of
+    // (read-only for them; every write endpoint below stays Captain-only). 204 when there is none.
     [HttpGet("mine")]
-    [Authorize(Roles = Roles.TeamLead + "," + Roles.Participant)]
+    [Authorize(Roles = Roles.Captain + "," + Roles.Participant)]
     public async Task<ActionResult<TeamDetailDto>> Mine()
     {
         var userId = this.UserId();
-        var team = User.IsInRole(Roles.TeamLead)
+        var team = User.IsInRole(Roles.Captain)
             ? await TeamsWithMembers().FirstOrDefaultAsync(t => t.TeamLeadUserId == userId)
             : await TeamsWithMembers().FirstOrDefaultAsync(t => t.Members.Any(m => m.UserId == userId));
         return team is null ? NoContent() : Ok(ToDetailDto(team));
@@ -201,7 +201,7 @@ public class TeamsController : ControllerBase
     // creates the account (role Participant, default temporary password); an existing Participant
     // just joins. The role is never taken from input.
     [HttpPost("mine/members")]
-    [Authorize(Roles = Roles.TeamLead)]
+    [Authorize(Roles = Roles.Captain)]
     public async Task<ActionResult<TeamMemberAddResult>> AddMine(TeamMemberCreateRequest req)
     {
         var leadId = this.UserId();
@@ -242,15 +242,15 @@ public class TeamsController : ControllerBase
             Role = Roles.Participant,
             NotificationChannel = NotificationChannels.Email,
             CompanyId = 1,
-            EmailVerified = true, // created by a Team Lead on the member's behalf
+            EmailVerified = true, // created by a Captain on the member's behalf
         };
         return await AddMemberAsync(teamId.Value, user, isNew: true);
     }
 
     // Email the selected members of the caller's own team a single-use link to complete their
-    // account (the TL created it with a temporary password). A new link replaces the old one.
+    // account (the Captain created it with a temporary password). A new link replaces the old one.
     [HttpPost("mine/registration-notice")]
-    [Authorize(Roles = Roles.TeamLead)]
+    [Authorize(Roles = Roles.Captain)]
     public async Task<ActionResult<TeamRegistrationNoticeResult>> SendRegistrationNotice(TeamRegistrationNoticeRequest req)
     {
         var leadId = this.UserId();
@@ -280,7 +280,7 @@ public class TeamsController : ControllerBase
             {
                 await _email.SendAsync(m.User!.Email, "Complete your registration",
                     EmailTemplates.TeamRegistrationNotice(m.User.FullName, team.Description,
-                        team.TeamLead?.FullName ?? "Your team lead", url, RegistrationLinkDays));
+                        team.TeamLead?.FullName ?? "Your captain", url, RegistrationLinkDays));
                 m.RegistrationToken = token;
                 m.RegistrationTokenExpiresAt = DateTime.UtcNow.AddDays(RegistrationLinkDays);
                 m.NotificationFlag = true;

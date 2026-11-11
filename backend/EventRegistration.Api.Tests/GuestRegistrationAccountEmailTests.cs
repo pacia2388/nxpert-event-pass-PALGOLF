@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 namespace EventRegistration.Api.Tests;
 
 // The public (guest) event form refuses an email that already has an account — e.g. a member a
-// Team Lead added — so the member registers through their account and is never listed twice.
+// Captain added — so the member registers through their account and is never listed twice.
 [Collection("api")]
 public class GuestRegistrationAccountEmailTests(ApiFixture api)
 {

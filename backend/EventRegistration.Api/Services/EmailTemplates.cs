@@ -66,7 +66,7 @@ public static class EmailTemplates
            </p>
            <p style=""color:#888;font-size:13px"">Or paste this link: {registerUrl}</p>");
 
-    // Team Lead asks a member to complete the account the TL created for them.
+    // Captain asks a member to complete the account the Captain created for them.
     public static string TeamRegistrationNotice(string memberName, string teamName, string leadName,
         string registerUrl, int validDays) => Shell(
         "Complete your registration",

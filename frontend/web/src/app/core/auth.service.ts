@@ -33,11 +33,11 @@ export class AuthService {
   // A merchant can only scan/redeem meal stubs.
   readonly isMerchant = computed(() => this._auth()?.role === 'Merchant');
   readonly isParticipant = computed(() => this._auth()?.role === 'Participant');
-  readonly isTeamLead = computed(() => this._auth()?.role === 'TL');
-  // The Voucher page is for Participants and Team Leads only.
+  readonly isCaptain = computed(() => this._auth()?.role === 'Captain');
+  // The Voucher page is for Participants and Captains only.
   readonly canUseVoucher = computed(() => {
     const r = this._auth()?.role;
-    return r === 'Participant' || r === 'TL';
+    return r === 'Participant' || r === 'Captain';
   });
   // Can this user confirm event registrations? Admins always can; others need the grant.
   readonly canConfirmRegistrations = computed(() => !!this._auth()?.canConfirmRegistrations);
@@ -74,7 +74,7 @@ export class AuthService {
       .pipe(tap((res) => this.store(res)));
   }
 
-  /** Completes the account a Team Lead created, from the emailed team registration link. */
+  /** Completes the account a Captain created, from the emailed team registration link. */
   completeTeamRegistration(token: string, body: RegisterBody): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${API_BASE}/api/auth/team-registration/${encodeURIComponent(token)}`, body)

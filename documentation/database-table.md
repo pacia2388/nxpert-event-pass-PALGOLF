@@ -32,7 +32,7 @@ The facerog-engine has no database. It reads registrant photos from the API
 | `MailPlanSavedCcs` | CC addresses saved from the mail planner, offered later. |
 | `Feedbacks` | Event rating and comment, one per user per event. |
 | `Vouchers` | Airline baggage vouchers (golf equipment); one per airline ticket number across all users. |
-| `Teams` | A team: name, category (Senior / Regular) and its Team Lead. |
+| `Teams` | A team: name, category (Senior / Regular) and its Captain. |
 | `TeamMembers` | The Participants in a team, one row per member. |
 | `AppSettings` | Key/value store for admin settings. |
 | `__EFMigrationsHistory` | EF Core's record of applied migrations (managed by EF). |
@@ -51,13 +51,13 @@ Users 1─* Registrations *─1 Events 1─* Sessions
                 ├─* MealStubs
                 └─* MealRedemptions
 MailPlans 1─* MailPlanSends 1─* MailPlanDeliveries
-Users 1─0..1 Teams (as Team Lead) 1─* TeamMembers 0..1─1 Users (as member)
+Users 1─0..1 Teams (as Captain) 1─* TeamMembers 0..1─1 Users (as member)
 ```
 
 Delete rules: deleting an Event cascades to Sessions, Registrations, Meals, Invitations and
 InvitationEmails. A User with registrations cannot be deleted (Restrict). Registration→Session and
 Meal→Session are NoAction (cleaned up in code). Deleting a Team cascades to its TeamMembers (the
-user accounts stay). Teams→Users and TeamMembers→Users are Restrict: a Team Lead cannot be deleted
+user accounts stay). Teams→Users and TeamMembers→Users are Restrict: a Captain cannot be deleted
 while they lead a team, and deleting a member removes their TeamMembers row in code first.
 
 ---
@@ -84,7 +84,7 @@ Null = column allows NULL.
 | Email | nvarchar(256) | | **Unique**, lower-case |
 | Username | nvarchar(100) | | **Unique**, lower-case login handle |
 | PasswordHash | max | | |
-| Role | nvarchar(20) | | **`Admin` · `Participant` (default) · `TL` (Team Lead) · `SuperAdmin` · `Merchant`** — see [roles.md](roles.md) |
+| Role | nvarchar(20) | | **`Admin` · `Participant` (default) · `Captain` · `SuperAdmin` · `Merchant`** — see [roles.md](roles.md) |
 | Phone | nvarchar(40) | ✓ | Required when channel uses Viber |
 | Organization | nvarchar(200) | ✓ | |
 | Birthdate | date | ✓ | Required in the UI (admin form, My Account, sign-up, CSV import); NULL only for accounts created before the field existed |
@@ -336,7 +336,7 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | CompanyId | int | ✓ | Always 1 for now |
 | Description | nvarchar(200) | | Team name, 2–200 chars |
 | Category | nvarchar(20) | | **`Senior` (max 8 members) · `Regular` (max 10 members)** |
-| TeamLeadUserId | int | | FK → Users (Restrict). **Unique**: a user leads at most one team. Must have role `TL` |
+| TeamLeadUserId | int | | FK → Users (Restrict). **Unique**: a user leads at most one team. Must have role `Captain` |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
 | CreatedByUserId | int | | Admin who created the team (no FK) |
 
@@ -348,11 +348,11 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | TeamId | int | | FK → Teams (Cascade) |
 | UserId | int | | FK → Users (Restrict). **Unique**: a user is in at most one team. Must have role `Participant` |
 | AddedAt | datetime2 | | DB default `GETUTCDATE()` |
-| NotificationFlag | bit | | Default `0`. Set when the TL's registration notice email was sent to this member |
-| RegistrationToken | uniqueidentifier | ✓ | Set when a TL creates the account (member is **unregistered**); replaced on each notice; cleared when the member completes registration. **Unique** (filtered, not null) |
+| NotificationFlag | bit | | Default `0`. Set when the Captain's registration notice email was sent to this member |
+| RegistrationToken | uniqueidentifier | ✓ | Set when a Captain creates the account (member is **unregistered**); replaced on each notice; cleared when the member completes registration. **Unique** (filtered, not null) |
 | RegistrationTokenExpiresAt | datetime2 | ✓ | Notice sent time + 7 days. Null = link not sent yet (not usable) |
 
-The Team Lead is not a row in `TeamMembers` and does not count toward the member cap. The cap is
+The Captain is not a row in `TeamMembers` and does not count toward the member cap. The cap is
 checked in code (`TeamCategories.MaxMembers`), not by a DB constraint.
 
 ### Vouchers
@@ -377,7 +377,7 @@ checked in code (`TeamCategories.MaxMembers`), not by a DB constraint.
 
 | Enumeration (C# class) | Values | Used in |
 |---|---|---|
-| `Roles` | Admin, Participant, TL, SuperAdmin, Merchant | Users.Role |
+| `Roles` | Admin, Participant, Captain, SuperAdmin, Merchant | Users.Role |
 | `NotificationChannels` | Email, Viber, Both | Users.NotificationChannel, Registrations.GuestNotificationChannel |
 | `EventStatus` | Draft, Published, Closed | Events.Status |
 | `TeamCategories` | Senior (max 8 members), Regular (max 10 members) | Teams.Category |

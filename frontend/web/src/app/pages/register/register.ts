@@ -36,7 +36,7 @@ export class RegisterComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private api = inject(ApiService);
 
-  /** Token from a team registration link (?team=): completes the account the Team Lead created. */
+  /** Token from a team registration link (?team=): completes the account the Captain created. */
   readonly teamToken = this.route.snapshot.queryParamMap.get('team');
   /** Team link state: loading the pre-fill, ready, or the link is not usable. */
   teamState = signal<'loading' | 'ready' | 'invalid'>('loading');

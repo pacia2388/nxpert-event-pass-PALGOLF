@@ -20,7 +20,7 @@ export interface InviteTeamsDialogData {
 /**
  * Picks invitation recipients from the teams: tick single members, or a team to take all of its
  * members. Members already in To start ticked; unticking one takes them out. Closes with the addresses
- * to add and to remove. The Team Lead is not a member and is not listed.
+ * to add and to remove. The Captain is not a member and is not listed.
  */
 @Component({
   selector: 'app-invite-teams-dialog',

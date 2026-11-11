@@ -4,7 +4,7 @@
 |---|---|
 | **Status** | ✅ Done (2026-11-11) |
 | **Last updated** | 2026-11-11 |
-| **Related** | `plans/team-page.md` |
+| **Related** | `plans/completed/20261111_team-page.md` |
 
 ## Goal
 
@@ -48,7 +48,7 @@ inside the To field and tick members of a team, or a whole team, to add them as 
 
 ### Docs ✅ Done (2026-11-11)
 - [x] `documentation/events.md` (Invite tab row).
-- [x] Change-log row in `plans/team-page.md`.
+- [x] Change-log row in `plans/completed/20261111_team-page.md`.
 
 ## Change log
 
@@ -58,3 +58,4 @@ inside the To field and tick members of a team, or a whole team, to add them as 
 | 2026-11-11 | Picker's primary button shortened to **Add N**; the description now says picks go to the To field. |
 | 2026-11-11 | To, CC and Subject made taller with a wider gap; **Invite teams** aligned to the first chip row. |
 | 2026-11-11 | Members already in To can be unticked in the picker to remove them from To. |
+| 2026-11-11 | Moved to completed; Related link updated |

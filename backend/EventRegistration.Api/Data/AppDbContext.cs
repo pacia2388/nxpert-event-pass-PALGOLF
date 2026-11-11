@@ -123,7 +123,7 @@ public class AppDbContext : DbContext
         b.Entity<MailPlanEventName>().HasIndex(n => n.Name).IsUnique();
         b.Entity<MailPlanSavedCc>().HasIndex(c => c.Email).IsUnique();
 
-        // Teams: a TL leads at most one team and a user is a member of at most one team (both
+        // Teams: a Captain leads at most one team and a user is a member of at most one team (both
         // unique). Users are never cascade-deleted through a team; a team's members are.
         b.Entity<Team>().HasOne(t => t.TeamLead).WithMany()
             .HasForeignKey(t => t.TeamLeadUserId).OnDelete(DeleteBehavior.Restrict);

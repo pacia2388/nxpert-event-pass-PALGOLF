@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace EventRegistration.Api.Tests;
 
-// A Team Lead adds Participants to their own team by name and email.
+// A Captain adds Participants to their own team by name and email.
 [Collection("api")]
 public class TeamLeadAddsMembersTests(ApiFixture api)
 {
@@ -64,7 +64,7 @@ public class TeamLeadAddsMembersTests(ApiFixture api)
 
     [Theory]
     [InlineData("Admin")]
-    [InlineData("TL")]
+    [InlineData("Captain")]
     [InlineData("Merchant")]
     public async Task An_email_that_belongs_to_another_role_is_refused(string role)
     {
@@ -145,7 +145,7 @@ public class TeamLeadAddsMembersTests(ApiFixture api)
     public async Task A_team_lead_without_a_team_sees_no_team_and_cannot_add_members()
     {
         var admin = await api.AdminAsync();
-        var lead = await api.CreateUserAsync(admin, "TL");
+        var lead = await api.CreateUserAsync(admin, "Captain");
         var client = await api.SignInAsync(lead.Email, ApiFixture.UserPassword);
 
         var mine = await client.GetAsync("/api/teams/mine");

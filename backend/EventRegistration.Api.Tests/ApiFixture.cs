@@ -91,10 +91,10 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         return new TestUser(user!.Id, email);
     }
 
-    /// <summary>Creates a TL user and a team they lead; returns the team and the lead's client.</summary>
+    /// <summary>Creates a Captain user and a team they lead; returns the team and the lead's client.</summary>
     public async Task<TestTeam> CreateTeamAsync(HttpClient admin, string category)
     {
-        var lead = await CreateUserAsync(admin, "TL");
+        var lead = await CreateUserAsync(admin, "Captain");
         var res = await admin.PostAsJsonAsync("/api/teams", new
         {
             description = $"Team {Guid.NewGuid():N}",

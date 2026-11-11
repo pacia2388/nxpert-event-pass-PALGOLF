@@ -71,13 +71,13 @@ export class TeamsComponent implements OnInit {
     );
   });
 
-  // TL users for the lead picker, each with the other team they already lead (if any): a Team
+  // Captain users for the lead picker, each with the other team they already lead (if any): a Team
   // Lead leads one team only.
   leads = computed(() => {
     const selectedId = this.selected()?.id;
     const leading = new Map(this.teams().map((t) => [t.teamLeadUserId, t]));
     return this.users()
-      .filter((u) => u.role === 'TL')
+      .filter((u) => u.role === 'Captain')
       .map((u) => {
         const team = leading.get(u.id);
         return { user: u, otherTeam: team && team.id !== selectedId ? team.description : null };
@@ -177,7 +177,7 @@ export class TeamsComponent implements OnInit {
     if (this.saving()) return;
     if (!this.valid) {
       this.form()?.form.markAllAsTouched();
-      this.toast.warning('Enter a team name and choose a Team Lead.');
+      this.toast.warning('Enter a team name and choose a Captain.');
       return;
     }
     const body = {

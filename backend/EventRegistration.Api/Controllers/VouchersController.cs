@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventRegistration.Api.Controllers;
 
-// Airline baggage vouchers (golf equipment). Participants and Team Leads only; each user sees
+// Airline baggage vouchers (golf equipment). Participants and Captains only; each user sees
 // only their own vouchers. A ticket number can be used for one voucher across all users.
 [ApiController]
 [Route("api/vouchers")]
-[Authorize(Roles = Roles.Participant + "," + Roles.TeamLead)]
+[Authorize(Roles = Roles.Participant + "," + Roles.Captain)]
 public partial class VouchersController : ControllerBase
 {
     private readonly AppDbContext _db;

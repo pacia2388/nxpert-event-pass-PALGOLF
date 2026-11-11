@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace EventRegistration.Api.Tests;
 
-// Admins create teams, assign the Team Lead and manage members.
+// Admins create teams, assign the Captain and manage members.
 [Collection("api")]
 public class AdminManagesTeamsTests(ApiFixture api)
 {
@@ -17,7 +17,7 @@ public class AdminManagesTeamsTests(ApiFixture api)
     public async Task A_new_team_starts_empty_with_its_category_cap()
     {
         var admin = await api.AdminAsync();
-        var lead = await api.CreateUserAsync(admin, "TL");
+        var lead = await api.CreateUserAsync(admin, "Captain");
 
         var res = await admin.PostAsJsonAsync("/api/teams", Team(lead.Id, "Senior", "Eagles"));
 
@@ -61,7 +61,7 @@ public class AdminManagesTeamsTests(ApiFixture api)
     public async Task A_short_name_or_unknown_category_is_rejected(string description, string category)
     {
         var admin = await api.AdminAsync();
-        var lead = await api.CreateUserAsync(admin, "TL");
+        var lead = await api.CreateUserAsync(admin, "Captain");
 
         var res = await admin.PostAsJsonAsync("/api/teams", Team(lead.Id, category, description));
 
@@ -86,7 +86,7 @@ public class AdminManagesTeamsTests(ApiFixture api)
 
     [Theory]
     [InlineData("Admin")]
-    [InlineData("TL")]
+    [InlineData("Captain")]
     [InlineData("Merchant")]
     public async Task An_admin_can_only_add_participants(string role)
     {

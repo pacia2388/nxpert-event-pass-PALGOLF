@@ -79,8 +79,8 @@
                 <td>{{ u.username }}</td>
                 <td class="col-email">{{ u.email }}</td>
                 <td>
-                  <span class="role-pill" [class.admin]="u.role !== 'Participant' && u.role !== 'TL'">{{ u.role }}</span>
-                  @if ((u.role === 'Participant' || u.role === 'TL') && u.canConfirmRegistrations) {
+                  <span class="role-pill" [class.admin]="u.role !== 'Participant' && u.role !== 'Captain'" [class.captain]="u.role === 'Captain'">{{ u.role }}</span>
+                  @if ((u.role === 'Participant' || u.role === 'Captain') && u.canConfirmRegistrations) {
                     <mat-icon class="inline-icon grant" matTooltip="Can confirm registrations">how_to_reg</mat-icon>
                   }
                 </td>

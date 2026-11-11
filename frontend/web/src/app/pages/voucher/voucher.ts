@@ -22,7 +22,7 @@ import { VoucherPreviewDialogComponent } from './voucher-preview-dialog';
 // Mirrors VouchersController.NormalizeTicket (server is authoritative).
 const TICKET_PATTERN = /^[A-Z0-9-]{4,30}$/;
 
-/** Airline baggage vouchers (golf equipment) for Participants and Team Leads. */
+/** Airline baggage vouchers (golf equipment) for Participants and Captains. */
 @Component({
   selector: 'app-voucher',
   imports: [

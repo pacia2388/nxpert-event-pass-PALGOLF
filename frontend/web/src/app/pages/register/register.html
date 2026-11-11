@@ -17,10 +17,10 @@
         <p class="muted">Checking your registration link…</p>
       } @else if (teamToken && teamState() === 'invalid') {
         <p role="alert">{{ teamError() }}</p>
-        <p class="muted">Ask your team lead to send a new link, or <a routerLink="/login">sign in</a>.</p>
+        <p class="muted">Ask your captain to send a new link, or <a routerLink="/login">sign in</a>.</p>
       } @else {
       @if (teamToken) {
-        <p class="muted">Your team lead created your account. Fill in your details and choose your own password.</p>
+        <p class="muted">Your captain created your account. Fill in your details and choose your own password.</p>
       }
       <form #f="ngForm" (ngSubmit)="submit()">
         <div class="name-row">

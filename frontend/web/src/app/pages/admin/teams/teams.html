@@ -20,7 +20,7 @@
       <label class="um-search-box">
         <mat-icon>search</mat-icon>
         <input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)"
-               placeholder="Search team or team lead…" aria-label="Search teams" />
+               placeholder="Search team or captain…" aria-label="Search teams" />
       </label>
     </div>
   </div>
@@ -38,7 +38,7 @@
             <tr>
               <th>Team</th>
               <th>Category</th>
-              <th>Team Lead</th>
+              <th>Captain</th>
               <th class="col-num">Members</th>
             </tr>
           </thead>
@@ -101,7 +101,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Team Lead</mat-label>
+          <mat-label>Captain</mat-label>
           <mat-select name="teamLeadUserId" [(ngModel)]="teamLeadUserId" required>
             @for (l of leads(); track l.user.id) {
               <mat-option [value]="l.user.id" [disabled]="!!l.otherTeam">
@@ -117,7 +117,7 @@
 
         @if (!leads().length) {
           <p class="tm-note span-2">
-            No users have the TL (Team Lead) role yet. Give a user that role on the Users page first.
+            No users have the Captain role yet. Give a user that role on the Users page first.
           </p>
         }
       </form>
