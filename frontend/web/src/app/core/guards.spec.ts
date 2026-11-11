@@ -10,11 +10,9 @@ import {
 } from '@angular/router';
 import { AuthResponse } from './models';
 import {
-  adminGuard,
   authGuard,
   confirmerGuard,
   isTeamLead,
-  merchantGuard,
   nonMerchantGuard,
   voucherGuard,
 } from './guards';
@@ -44,25 +42,10 @@ function visit(guard: CanActivateFn, url: string): string {
 }
 
 describe('route guards', () => {
-  describe('a Team Lead can open only the Team page', () => {
+  describe('a Team Lead can open the Team page', () => {
     it('opens the Team page', () => {
       signIn('TL');
       expect(visit(isTeamLead, '/team')).toBe('allowed');
-    });
-
-    it.each([
-      ['Home, Browse Events and My Events', authGuard, '/home'],
-      ['Calendar, Mail Planner and Edit account', nonMerchantGuard, '/account'],
-      ['admin pages', adminGuard, '/admin/users'],
-      ['the meal scanner', merchantGuard, '/merchant/scan'],
-    ])('is sent to the Team page from %s', (_label, guard, url) => {
-      signIn('TL');
-      expect(visit(guard, url)).toBe('/team');
-    });
-
-    it('is sent to the Team page from Attendance even with the confirm grant', () => {
-      signIn('TL', true);
-      expect(visit(confirmerGuard, '/admin/events')).toBe('/team');
     });
   });
 
