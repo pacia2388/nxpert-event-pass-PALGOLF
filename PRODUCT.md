@@ -20,7 +20,9 @@ web
 
 ## Product Purpose
 
-NXPass is N-PAX's event registration and check-in app, customised here for one client's event.
+PAL GOLF is N-PAX's event registration and check-in app (NXPERT SYSTEM), customised here for
+Philippine Airlines' 78th PAL Interclub Golf Tournament 2027 (Seniors Division Feb 17–24,
+Men's/Regular Division Feb 25–Mar 4, Cagayan de Oro | Bukidnon).
 An organizer creates events and invites people; registrants are confirmed, receive a QR pass
 (plus meal stubs, and a meeting link for online/hybrid events), and are checked in on the day;
 the organizer exports the attendance sheet. Success is an organizer running the whole event,
@@ -53,21 +55,28 @@ Undecided. No differentiating claim against other event tools has been confirmed
 - The server is authoritative for validation; the client is UX only.
 - Terminology in use: event, sub-event, pass, meal stub, kit, Attendance, My Events, Browse
   Events, team, Team Lead, voucher.
-- Undecided: which client and event this build is for; whether the Voucher page stays past
-  prototype.
+- Undecided: whether the Voucher page stays past prototype.
 
 ## Brand Commitments
 
-None are binding. The NXPass name, the N-PAX logo (`frontend/web/public/nxpax-logo.png`), the
-teal theme colour and the Roboto/Material look are prototype placeholders and may change.
+- **Name:** PAL GOLF. The name and the footer line ("Powered by N-PAX - NXPERT SYSTEM") are the
+  `appName` and `footerText` settings in `frontend/web/public/appSettings.json`, read at runtime.
+  Emails and calendar invites take the name from `App:Name` in the API's appsettings; keep it
+  the same as `appName`. The installed-app name in `manifest.webmanifest` and the email sender
+  name (`Email:FromName`) are set separately.
+- **Tournament poster:** `frontend/web/public/brand/pal-interclub-2027-poster.jpg`, supplied by
+  the client. The login page takes its palette (navy, PAL blue, red-to-gold arc) from it.
+- **Not binding yet:** the N-PAX logo (`frontend/web/public/nxpax-logo.png`), the teal theme
+  colour and the Roboto/Material look on every page other than login are placeholders; the
+  app-wide recolour to the poster's palette is planned in `plans/pal-golf-recolour.md`.
 
 ## Evidence on Hand
 
 - Guides and references: `documentation/` (roles, events, meal stubs, database tables, admin
   guide PDF) and `plans/` (team page, invite teams).
 - Seeded demo data only (Development): a demo admin, five participants, one event.
-- No client name, client brand assets, testimonials, usage numbers or pricing exist in the repo.
-  Future work must not invent them.
+- The client's tournament poster is the only client brand asset in the repo. No separate logo
+  files, testimonials, usage numbers or pricing exist. Future work must not invent them.
 
 ## Product Principles
 
