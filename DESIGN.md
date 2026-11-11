@@ -2,12 +2,11 @@
 name: PAL GOLF
 description: Event registration and check-in, as currently implemented in the Angular app
 colors:
-  primary: "#0d9488"
-  primary-deep: "#0f766e"
-  primary-container: "#ccf2ec"
-  on-primary-container: "#064e46"
-  primary-soft: "#e6f6f3"
-  gradient-green: "#22c55e"
+  primary: "#0f5fb8"
+  primary-deep: "#0b4a94"
+  primary-container: "#d6e4f7"
+  on-primary-container: "#051f63"
+  primary-soft: "#e8f0fb"
   success: "#15803d"
   success-soft: "#e8f7ee"
   warning: "#b45309"
@@ -15,11 +14,11 @@ colors:
   error: "#dc2626"
   error-deep: "#b91c1c"
   error-soft: "#fdecec"
-  app-bg: "#f1f7f4"
+  app-bg: "#f2f5fa"
   surface: "#ffffff"
-  surface-low: "#f8fbfa"
-  surface-high: "#f1f6f4"
-  table-header: "#f6faf8"
+  surface-low: "#f8fafd"
+  surface-high: "#f0f4fa"
+  table-header: "#f5f8fc"
   neutral-soft: "#eef2f6"
   ink: "#0f172a"
   ink-secondary: "#334155"
@@ -27,7 +26,7 @@ colors:
   outline: "#94a3b8"
   outline-button: "#cbd5e1"
   outline-variant: "#e2e8f0"
-  # Login page only (the --pg-* properties on .login-shell). See "Login Page (Scoped Exception)".
+  # The poster palette: app-wide --pg-* custom properties on :root in styles.scss.
   pg-navy: "#051f63"
   pg-navy-mid: "#0a2d7a"
   pg-sky: "#1a5aa8"
@@ -163,12 +162,10 @@ components:
 
 # Design System: PAL GOLF
 
-This records the look the Angular app has today. PRODUCT.md marks the teal colour and the
-Roboto/Material look on every page other than login as placeholders, so treat the system below
-as a description of the incumbent, not a commitment. The login page alone follows the client's
-tournament poster; it is recorded as a scoped exception in its own section at the end. The
-app-wide recolour to the poster's palette is planned in `plans/pal-golf-recolour.md` and is not
-built.
+This records the look the Angular app has today. Every page wears the palette of the client's
+tournament poster (navy, PAL blue, one red-to-gold arc), declared once as `--pg-*` custom
+properties on `:root` in `frontend/web/src/styles.scss`. The login page adds the poster itself
+and Montserrat; that is recorded in its own section at the end.
 
 The app name and the footer line are runtime settings, not hard-coded: `appName` and
 `footerText` in `frontend/web/public/appSettings.json`, read at boot into `BRANDING`
@@ -180,8 +177,8 @@ The app name and the footer line are runtime settings, not hard-coded: `appName`
 **Creative North Star: "The Front Desk"**
 
 A tidy, well-lit registration counter. Everything is labelled, status is visible at a glance,
-and the tone is friendly but businesslike. White cards sit on a pale mint page under a
-teal-to-green gradient header; the header and the filled buttons carry the colour, and the
+and the tone is friendly but businesslike. White cards sit on a pale blue-grey page under a
+navy header that lifts to PAL blue; the header and the filled buttons carry the colour, and the
 working surfaces stay white.
 
 The feel is soft and friendly: pill buttons, generously rounded cards, light layered shadows
@@ -190,22 +187,27 @@ global overrides in `frontend/web/src/styles.scss`, so every Material component 
 same shapes and colours.
 
 **Key Characteristics:**
-- White cards on a pale mint page, gradient header on top.
-- Teal carries action; green, amber and red carry status.
+- White cards on a pale blue-grey page, navy header on top, navy footer below.
+- PAL blue carries action; green, amber and red carry status.
 - Pill buttons and pills for status; rounded rectangles for everything that holds content.
 - Bold headings (700 to 800) over regular 14px body text.
 - Light scheme only; no dark theme exists.
 
 ## Colors
 
-A single teal accent with a green partner in gradients, on slate text and near-white surfaces.
+PAL blue for action and poster navy for the frame, on slate text and near-white surfaces.
 
 ### Primary
-- **Counter Teal** (`primary`): filled buttons, active tabs, progress bars, icons, focus.
-- **Deep Teal** (`primary-deep`): text buttons, primary outlined buttons, text on teal tints.
-- **Teal Tints** (`primary-container`, `primary-soft`): selected and "registered" backgrounds.
-- **Gradient Green** (`gradient-green`): only as the end stop of the brand gradient
-  (`--brand-grad`, 135deg from `primary`), used on page-title text and brand accents.
+- **PAL Blue** (`primary`, `--pg-blue`): filled buttons, active tabs, icons, focus.
+- **Deep Blue** (`primary-deep`, `--pg-blue-deep`): text buttons, primary outlined buttons,
+  filled-button hover, text on blue tints.
+- **Blue Tints** (`primary-container`, `primary-soft`): selected and "registered" backgrounds.
+- **Poster Navy** (`pg-navy`, `pg-navy-mid`): the header, the footer and the ground of the
+  auth pages. The brand gradient (`--brand-grad`, 135deg from `pg-navy-mid` to `pg-blue`) is
+  used on page-title text and brand accents.
+- **Red to Gold** (`--pg-progress`: `pg-red` through `#e8742a` to `pg-gold`): the poster's
+  arc. Progress only: Material progress bars, the event-card capacity bar and the login
+  signing-in stroke.
 
 ### Secondary
 - **Confirmed Green** (`success` on `success-soft`): confirmed, checked-in, ok.
@@ -213,7 +215,7 @@ A single teal accent with a green partner in gradients, on slate text and near-w
 - **Closed Red** (`error`, `error-deep` on `error-soft`): errors, closed, destructive buttons.
 
 ### Neutral
-- **Mint Page** (`app-bg`): the page behind every card.
+- **Page Ground** (`app-bg`): the page behind every card.
 - **White** (`surface`): cards, tables, dialogs, menus, fields.
 - **Soft Surfaces** (`surface-low`, `surface-high`, `table-header`, `neutral-soft`): header
   bands, hover rows, neutral pills and tags.
@@ -262,7 +264,7 @@ for reading text only.
 
 ## Elevation & Depth
 
-Lightly lifted. Cards rest on a two-layer shadow over the mint page and gain a deeper one on
+Lightly lifted. Cards rest on a two-layer shadow over the pale page and gain a deeper one on
 hover; overlays use progressively larger shadows. Hairline borders do as much work as the
 shadows.
 
@@ -271,17 +273,17 @@ shadows.
   every card.
 - **Card hover** (`--card-shadow-hover`: `0 6px 14px rgba(15,23,42,0.08), 0 18px 40px rgba(15,23,42,0.12)`):
   clickable cards.
-- **Filled button** (`0 4px 12px rgba(13,148,136,0.26)`, hover `0 6px 16px rgba(13,148,136,0.34)`):
-  a teal-tinted glow; red-tinted on warn buttons.
+- **Filled button** (`0 4px 12px rgba(15,95,184,0.26)`, hover `0 6px 16px rgba(15,95,184,0.34)`):
+  a blue-tinted glow; red-tinted on warn buttons.
 - **Menu** (`0 12px 32px rgba(15,23,42,0.14)`) and **Dialog** (`0 24px 60px rgba(15,23,42,0.18)`).
-- **Header** (`0 2px 10px rgba(13,148,136,0.18)`).
+- **Header** (`0 2px 10px rgba(15,95,184,0.18)`).
 
 ## Shapes
 
 Two shapes only. Things you press or read as a tag are pills (999px). Things that hold content
 are rounded rectangles that grow with size: 8 to 10px for small tiles and inputs inside grids,
 12px for fields and menus, 14px for tables, 18px for cards, 20px for dialogs. Cards and tables
-carry a faint teal hairline (`1px solid rgba(13,148,136,0.14)`); neutral dividers use
+carry a faint blue hairline (`1px solid rgba(15,95,184,0.14)`); neutral dividers use
 `rgba(15,23,42,0.08)`.
 
 ## Components
@@ -289,12 +291,12 @@ carry a faint teal hairline (`1px solid rgba(13,148,136,0.14)`); neutral divider
 ### Buttons
 Soft and friendly: pills with bold labels.
 - **Shape:** full pill (999px), set through Material button overrides.
-- **Filled:** a 135deg gradient from teal to green (`#0d9488` to `#22b07d`), white text, teal
-  glow. Hover darkens slightly (`brightness(0.95)`) and deepens the glow.
+- **Filled:** solid PAL blue, white text, blue glow. Hover goes to deep blue and deepens the
+  glow. Never a gradient, never red or gold.
 - **Filled warn:** solid red, white text.
-- **Outlined:** 1.5px slate border, slate text; hover turns border and text teal on a `#f3fbf8`
+- **Outlined:** 1.5px slate border, slate text; hover turns border and text blue on a `#f0f5fc`
   fill. Warn variant goes red on `error-soft`.
-- **Text:** deep teal label.
+- **Text:** deep blue label.
 - Transitions are 0.15s ease.
 
 ### Chips
@@ -306,24 +308,26 @@ Soft and friendly: pills with bold labels.
 - **Corner Style:** 18px.
 - **Background:** white.
 - **Shadow Strategy:** card rest, card hover when clickable.
-- **Border:** faint teal hairline.
+- **Border:** faint blue hairline.
 - **Tables:** white, 14px corners, a pale header band with 12px bold slate labels, rows tint on
   hover.
 
 ### Inputs / Fields
 - **Style:** Material outlined fields, 12px corners, white fill.
-- **Focus:** Material's primary (teal) outline.
+- **Focus:** Material's primary (PAL blue) outline.
 - **Error:** Material's error (red) outline with helper text.
 
 ### Navigation
-- **Header:** sticky horizontal gradient (teal to light green), white text. A Home button, brand
+- **Header:** sticky horizontal gradient (`pg-navy` through `pg-navy-mid` to `pg-blue`), white text. A Home button, brand
   badge and user chip sit on translucent white "glass" tiles
   (`rgba(255,255,255,0.18)` with a `0.22` white border); hover and active go to `0.28`.
-- **Tabs:** bold labels, teal active indicator, hairline under the tab bar.
+- **Tabs:** bold labels, blue active indicator, hairline under the tab bar.
+- **Footer:** `pg-navy` bar with a faint white top border (`rgba(255,255,255,0.12)`) and pale
+  blue text (`#c3d4f3`). The wording is `footerText`.
 - Under 900px the header tightens and the brand subtitle hides.
 
 ### Page Title
-A 44px soft teal icon tile (13px corners) beside a gradient-filled 26px heading. Every page
+A 44px soft blue icon tile (13px corners) beside a gradient-filled 26px heading. Every page
 opens with it.
 
 ### Dialogs and Menus
@@ -346,16 +350,13 @@ White, 20px and 12px corners, heavy title, 8px gap between actions.
 - **Don't** add square or sharp-cornered buttons.
 - **Don't** assume a dark theme; `color-scheme` is light only.
 
-## Login Page (Scoped Exception)
+## Login Page
 
-`/login` is the one page that does not follow the Front Desk system. It wears the client's
-tournament poster: the poster is the whole brand statement, shown beside a plain, fast sign-in
-form. Everything in this section applies to that page only.
-
-**The Login Only Rule.** The `pg-*` colours are declared as `--pg-*` custom properties on
-`.login-shell` (`frontend/web/src/app/pages/login/login.scss`) and exist nowhere else. Do not
-use them, Montserrat, or the navy ground on any other page until the recolour in
-`plans/pal-golf-recolour.md` lands. Every other page keeps the teal tokens above.
+`/login` shows the client's tournament poster: the poster is the whole brand statement, shown
+beside a plain, fast sign-in form. It uses the same app-wide `--pg-*` tokens as every other
+page; the poster panel and Montserrat are the parts that belong to this page only. The other
+auth pages (register, verify, public registration, edit response) share its navy ground
+through `.auth-shell`.
 
 ### Colours
 - **Poster Navy ground** (`pg-sky` to `pg-navy-mid` at 44% to `pg-navy`, top to bottom): the page
@@ -364,15 +365,13 @@ use them, Montserrat, or the navy ground on any other page until the recolour in
 - **White card** (`surface`): the sign-in card and its fields stay white, including autofilled
   fields.
 - **PAL Blue** (`pg-blue`, hover and loading `pg-blue-deep`): the Sign in button, the focus
-  ring, the caret, and Material's primary inside the page (`--mat-sys-primary` is re-pointed to
-  it, so focused fields and the password toggle turn blue instead of teal).
-- **Red to Gold** (`pg-red` through `#e8742a` to `pg-gold`): the poster's arc. It appears in
-  exactly one place, the signing-in progress stroke.
+  ring, the caret, and Material's primary.
+- **Red to Gold** (`--pg-progress`): the poster's arc, here as the signing-in progress stroke.
 - **Ink and lines** (`pg-ink`, `pg-ink-soft`, `pg-line`): card text, supporting text and field
   icons, the divider and the secondary button border.
 
-**The One Arc Rule.** Red-to-gold is the signing-in stroke and nothing else. It is never a
-button, heading, border or decoration.
+**The One Arc Rule.** Red-to-gold means progress and nothing else. It is never a button,
+heading, border or decoration.
 
 ### Typography
 - **Montserrat** (with Roboto, sans-serif) is loaded in `frontend/web/src/index.html` at 600
@@ -447,11 +446,6 @@ text, and never add a second brand image beside it.
   static red-to-gold bar, and the Sign in button's transitions are dropped.
 
 ### Page-scoped overrides
-- **Footer:** while the login page is open the app footer sits on `pg-navy` instead of the
-  frosted white bar, with no blur or shadow, a faint white top border
-  (`rgba(255,255,255,0.12)`) and its text in solid pale blue (`#c3d4f3`) instead of the brand
-  gradient. The rule lives in `frontend/web/src/app/app.scss`
-  (`.app-content:has(.login-shell) + .branding-footer`). The wording is still `footerText`.
 - **Browser toolbar:** the page sets the `theme-color` meta tag to the ground's sky blue while
-  it is open and restores the app's own value (teal) when it closes
+  it is open and restores the app's own value (`pg-navy`) when it closes
   (`frontend/web/src/app/pages/login/login.ts`).

@@ -65,10 +65,10 @@ Undecided. No differentiating claim against other event tools has been confirmed
   the same as `appName`. The installed-app name in `manifest.webmanifest` and the email sender
   name (`Email:FromName`) are set separately.
 - **Tournament poster:** `frontend/web/public/brand/pal-interclub-2027-poster.jpg`, supplied by
-  the client. The login page takes its palette (navy, PAL blue, red-to-gold arc) from it.
-- **Not binding yet:** the N-PAX logo (`frontend/web/public/nxpax-logo.png`), the teal theme
-  colour and the Roboto/Material look on every page other than login are placeholders; the
-  app-wide recolour to the poster's palette is planned in `plans/pal-golf-recolour.md`.
+  the client. The whole app takes its palette (navy, PAL blue, red-to-gold arc) from it.
+- **Not binding yet:** the N-PAX logo (`frontend/web/public/nxpax-logo.png`) and the installed
+  app icons (`frontend/web/public/icons/`) await client artwork; see
+  `plans/pal-golf-recolour.md`.
 
 ## Evidence on Hand
 
