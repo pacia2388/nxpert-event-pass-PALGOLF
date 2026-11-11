@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { EventDto } from '../../core/models';
+import { TeamInviteChanges } from '../../core/team-invite.util';
 import { InvitationComposerComponent } from './invitation-composer';
 import { InviteTeamsDialogComponent } from './invite-teams-dialog';
 
@@ -12,10 +13,10 @@ describe('Invitation composer: Invite teams', () => {
   let fixture: ComponentFixture<InvitationComposerComponent>;
   let opened: { component: unknown; data: unknown }[];
   // What the Invite teams picker closes with.
-  let picked: string[] | undefined;
+  let picked: TeamInviteChanges | undefined;
 
   // Opens the composer for an event.
-  function compose(pickerResult: string[] | undefined): void {
+  function compose(pickerResult: TeamInviteChanges | undefined): void {
     picked = pickerResult;
     localStorage.clear();
     localStorage.setItem('evt_auth', JSON.stringify({ token: 't', userId: 1, fullName: 'Demo Admin', role: 'Admin' }));
@@ -60,7 +61,7 @@ describe('Invitation composer: Invite teams', () => {
   });
 
   it('adds the picked team members to To', () => {
-    compose(['ana@example.com', 'ben@example.com']);
+    compose({ add: ['ana@example.com', 'ben@example.com'], remove: [] });
     clickInviteTeams();
     expect(opened[0].component).toBe(InviteTeamsDialogComponent);
     expect(chips(fieldOf('To recipients'))).toEqual(['ana@example.com', 'ben@example.com']);
@@ -68,12 +69,20 @@ describe('Invitation composer: Invite teams', () => {
   });
 
   it('tells the picker who is already in To and does not duplicate them', () => {
-    compose(['ana@example.com']);
+    compose({ add: ['ana@example.com'], remove: [] });
     clickInviteTeams();
-    picked = ['ana@example.com', 'ben@example.com'];
+    picked = { add: ['ana@example.com', 'ben@example.com'], remove: [] };
     clickInviteTeams();
     expect(opened[1].data).toEqual({ alreadyInTo: ['ana@example.com'] });
     expect(chips(fieldOf('To recipients'))).toEqual(['ana@example.com', 'ben@example.com']);
+  });
+
+  it('takes members unticked in the picker out of To', () => {
+    compose({ add: ['ana@example.com', 'ben@example.com'], remove: [] });
+    clickInviteTeams();
+    picked = { add: ['cy@example.com'], remove: ['ana@example.com'] };
+    clickInviteTeams();
+    expect(chips(fieldOf('To recipients'))).toEqual(['ben@example.com', 'cy@example.com']);
   });
 
   it('leaves To unchanged when the picker is cancelled', () => {

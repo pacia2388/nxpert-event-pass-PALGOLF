@@ -110,7 +110,7 @@ describe('Invite teams picker', () => {
     expect(teamBox('Eagles').indeterminate).toBe(true);
 
     addButton().click();
-    expect(closedWith).toEqual(['ben@example.com']);
+    expect(closedWith).toEqual({ add: ['ben@example.com'], remove: [] });
   });
 
   it('ticking a team picks all its members, loading them first', () => {
@@ -122,7 +122,7 @@ describe('Invite teams picker', () => {
     expect(teamBox('Eagles').checked).toBe(true);
     expect(addButton().textContent?.trim()).toBe('Add 2');
     addButton().click();
-    expect(closedWith).toEqual(['ana@example.com', 'ben@example.com']);
+    expect(closedWith).toEqual({ add: ['ana@example.com', 'ben@example.com'], remove: [] });
   });
 
   it('unticking a team clears its members', () => {
@@ -135,27 +135,55 @@ describe('Invite teams picker', () => {
     expect(addButton().disabled).toBe(true);
   });
 
-  it('shows members already in To as added and does not add them again', () => {
+  it('shows members already in To as ticked and does not add them again', () => {
     open(['ana@example.com']);
     serveTeams([eagles]);
     tick(teamBox('Eagles'));
     serveMembers(detail(eagles, ['Ana@Example.com', 'ben@example.com']));
     expand('Eagles');
 
-    expect(memberBox('Ana@Example.com').disabled).toBe(true);
+    expect(memberBox('Ana@Example.com').checked).toBe(true);
     expect(text()).toContain('Already added');
     addButton().click();
-    expect(closedWith).toEqual(['ben@example.com']);
+    expect(closedWith).toEqual({ add: ['ben@example.com'], remove: [] });
   });
 
-  it('leaves a team unticked when all its members are already in To', () => {
+  it('unticking a member already in To removes them', () => {
+    open(['ana@example.com', 'ben@example.com']);
+    serveTeams([eagles]);
+    expand('Eagles');
+    serveMembers(detail(eagles, ['ana@example.com', 'ben@example.com']));
+    expect(teamBox('Eagles').checked).toBe(true);
+    expect(addButton().disabled).toBe(true);
+
+    tick(memberBox('ana@example.com'));
+    expect(text()).toContain('Will be removed');
+    expect(addButton().textContent?.trim()).toBe('Remove 1');
+    addButton().click();
+    expect(closedWith).toEqual({ add: [], remove: ['ana@example.com'] });
+  });
+
+  it('unticking a team removes its members already in To', () => {
+    open(['ana@example.com']);
+    serveTeams([eagles, birdies]);
+    expand('Eagles');
+    serveMembers(detail(eagles, ['ana@example.com']));
+    tick(teamBox('Eagles'));
+    tick(teamBox('Birdies'));
+    serveMembers(detail(birdies, ['cy@example.com']));
+
+    expect(addButton().textContent?.trim()).toBe('Add 1, remove 1');
+    addButton().click();
+    expect(closedWith).toEqual({ add: ['cy@example.com'], remove: ['ana@example.com'] });
+  });
+
+  it('ticking a team not opened yet keeps its members already in To', () => {
     open(['ana@example.com', 'ben@example.com']);
     serveTeams([eagles]);
     tick(teamBox('Eagles'));
     serveMembers(detail(eagles, ['ana@example.com', 'ben@example.com']));
 
-    expect(teamBox('Eagles').checked).toBe(false);
-    expect(teamBox('Eagles').disabled).toBe(true);
+    expect(teamBox('Eagles').checked).toBe(true);
     expect(addButton().disabled).toBe(true);
   });
 

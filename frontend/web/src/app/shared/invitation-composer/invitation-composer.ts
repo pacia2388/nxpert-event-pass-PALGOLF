@@ -433,8 +433,11 @@ export class InvitationComposerComponent implements OnChanges {
     if (this.sending()) return;
     openInviteTeamsDialog(this.dialog, { alreadyInTo: this.recipients.to.filter((a) => a !== ALL_USERS) })
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((emails) => {
-        if (emails?.length) this.add('to', emails.join(','));
+      .subscribe((changes) => {
+        if (!changes) return;
+        // Members unticked in the picker leave To; newly ticked ones join it.
+        this.recipients.to = this.recipients.to.filter((a) => !changes.remove.includes(a));
+        if (changes.add.length) this.add('to', changes.add.join(','));
       });
   }
 

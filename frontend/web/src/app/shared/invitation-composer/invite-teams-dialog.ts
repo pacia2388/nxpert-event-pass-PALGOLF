@@ -8,16 +8,19 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { TeamDto, TeamMemberDto } from '../../core/models';
-import { TeamCheckState, memberAddress, selectableEmails, teamCheckState, toggleMember, toggleTeam } from '../../core/team-invite.util';
+import {
+  TeamCheckState, TeamInviteChanges, memberAddress, selectableEmails, selectionChanges, teamCheckState, toggleMember, toggleTeam,
+} from '../../core/team-invite.util';
 
 export interface InviteTeamsDialogData {
-  // Addresses already in the To field (lower-cased); their owners are shown as added.
+  // Addresses already in the To field (lower-cased); their owners start ticked and can be unticked.
   alreadyInTo: string[];
 }
 
 /**
  * Picks invitation recipients from the teams: tick single members, or a team to take all of its
- * members. Closes with the picked email addresses. The Team Lead is not a member and is not listed.
+ * members. Members already in To start ticked; unticking one takes them out. Closes with the addresses
+ * to add and to remove. The Team Lead is not a member and is not listed.
  */
 @Component({
   selector: 'app-invite-teams-dialog',
@@ -26,7 +29,7 @@ export interface InviteTeamsDialogData {
     <h2 mat-dialog-title>Invite teams</h2>
     <mat-dialog-content>
       <p class="hint">Tick a team to invite all its members, or open it to pick members one by one.
-        Picked members are added to the To field.</p>
+        Ticked members are added to the To field; untick a member to take them out.</p>
       @if (loading()) {
         <div class="state"><mat-spinner diameter="28" /> <span>Loading teams…</span></div>
       } @else if (error()) {
@@ -61,12 +64,16 @@ export interface InviteTeamsDialogData {
                   @if (members()[t.id]; as list) {
                     @for (m of list; track m.userId) {
                       <div class="member" data-member>
-                        <mat-checkbox [checked]="isAdded(m) || isPicked(m)" [disabled]="!canPick(m)"
+                        <mat-checkbox [checked]="isTicked(m)" [disabled]="!canPick(m)"
                                       (change)="tickMember(m)">
                           <span class="member-name">{{ m.fullName }}</span>
                           <span class="member-email">{{ m.email || 'No email address' }}</span>
                         </mat-checkbox>
-                        @if (isAdded(m)) { <span class="added">Already added</span> }
+                        @if (isAdded(m)) {
+                          <span class="added" [class.removing]="!isTicked(m)">
+                            {{ isTicked(m) ? 'Already added' : 'Will be removed' }}
+                          </span>
+                        }
                       </div>
                     } @empty {
                       <p class="muted">No members in this team.</p>
@@ -88,8 +95,8 @@ export interface InviteTeamsDialogData {
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button type="button" mat-button class="cancel" (click)="ref.close()">Cancel</button>
-      <button type="button" mat-flat-button class="add" (click)="confirm()" [disabled]="!picked().size">
-        {{ picked().size ? 'Add ' + picked().size : 'Add' }}
+      <button type="button" mat-flat-button class="add" (click)="confirm()" [disabled]="!hasChanges()">
+        {{ confirmLabel() }}
       </button>
     </mat-dialog-actions>
   `,
@@ -112,13 +119,14 @@ export interface InviteTeamsDialogData {
       .member-name { display: block; font-weight: 500; }
       .member-email { display: block; color: #64748b; font-size: 12.5px; overflow-wrap: anywhere; }
       .added { color: #0f766e; font-size: 12px; font-weight: 600; white-space: nowrap; }
+      .added.removing { color: #b45309; }
       .muted { margin: 8px 0 4px; color: #64748b; font-size: 13px; }
     `,
   ],
 })
 export class InviteTeamsDialogComponent {
   readonly data = inject<InviteTeamsDialogData>(MAT_DIALOG_DATA);
-  readonly ref = inject(MatDialogRef<InviteTeamsDialogComponent, string[]>);
+  readonly ref = inject(MatDialogRef<InviteTeamsDialogComponent, TeamInviteChanges>);
   private api = inject(ApiService);
 
   teams = signal<TeamDto[]>([]);
@@ -129,8 +137,16 @@ export class InviteTeamsDialogComponent {
   failed = signal<ReadonlySet<number>>(new Set());
   private opened = signal<ReadonlySet<number>>(new Set());
   private loadingMembers = new Set<number>();
-  picked = signal<ReadonlySet<string>>(new Set());
-  private added = computed(() => this.data.alreadyInTo);
+  // Ticked addresses. Starts as everyone already in To, so unticking one of them removes them.
+  private selected = signal<ReadonlySet<string>>(new Set(this.data.alreadyInTo));
+  private changes = computed(() => selectionChanges(this.selected(), this.data.alreadyInTo));
+  hasChanges = computed(() => this.changes().add.length + this.changes().remove.length > 0);
+  confirmLabel = computed(() => {
+    const { add, remove } = this.changes();
+    if (add.length && remove.length) return `Add ${add.length}, remove ${remove.length}`;
+    if (remove.length) return `Remove ${remove.length}`;
+    return add.length ? `Add ${add.length}` : 'Add';
+  });
 
   constructor() {
     this.load();
@@ -163,28 +179,36 @@ export class InviteTeamsDialogComponent {
   }
 
   state(team: TeamDto): TeamCheckState {
-    return teamCheckState(this.members()[team.id] ?? [], this.picked(), this.added());
+    return teamCheckState(this.members()[team.id] ?? [], this.selected());
   }
 
-  // A team can be ticked while it may still have someone to invite.
+  // A team can be ticked while it may have someone to invite.
   canTick(team: TeamDto): boolean {
     const list = this.members()[team.id];
-    return list ? selectableEmails(list, this.added()).length > 0 : team.memberCount > 0;
+    return list ? selectableEmails(list).length > 0 : team.memberCount > 0;
   }
 
   tickTeam(team: TeamDto, change: MatCheckboxChange): void {
-    const pickAll = (list: TeamMemberDto[]) => {
-      this.picked.set(toggleTeam(list, this.picked(), this.added()));
-      // Keep the box in step when nothing could be picked (everyone is already in To).
-      change.source.checked = this.state(team) === 'all';
-    };
+    // Keep the box in step with the members (a team with no usable emails stays unticked).
+    const sync = () => (change.source.checked = this.state(team) === 'all');
     const list = this.members()[team.id];
-    if (list) return pickAll(list);
-    // Not loaded yet: load, then take everyone. A failed load leaves the box unticked.
-    this.loadMembers(team, pickAll, () => {
-      change.source.checked = false;
-      this.opened.set(new Set(this.opened()).add(team.id));
-    });
+    if (list) {
+      this.selected.set(toggleTeam(list, this.selected()));
+      return void sync();
+    }
+    // Not loaded yet: load, then tick everyone. Members already in To stay; nothing is unticked
+    // unseen. A failed load leaves the box unticked.
+    this.loadMembers(
+      team,
+      (loaded) => {
+        this.selected.set(new Set([...this.selected(), ...selectableEmails(loaded)]));
+        sync();
+      },
+      () => {
+        change.source.checked = false;
+        this.opened.set(new Set(this.opened()).add(team.id));
+      },
+    );
   }
 
   loadMembers(team: TeamDto, then?: (list: TeamMemberDto[]) => void, failed?: () => void): void {
@@ -213,30 +237,30 @@ export class InviteTeamsDialogComponent {
 
   isAdded(member: TeamMemberDto): boolean {
     const address = memberAddress(member);
-    return !!address && this.added().includes(address);
+    return !!address && this.data.alreadyInTo.includes(address);
   }
 
-  isPicked(member: TeamMemberDto): boolean {
+  isTicked(member: TeamMemberDto): boolean {
     const address = memberAddress(member);
-    return !!address && this.picked().has(address);
+    return !!address && this.selected().has(address);
   }
 
   canPick(member: TeamMemberDto): boolean {
-    return !!memberAddress(member) && !this.isAdded(member);
+    return !!memberAddress(member);
   }
 
   tickMember(member: TeamMemberDto): void {
     const address = memberAddress(member);
-    if (address && this.canPick(member)) this.picked.set(toggleMember(address, this.picked()));
+    if (address) this.selected.set(toggleMember(address, this.selected()));
   }
 
   confirm(): void {
-    if (this.picked().size) this.ref.close([...this.picked()]);
+    if (this.hasChanges()) this.ref.close(this.changes());
   }
 }
 
-export function openInviteTeamsDialog(dialog: MatDialog, data: InviteTeamsDialogData): Observable<string[] | undefined> {
-  return dialog.open<InviteTeamsDialogComponent, InviteTeamsDialogData, string[]>(InviteTeamsDialogComponent, {
+export function openInviteTeamsDialog(dialog: MatDialog, data: InviteTeamsDialogData): Observable<TeamInviteChanges | undefined> {
+  return dialog.open<InviteTeamsDialogComponent, InviteTeamsDialogData, TeamInviteChanges>(InviteTeamsDialogComponent, {
     data,
     width: '520px',
     maxWidth: '95vw',
