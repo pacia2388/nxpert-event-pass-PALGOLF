@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T00:00:00Z",
+  "title": "Design System: NXPass",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Counter Teal", "canonical": "#0d9488", "tonalRamp": ["#03302c", "#064e46", "#0f766e", "#0d9488", "#3db5a8", "#7fd3c8", "#ccf2ec", "#e6f6f3"] },
+      "primary-deep": { "role": "primary", "displayName": "Deep Teal", "canonical": "#0f766e" },
+      "gradient-green": { "role": "secondary", "displayName": "Gradient Green", "canonical": "#22c55e", "tonalRamp": ["#0a3d1c", "#126a30", "#15803d", "#16a34a", "#22c55e", "#6fdc95", "#b9efcb", "#e8f7ee"] },
+      "success": { "role": "secondary", "displayName": "Confirmed Green", "canonical": "#15803d" },
+      "warning": { "role": "tertiary", "displayName": "Pending Amber", "canonical": "#b45309", "tonalRamp": ["#421d03", "#783609", "#b45309", "#d97706", "#f0a13a", "#f7c680", "#fce2b8", "#fef4e2"] },
+      "error": { "role": "tertiary", "displayName": "Closed Red", "canonical": "#dc2626", "tonalRamp": ["#450a0a", "#7f1d1d", "#b91c1c", "#dc2626", "#ea6262", "#f3a0a0", "#f9d0d0", "#fdecec"] },
+      "app-bg": { "role": "neutral", "displayName": "Mint Page", "canonical": "#f1f7f4" },
+      "surface": { "role": "neutral", "displayName": "White", "canonical": "#ffffff" },
+      "ink": { "role": "neutral", "displayName": "Slate Ink", "canonical": "#0f172a", "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#94a3b8", "#cbd5e1", "#e2e8f0", "#eef2f6"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Page title, filled with the brand gradient." },
+      "title": { "displayName": "Title", "purpose": "Card titles, dialog titles, brand name in the header." },
+      "body": { "displayName": "Body", "purpose": "Material body-medium; supporting text runs 12.5px to 13.5px." },
+      "label": { "displayName": "Label", "purpose": "Table headers, status pills, button labels." }
+    },
+    "gradients": [
+      { "name": "brand-grad", "value": "linear-gradient(135deg, #0d9488 0%, #22c55e 100%)", "purpose": "Page-title text and brand accents." },
+      { "name": "brand-grad-soft", "value": "linear-gradient(135deg, #e6f7f4 0%, #eafaf0 100%)", "purpose": "Soft brand backgrounds." },
+      { "name": "button-fill", "value": "linear-gradient(135deg, #0d9488 0%, #22b07d 100%)", "purpose": "Filled buttons." },
+      { "name": "header", "value": "linear-gradient(90deg, #0d9488 0%, #3dbb8a 55%, #7dd36a 100%)", "purpose": "App header." }
+    ],
+    "shadows": [
+      { "name": "card-shadow", "value": "0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.06)", "purpose": "Every card at rest." },
+      { "name": "card-shadow-hover", "value": "0 6px 14px rgba(15, 23, 42, 0.08), 0 18px 40px rgba(15, 23, 42, 0.12)", "purpose": "Clickable cards on hover." },
+      { "name": "button-filled", "value": "0 4px 12px rgba(13, 148, 136, 0.26)", "purpose": "Teal glow under filled buttons." },
+      { "name": "button-filled-hover", "value": "0 6px 16px rgba(13, 148, 136, 0.34)", "purpose": "Filled button hover." },
+      { "name": "menu", "value": "0 12px 32px rgba(15, 23, 42, 0.14)", "purpose": "Menus." },
+      { "name": "dialog", "value": "0 24px 60px rgba(15, 23, 42, 0.18)", "purpose": "Dialogs." },
+      { "name": "header", "value": "0 2px 10px rgba(13, 148, 136, 0.18)", "purpose": "Sticky app header." }
+    ],
+    "motion": [
+      { "name": "state-transition", "value": "0.15s ease", "purpose": "Button and tile hover transitions." }
+    ],
+    "breakpoints": [
+      { "name": "phone", "value": "600px" },
+      { "name": "header-compact", "value": "900px" },
+      { "name": "wide", "value": "1100px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Filled Button",
+      "kind": "button",
+      "refersTo": "button-filled",
+      "description": "Primary action on a page or dialog.",
+      "html": "<button class=\"ds-btn-filled\">Confirm registration</button>",
+      "css": ".ds-btn-filled { font: 700 14px Roboto, sans-serif; letter-spacing: 0.2px; height: 40px; padding: 0 24px; border: none; border-radius: 999px; color: #fff; background-image: linear-gradient(135deg, #0d9488 0%, #22b07d 100%); box-shadow: 0 4px 12px rgba(13, 148, 136, 0.26); cursor: pointer; transition: box-shadow 0.15s ease, filter 0.15s ease; } .ds-btn-filled:hover { filter: brightness(0.95); box-shadow: 0 6px 16px rgba(13, 148, 136, 0.34); } .ds-btn-filled:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }"
+    },
+    {
+      "name": "Warn Button",
+      "kind": "button",
+      "refersTo": "button-filled-warn",
+      "description": "Destructive confirmation.",
+      "html": "<button class=\"ds-btn-warn\">Cancel registration</button>",
+      "css": ".ds-btn-warn { font: 700 14px Roboto, sans-serif; letter-spacing: 0.2px; height: 40px; padding: 0 24px; border: none; border-radius: 999px; color: #fff; background: #dc2626; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.24); cursor: pointer; } .ds-btn-warn:focus-visible { outline: 2px solid #b91c1c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Outlined Button",
+      "kind": "button",
+      "refersTo": "button-outlined",
+      "description": "Secondary action.",
+      "html": "<button class=\"ds-btn-outlined\">Export</button>",
+      "css": ".ds-btn-outlined { font: 700 14px Roboto, sans-serif; letter-spacing: 0.2px; height: 40px; padding: 0 24px; border: 1.5px solid #cbd5e1; border-radius: 999px; color: #334155; background: #fff; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; } .ds-btn-outlined:hover { border-color: #0d9488; color: #0d9488; background: #f3fbf8; } .ds-btn-outlined:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Pills",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Registration and event state.",
+      "html": "<span class=\"ds-pill\">Draft</span> <span class=\"ds-pill ds-pill-ok\">Confirmed</span> <span class=\"ds-pill ds-pill-pending\">Pending</span> <span class=\"ds-pill ds-pill-closed\">Closed</span> <span class=\"ds-pill ds-pill-brand\">Registered</span>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font: 700 12px Roboto, sans-serif; background: #eef2f6; color: #475569; } .ds-pill-ok { background: #e8f7ee; color: #15803d; } .ds-pill-pending { background: #fef4e2; color: #b45309; } .ds-pill-closed { background: #fdecec; color: #b91c1c; } .ds-pill-brand { background: #e6f6f3; color: #0f766e; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Container for an event, a summary or a form section.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Q3 Product Seminar</div><div class=\"ds-card-body\">42 registered, 30 checked in</div></div>",
+      "css": ".ds-card { padding: 16px; border-radius: 18px; border: 1px solid rgba(13, 148, 136, 0.14); background: #fff; box-shadow: var(--card-shadow, 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.06)); font-family: Roboto, sans-serif; transition: box-shadow 0.15s ease; } .ds-card:hover { box-shadow: var(--card-shadow-hover, 0 6px 14px rgba(15, 23, 42, 0.08), 0 18px 40px rgba(15, 23, 42, 0.12)); } .ds-card-title { font-size: 20px; font-weight: 700; letter-spacing: -0.2px; color: #0f172a; } .ds-card-body { margin-top: 6px; font-size: 14px; color: #475569; }"
+    },
+    {
+      "name": "Outlined Field",
+      "kind": "input",
+      "refersTo": "field-outlined",
+      "description": "Material outlined form field.",
+      "html": "<input class=\"ds-field\" placeholder=\"Event title\" />",
+      "css": ".ds-field { font: 400 14px Roboto, sans-serif; height: 56px; padding: 0 16px; width: 260px; border: 1px solid #94a3b8; border-radius: 12px; background: #fff; color: #0f172a; } .ds-field:hover { border-color: #0f172a; } .ds-field:focus-visible { outline: none; border: 2px solid #0d9488; padding: 0 15px; }"
+    },
+    {
+      "name": "Page Title",
+      "kind": "custom",
+      "refersTo": "page-title-icon",
+      "description": "Opens every page: icon tile plus gradient heading.",
+      "html": "<div class=\"ds-page-title\"><span class=\"ds-page-title-icon\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"currentColor\"><path d=\"M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V9h14v11z\"/></svg></span><h1>Events</h1></div>",
+      "css": ".ds-page-title { display: flex; align-items: center; gap: 12px; font-family: Roboto, sans-serif; } .ds-page-title-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: #ecf8f4; color: #0d9488; } .ds-page-title h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.2; background: linear-gradient(135deg, #0d9488 0%, #22c55e 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }"
+    },
+    {
+      "name": "App Header",
+      "kind": "nav",
+      "refersTo": "",
+      "description": "Sticky gradient header with glass tiles.",
+      "html": "<div class=\"ds-header\"><a class=\"ds-header-home\" href=\"#\">Home</a><span class=\"ds-header-brand\">NXPass</span></div>",
+      "css": ".ds-header { display: flex; align-items: center; gap: 14px; min-height: 84px; padding: 12px 40px; color: #fff; font-family: Roboto, sans-serif; background: linear-gradient(90deg, #0d9488 0%, #3dbb8a 55%, #7dd36a 100%); box-shadow: 0 2px 10px rgba(13, 148, 136, 0.18); } .ds-header-home { display: inline-flex; align-items: center; height: 50px; padding: 0 28px; border-radius: 12px; color: #fff; font-size: 18px; font-weight: 600; text-decoration: none; background: rgba(255, 255, 255, 0.18); border: 1px solid rgba(255, 255, 255, 0.22); transition: background 0.15s ease; } .ds-header-home:hover, .ds-header-home:focus-visible { background: rgba(255, 255, 255, 0.28); outline: none; } .ds-header-brand { font-size: 22px; font-weight: 800; letter-spacing: -0.2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Front Desk",
+    "overview": "A tidy, well-lit registration counter. Everything is labelled, status is visible at a glance, and the tone is friendly but businesslike. White cards sit on a pale mint page under a teal-to-green gradient header; the header and the filled buttons carry the colour, and the working surfaces stay white.\n\nThe feel is soft and friendly: pill buttons, generously rounded cards, light layered shadows and heavy headings. It is built on Angular Material 3 (light scheme only, density 0) with global overrides in `frontend/web/src/styles.scss`, so every Material component picks up the same shapes and colours.",
+    "keyCharacteristics": [
+      "White cards on a pale mint page, gradient header on top.",
+      "Teal carries action; green, amber and red carry status.",
+      "Pill buttons and pills for status; rounded rectangles for everything that holds content.",
+      "Bold headings (700 to 800) over regular 14px body text.",
+      "Light scheme only; no dark theme exists."
+    ],
+    "rules": [
+      { "name": "The State Colour Rule", "body": "Green, amber and red mean confirmed, pending and closed. They always appear as a dark tone on its own soft tint, never as a decorative accent.", "section": "colors" },
+      { "name": "The White Workbench Rule", "body": "Content surfaces are white. Material's green palette is overridden precisely so surfaces do not pick up a tint.", "section": "colors" },
+      { "name": "The Heavy Heading Rule", "body": "Headings and anything clickable are bold (700+). Regular weight is for reading text only.", "section": "typography" }
+    ],
+    "dos": [
+      "Do style Material components through the global overrides in `styles.scss` so every screen stays consistent.",
+      "Do use `--card-shadow`, `--card-shadow-hover`, `--brand-grad`, `--tint-primary` and the `--mat-sys-*` tokens instead of new literals.",
+      "Do show registration state with `.status-pill` and its existing variants.",
+      "Do open each page with the page title pattern.",
+      "Do keep pills for buttons and tags, rounded rectangles for containers."
+    ],
+    "donts": [
+      "Don't tint content surfaces; they are white by rule.",
+      "Don't use green, amber or red for decoration; they mean state.",
+      "Don't add square or sharp-cornered buttons.",
+      "Don't assume a dark theme; `color-scheme` is light only."
+    ]
+  }
+}
