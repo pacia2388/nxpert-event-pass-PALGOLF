@@ -1,17 +1,21 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Meta } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../core/auth.service';
 import { homeFor } from '../../core/guards';
 import { ToastService } from '../../core/toast.service';
 
+// The top of the page's sky. One value for the page gradient and the phone toolbar.
+const SKY = '#1a5aa8';
+
 @Component({
   selector: 'app-login',
+  host: { '[style.--pg-sky]': 'sky' },
   imports: [
     FormsModule,
     RouterLink,
@@ -19,7 +23,6 @@ import { ToastService } from '../../core/toast.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressBarModule,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',
@@ -29,6 +32,19 @@ export class LoginComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
+
+  protected readonly sky = SKY;
+
+  constructor() {
+    // Phones tint the browser toolbar from this tag. Match the page's sky while login is open,
+    // then hand back the app's own colour.
+    const meta = inject(Meta);
+    const appColor = meta.getTag('name="theme-color"')?.content;
+    meta.updateTag({ name: 'theme-color', content: SKY });
+    inject(DestroyRef).onDestroy(() => {
+      if (appColor) meta.updateTag({ name: 'theme-color', content: appColor });
+    });
+  }
 
   email = '';
   password = '';
