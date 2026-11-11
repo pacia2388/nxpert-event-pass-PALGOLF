@@ -42,19 +42,19 @@
   font-size: 12px;
   font-weight: 700;
   background: var(--tint-primary);
-  color: #0d9488;
+  color: var(--pg-blue);
 }
 
 .tp-count {
   padding: 6px 14px;
   border-radius: 999px;
-  border: 1.5px solid rgba(13, 148, 136, 0.35);
+  border: 1.5px solid rgba(15, 95, 184, 0.35);
   font-size: 13.5px;
   color: #334155;
   font-variant-numeric: tabular-nums;
 
   strong {
-    color: #0d9488;
+    color: var(--pg-blue);
     font-size: 16px;
   }
 
@@ -99,7 +99,7 @@
   color: #0f172a;
 
   mat-icon {
-    color: #0d9488;
+    color: var(--pg-blue);
   }
 }
 
@@ -115,7 +115,7 @@
 
   th {
     padding: 11px 20px;
-    background: #f6faf8;
+    background: #f5f8fc;
     border-top: 1px solid rgba(15, 23, 42, 0.12);
     border-bottom: 1px solid rgba(15, 23, 42, 0.12);
     text-align: left;
@@ -176,7 +176,7 @@
 }
 
 .st-done {
-  color: #0d9488;
+  color: var(--pg-blue);
 }
 
 .st-sent {
@@ -247,8 +247,8 @@
   margin: 16px 0 0;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #f6faf8;
-  border: 1px solid rgba(13, 148, 136, 0.12);
+  background: #f5f8fc;
+  border: 1px solid rgba(15, 95, 184, 0.12);
   font-size: 13px;
   line-height: 1.5;
   color: #475569;

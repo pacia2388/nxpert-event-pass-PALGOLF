@@ -65,7 +65,7 @@ export interface ScheduleDateDialogData {
       .time-row mat-form-field { width: 84px; }
       .colon { font-weight: 700; color: #64748b; }
       mat-button-toggle-group { margin-left: auto; border-radius: 999px; }
-      .summary { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-weight: 600; color: #0f766e; }
+      .summary { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-weight: 600; color: var(--pg-blue-deep); }
       .summary mat-icon { font-size: 18px; width: 18px; height: 18px; }
       .muted { font-weight: 400; color: #64748b; }
       .error { margin: 6px 0 0; color: #b91c1c; font-size: 12.5px; }

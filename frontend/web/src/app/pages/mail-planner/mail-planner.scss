@@ -1,8 +1,8 @@
 // Mail Planner: send plan (week strip + day timeline + plan list) and receiver reminders.
-// Same teal tokens as Calendar / Events (.ev-btn, .status-pill, .page-title come from styles.scss).
+// Same blue tokens as Calendar / Events (.ev-btn, .status-pill, .page-title come from styles.scss).
 
-$hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
-$soft-surface: #f8fbfa;
+$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
+$soft-surface: #f8fafd;
 $ink: #0f172a;
 $muted: #64748b;
 
@@ -79,17 +79,17 @@ $muted: #64748b;
 
   mat-icon { font-size: 20px; width: 20px; height: 20px; }
 
-  &:hover:not(.active) { background: var(--tint-primary); color: #0d9488; }
+  &:hover:not(.active) { background: var(--tint-primary); color: var(--pg-blue); }
 
   &.active {
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.28);
+    box-shadow: 0 4px 10px rgba(15, 95, 184, 0.28);
 
     .tab-badge { background: #fff; color: #b45309; }
   }
 
-  &:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--pg-blue); outline-offset: 2px; }
 }
 
 .tab-badge {
@@ -108,7 +108,7 @@ $muted: #64748b;
 // ---- Cards ----
 .mp-card {
   padding: 18px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: var(--card-radius);
   background: #fff;
   box-shadow: var(--card-shadow);
@@ -137,10 +137,10 @@ $muted: #64748b;
 // Thin, quiet scrollbars for the scrolling side card and week strip.
 .plan-list, .week-strip {
   scrollbar-width: thin;
-  scrollbar-color: #cfe3de transparent;
+  scrollbar-color: #cdd7e8 transparent;
 
   &::-webkit-scrollbar { width: 6px; height: 6px; }
-  &::-webkit-scrollbar-thumb { background: #cfe3de; border-radius: 6px; }
+  &::-webkit-scrollbar-thumb { background: #cdd7e8; border-radius: 6px; }
   &::-webkit-scrollbar-track { background: transparent; }
 }
 
@@ -158,7 +158,7 @@ $muted: #64748b;
   padding: 14px 16px;
   border-radius: 14px;
   background: #fff;
-  border: $hairline-teal;
+  border: $hairline-brand;
   box-shadow: var(--card-shadow);
 
   > span:last-child { display: flex; flex-direction: column; }
@@ -172,12 +172,12 @@ $muted: #64748b;
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
 
   &.today { background: #e0f2fe; color: #0369a1; }
   &.draft { background: #f1f5f9; color: #475569; }
-  &.reach { background: #eafaf0; color: #15803d; }
+  &.reach { background: #f0f5fc; color: #15803d; }
   &.failed { background: #fdecec; color: #b91c1c; }
 }
 
@@ -197,7 +197,7 @@ $muted: #64748b;
   align-items: center;
   gap: 2px;
   padding: 12px 6px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 14px;
   background: #fff;
   font: inherit;
@@ -211,13 +211,13 @@ $muted: #64748b;
     border-color: transparent;
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.3);
+    box-shadow: 0 6px 16px rgba(15, 95, 184, 0.3);
 
     .day-name, .day-month { color: rgba(255, 255, 255, 0.85); }
     .day-count { background: rgba(255, 255, 255, 0.22); color: #fff; }
   }
 
-  &:focus-visible { outline: 3px solid rgba(13, 148, 136, 0.35); outline-offset: 2px; }
+  &:focus-visible { outline: 3px solid rgba(15, 95, 184, 0.35); outline-offset: 2px; }
 }
 
 .day-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: $muted; }
@@ -228,8 +228,8 @@ $muted: #64748b;
   margin-top: 6px;
   padding: 2px 10px;
   border-radius: 999px;
-  background: #e6f6f3;
-  color: #0f766e;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
   font-size: 11.5px;
   font-weight: 700;
   white-space: nowrap;
@@ -273,8 +273,8 @@ $muted: #64748b;
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #0d9488;
-    box-shadow: 0 0 0 4px #e6f6f3;
+    background: var(--pg-blue);
+    box-shadow: 0 0 0 4px #e8f0fb;
   }
 
   &::after {
@@ -283,14 +283,14 @@ $muted: #64748b;
     top: 32px;
     bottom: -12px;
     width: 2px;
-    background: #e2ece9;
+    background: #dde4f0;
   }
 }
 
 .plan-body {
   margin-bottom: 12px;
   padding: 12px 14px;
-  border: 1px solid #e6eeeb;
+  border: 1px solid #e4eaf5;
   border-radius: 14px;
   background: $soft-surface;
   min-width: 0;
@@ -306,7 +306,7 @@ $muted: #64748b;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 
   mat-icon { font-size: 16px; width: 16px; height: 16px; }
 
@@ -386,7 +386,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   font: inherit;
   font-size: 12.5px;
   font-weight: 700;
-  color: #0d9488;
+  color: var(--pg-blue);
   cursor: pointer;
 
   &:hover { text-decoration: underline; }
@@ -407,12 +407,12 @@ app-rich-text-view.mail-body { white-space: normal; }
   padding: 10px 12px;
   border-radius: 12px;
   background: $soft-surface;
-  border: 1px solid #e6eeeb;
+  border: 1px solid #e4eaf5;
   font-size: 13px;
   font-weight: 600;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; color: #0d9488; }
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
 }
 
 // ---- Plan list (side card) ----
@@ -433,7 +433,7 @@ app-rich-text-view.mail-body { white-space: normal; }
     margin: 0 -18px;
     padding: 18px 18px 12px;
     background: #fff;
-    border-bottom: 1px solid #eef2f1;
+    border-bottom: 1px solid #eef2f8;
   }
 }
 
@@ -442,7 +442,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   align-items: flex-start;
   gap: 4px;
   padding: 10px 0;
-  border-bottom: 1px solid #eef2f1;
+  border-bottom: 1px solid #eef2f8;
 
   &:last-child { border-bottom: none; }
   &.draft .pr-icon { background: #f1f5f9; color: #64748b; }
@@ -462,7 +462,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   cursor: pointer;
 
   &:hover { background: $soft-surface; }
-  &:focus-visible { outline: 2px solid #0d9488; outline-offset: 1px; }
+  &:focus-visible { outline: 2px solid var(--pg-blue); outline-offset: 1px; }
 }
 
 .pr-icon {
@@ -472,8 +472,8 @@ app-rich-text-view.mail-body { white-space: normal; }
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
 
   mat-icon { font-size: 19px; width: 19px; height: 19px; }
   &[data-kind='Reminder'] { background: #fef4e2; color: #b45309; }
@@ -497,7 +497,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   align-items: center;
   gap: 4px;
   font-weight: 600;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 
   mat-icon { font-size: 15px; width: 15px; height: 15px; }
 }
@@ -507,7 +507,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   height: 4px;
   margin-top: 4px;
   border-radius: 4px;
-  background: #e2ece9;
+  background: #dde4f0;
   overflow: hidden;
 
   span { display: block; height: 100%; border-radius: 4px; background: var(--brand-grad); }
@@ -544,7 +544,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 999px;
   background: #fff;
   font: inherit;
@@ -563,7 +563,7 @@ app-rich-text-view.mail-body { white-space: normal; }
     text-align: center;
   }
 
-  &:hover:not(.active) { background: var(--tint-primary); color: #0d9488; }
+  &:hover:not(.active) { background: var(--tint-primary); color: var(--pg-blue); }
 
   &.active {
     border-color: transparent;
@@ -589,7 +589,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   display: flex;
   flex-direction: column;
   gap: 14px;
-  border-left: 4px solid #0d9488;
+  border-left: 4px solid var(--pg-blue);
 
   &.due { border-left-color: #f59e0b; }
   &.done { border-left-color: #16a34a; opacity: 0.8; }
@@ -608,8 +608,8 @@ app-rich-text-view.mail-body { white-space: normal; }
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
 }
 
 .mail-title {
@@ -628,7 +628,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   padding: 12px;
   border-radius: 12px;
   background: $soft-surface;
-  border: 1px solid #e6eeeb;
+  border: 1px solid #e4eaf5;
 }
 
 .date-badge {
@@ -641,7 +641,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   height: 58px;
   border-radius: 12px;
   background: #fff;
-  border: $hairline-teal;
+  border: $hairline-brand;
   overflow: hidden;
 
   .m {
@@ -669,14 +669,14 @@ app-rich-text-view.mail-body { white-space: normal; }
   > span { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
   mat-icon { font-size: 15px; width: 15px; height: 15px; color: #94a3b8; }
 
-  .todo { color: #0f766e; font-weight: 600; mat-icon { color: #0d9488; } }
+  .todo { color: var(--pg-blue-deep); font-weight: 600; mat-icon { color: var(--pg-blue); } }
 }
 
 .countdown {
   padding: 1px 8px;
   border-radius: 999px;
-  background: #e6f6f3;
-  color: #0f766e;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
   font-size: 11.5px;
   font-weight: 700;
 
@@ -693,7 +693,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-size: 13.5px;
   color: #334155;
 
-  > mat-icon { color: #0d9488; }
+  > mat-icon { color: var(--pg-blue); }
   &.done-line > mat-icon { color: #16a34a; }
 }
 
@@ -717,13 +717,13 @@ app-rich-text-view.mail-body { white-space: normal; }
   gap: 6px;
   height: 34px;
   padding: 0 12px;
-  border: 1.5px dashed rgba(13, 148, 136, 0.45);
+  border: 1.5px dashed rgba(15, 95, 184, 0.45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
   font-size: 12.5px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 
@@ -752,7 +752,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   display: flex;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #eef2f1;
+  border-bottom: 1px solid #eef2f8;
 
   &.today .agenda-when { background: #fef4e2; color: #b45309; }
 }
@@ -766,8 +766,8 @@ app-rich-text-view.mail-body { white-space: normal; }
   width: 70px;
   padding: 6px 4px;
   border-radius: 10px;
-  background: #ecf8f4;
-  color: #0f766e;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
 
   .ad { font-size: 12px; font-weight: 800; }
   .at { font-size: 11.5px; font-weight: 600; }
@@ -793,7 +793,7 @@ app-rich-text-view.mail-body { white-space: normal; }
   border-radius: 10px;
   background: var(--brand-grad-soft);
   font-size: 12.5px;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 
   mat-icon { flex: none; font-size: 18px; width: 18px; height: 18px; }
 }

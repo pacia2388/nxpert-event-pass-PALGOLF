@@ -1,8 +1,8 @@
 // Event detail (admin): header card with key figures, then a carded tab panel.
-// Colours come from the global brand tokens (teal primary, soft teal tiles).
+// Colours come from the global brand tokens (blue primary, soft blue tiles).
 
-$hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
-$soft-surface: #f8fbfa;
+$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
+$soft-surface: #f8fafd;
 
 .ed-page {
   display: flex;
@@ -16,7 +16,7 @@ $soft-surface: #f8fbfa;
   position: relative;
   overflow: hidden;
   padding: 24px 26px 22px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 18px;
   background: #fff;
   box-shadow: var(--card-shadow);
@@ -47,8 +47,8 @@ $soft-surface: #f8fbfa;
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
 
   mat-icon { font-size: 26px; width: 26px; height: 26px; }
 }
@@ -110,8 +110,8 @@ $soft-surface: #f8fbfa;
   gap: 6px;
   min-width: 0;
 
-  mat-icon { flex: none; font-size: 18px; width: 18px; height: 18px; color: #0d9488; }
-  a { color: #0f766e; font-weight: 600; }
+  mat-icon { flex: none; font-size: 18px; width: 18px; height: 18px; color: var(--pg-blue); }
+  a { color: var(--pg-blue-deep); font-weight: 600; }
 }
 
 .ed-actions {
@@ -135,7 +135,7 @@ $soft-surface: #f8fbfa;
   align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 14px;
   background: $soft-surface;
 }
@@ -147,8 +147,8 @@ $soft-surface: #f8fbfa;
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
 
   mat-icon { font-size: 22px; width: 22px; height: 22px; }
 
@@ -169,7 +169,7 @@ $soft-surface: #f8fbfa;
   font-size: 26px;
   font-weight: 800;
   line-height: 1.1;
-  color: #0d9488;
+  color: var(--pg-blue);
 
   small { font-size: 15px; font-weight: 600; color: #64748b; }
   .is-warn & { color: #b45309; }
@@ -196,7 +196,7 @@ $soft-surface: #f8fbfa;
   margin-top: 16px;
   padding: 4px 6px 4px 14px;
   border-radius: 12px;
-  background: #f1f6f4;
+  background: #f0f4fa;
 }
 
 .ed-link-label {
@@ -208,7 +208,7 @@ $soft-surface: #f8fbfa;
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
 }
@@ -227,7 +227,7 @@ $soft-surface: #f8fbfa;
 .ed-panel {
   min-width: 0;
   padding-top: 4px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 18px;
   background: #fff;
   box-shadow: var(--card-shadow);
@@ -255,7 +255,7 @@ $soft-surface: #f8fbfa;
   gap: 10px;
   margin: 14px 0 16px;
   padding: 10px 12px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 14px;
   background: $soft-surface;
 }
@@ -264,7 +264,7 @@ $soft-surface: #f8fbfa;
 .rating-summary {
   display: inline-flex;
   padding: 16px 22px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 14px;
   background: $soft-surface;
 }
@@ -292,7 +292,7 @@ $soft-surface: #f8fbfa;
   th.mat-mdc-header-cell { height: 48px; text-transform: uppercase; }
   td.mat-mdc-cell { height: 52px; }
   [class*='mat-column-ff_'] { white-space: normal; min-width: 140px; max-width: 280px; }
-  tr.row-selected { background: #effaf7; }
+  tr.row-selected { background: #f0f5fc; }
 }
 
 .mat-column-select, .mat-column-kitselect, .mat-column-sselect { width: 52px; padding-right: 0 !important; }

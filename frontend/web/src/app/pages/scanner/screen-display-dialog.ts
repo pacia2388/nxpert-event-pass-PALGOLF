@@ -48,8 +48,8 @@ export interface ScreenDisplayData {
         border-radius: 11px;
         font-size: 22px;
         line-height: 22px;
-        background: #ecf8f4;
-        color: #0d9488;
+        background: #e8f0fb;
+        color: var(--pg-blue);
       }
       .sd-titles {
         flex: 1;

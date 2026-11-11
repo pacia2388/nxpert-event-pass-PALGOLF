@@ -13,7 +13,7 @@ describe('Login page', () => {
     document.querySelector('meta[name="theme-color"]')?.remove();
     const meta = document.createElement('meta');
     meta.name = 'theme-color';
-    meta.content = '#0d9488';
+    meta.content = '#051f63';
     document.head.appendChild(meta);
     TestBed.configureTestingModule({
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
@@ -94,7 +94,7 @@ describe('Login page', () => {
 
     fixture.destroy();
 
-    expect(toolbar()).toBe('#0d9488');
+    expect(toolbar()).toBe('#051f63');
   });
 
   it('links to participant account creation', () => {

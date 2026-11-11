@@ -163,7 +163,7 @@ public class MailPlanDispatcher(AppDbContext db, EmailService email, MobileMesse
             if (NotificationChannels.UsesEmail(channel) || phone is null)
             {
                 var (body, images) = InvitationMessageBuilder.RenderBody(send.BodyHtml);
-                var intro = "<p style=\"margin:0 0 16px;padding:10px 14px;border-radius:8px;background:#e6f6f3;color:#0f766e\">" +
+                var intro = "<p style=\"margin:0 0 16px;padding:10px 14px;border-radius:8px;background:#e8f0fb;color:#0b4a94\">" +
                     "You asked to be reminded about this mail.</p>";
                 await email.SendMessageAsync([delivery.Email], [], subject, Template(plan, intro + body, email.FromName), inlineImages: images);
             }

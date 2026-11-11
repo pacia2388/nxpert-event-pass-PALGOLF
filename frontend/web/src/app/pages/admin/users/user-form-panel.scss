@@ -28,7 +28,7 @@
 
   mat-icon {
     flex: none;
-    color: #0d9488;
+    color: var(--pg-blue);
   }
 }
 
@@ -39,7 +39,7 @@
   font-size: 12px;
   font-weight: 700;
   background: var(--tint-primary);
-  color: #0d9488;
+  color: var(--pg-blue);
 
   &.new {
     background: #fef7e0;
@@ -98,9 +98,9 @@
   height: 64px;
   border-radius: 50%;
   overflow: hidden;
-  background: #ecf8f4;
-  color: #0d9488;
-  border: 2px solid rgba(13, 148, 136, 0.25);
+  background: #e8f0fb;
+  color: var(--pg-blue);
+  border: 2px solid rgba(15, 95, 184, 0.25);
 
   img {
     width: 100%;
@@ -140,8 +140,8 @@
   margin-top: 4px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #f6faf8;
-  border: 1px solid rgba(13, 148, 136, 0.12);
+  background: #f5f8fc;
+  border: 1px solid rgba(15, 95, 184, 0.12);
 }
 
 .uf-face {

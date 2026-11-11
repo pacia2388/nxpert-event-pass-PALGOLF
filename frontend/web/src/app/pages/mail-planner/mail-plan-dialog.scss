@@ -1,7 +1,7 @@
 // Mail plan modal: header, step bar, step content, sticky footer.
 
-$hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
-$soft-surface: #f8fbfa;
+$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
+$soft-surface: #f8fafd;
 $ink: #0f172a;
 $muted: #64748b;
 
@@ -47,7 +47,7 @@ $muted: #64748b;
   padding: 10px 14px;
   border-radius: 14px;
   background: $soft-surface;
-  border: $hairline-teal;
+  border: $hairline-brand;
 }
 
 .pd-step {
@@ -78,11 +78,11 @@ $muted: #64748b;
     mat-icon { font-size: 17px; width: 17px; height: 17px; }
   }
 
-  &.active { color: $ink; .num { background: var(--brand-grad); color: #fff; box-shadow: 0 4px 10px rgba(13, 148, 136, 0.3); } }
-  &.done { color: #0f766e; .num { background: #ccf2ec; color: #0f766e; } }
+  &.active { color: $ink; .num { background: var(--brand-grad); color: #fff; box-shadow: 0 4px 10px rgba(15, 95, 184, 0.3); } }
+  &.done { color: var(--pg-blue-deep); .num { background: #d6e4f7; color: var(--pg-blue-deep); } }
   &.invalid { color: #b91c1c; .num { background: #fdecec; color: #b91c1c; } }
 
-  &:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--pg-blue); outline-offset: 2px; }
 }
 
 .pd-step-line {
@@ -92,7 +92,7 @@ $muted: #64748b;
   border-radius: 2px;
   background: #e2e8f0;
 
-  &.filled { background: #5eead4; }
+  &.filled { background: #8fb8ea; }
 }
 
 // ---- Content ----
@@ -154,13 +154,13 @@ $muted: #64748b;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 
-  mat-icon { color: #0d9488; }
+  mat-icon { color: var(--pg-blue); }
   &[data-kind='Reminder'] mat-icon { color: #b45309; }
   &[data-kind='Announcement'] mat-icon { color: #7c3aed; }
   &[data-kind='Follow-up'] mat-icon { color: #0369a1; }
 
-  &:hover { border-color: #99d8cf; }
-  &.active { border-color: #0d9488; background: #effaf7; color: #0f766e; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12); }
+  &:hover { border-color: #9dbfe8; }
+  &.active { border-color: var(--pg-blue); background: #f0f5fc; color: var(--pg-blue-deep); box-shadow: 0 0 0 3px rgba(15, 95, 184, 0.12); }
 }
 
 .channel-toggle { width: 100%; mat-button-toggle { flex: 1; } mat-icon { font-size: 18px; width: 18px; height: 18px; vertical-align: -4px; } }
@@ -172,13 +172,13 @@ $muted: #64748b;
   padding: 12px;
   border-radius: 12px;
   background: var(--brand-grad-soft);
-  border: $hairline-teal;
+  border: $hairline-brand;
 
-  &.compact { flex-direction: row; align-items: center; font-size: 13px; color: #0f766e; }
+  &.compact { flex-direction: row; align-items: center; font-size: 13px; color: var(--pg-blue-deep); }
 }
 
 // ---- Step 2: month grid ----
-.month-card { padding: 14px; border: $hairline-teal; border-radius: 16px; background: #fff; }
+.month-card { padding: 14px; border: $hairline-brand; border-radius: 16px; background: #fff; }
 
 .month-head {
   display: flex;
@@ -210,13 +210,13 @@ $muted: #64748b;
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
 
-  &:hover:not(:disabled):not(.selected) { border-color: #5eead4; background: #effaf7; }
-  &.today { border-color: #0d9488; }
-  &.selected { background: var(--brand-grad); color: #fff; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
+  &:hover:not(:disabled):not(.selected) { border-color: #8fb8ea; background: #f0f5fc; }
+  &.today { border-color: var(--pg-blue); }
+  &.selected { background: var(--brand-grad); color: #fff; box-shadow: 0 4px 12px rgba(15, 95, 184, 0.3); }
   &:disabled { color: #cbd5e1; background: transparent; cursor: default; }
   &.locked { color: #15803d; background: #e8f7ee; }
 
-  &:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--pg-blue); outline-offset: 2px; }
 }
 
 .month-hint {
@@ -237,13 +237,13 @@ $muted: #64748b;
   gap: 6px;
   height: 34px;
   padding: 0 12px;
-  border: 1.5px dashed rgba(13, 148, 136, 0.45);
+  border: 1.5px dashed rgba(15, 95, 184, 0.45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
   font-size: 12.5px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
   cursor: pointer;
 
   mat-icon { font-size: 16px; width: 16px; height: 16px; }
@@ -254,8 +254,8 @@ $muted: #64748b;
 .count-pill {
   padding: 1px 8px;
   border-radius: 999px;
-  background: #e6f6f3;
-  color: #0f766e;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
   font-size: 11.5px;
   letter-spacing: 0;
 }
@@ -269,7 +269,7 @@ $muted: #64748b;
   margin-top: -6px;
 
   mat-form-field { width: 100%; }
-  mat-chip-row.saved { --mat-chip-elevated-container-color: #e6f6f3; }
+  mat-chip-row.saved { --mat-chip-elevated-container-color: #e8f0fb; }
   .event-hint { margin-top: 10px; }
 }
 
@@ -311,7 +311,7 @@ $muted: #64748b;
   top: 0;
   gap: 12px;
   padding: 16px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 16px;
   background: $soft-surface;
 }
@@ -355,7 +355,7 @@ $muted: #64748b;
   color: #334155;
   overflow-wrap: anywhere;
 
-  &.group { background: #e6f6f3; border-color: transparent; color: #0f766e; }
+  &.group { background: #e8f0fb; border-color: transparent; color: var(--pg-blue-deep); }
   &.email { background: #f3effe; border-color: transparent; color: #6d28d9; }
 
   button {
@@ -394,12 +394,12 @@ $muted: #64748b;
   font-size: 13px;
   color: $muted;
 
-  mat-icon { font-size: 32px; width: 32px; height: 32px; color: #99d8cf; }
+  mat-icon { font-size: 32px; width: 32px; height: 32px; color: #9dbfe8; }
 }
 
 // ---- Step 4: review ----
 .mail-preview {
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 16px;
   background: #fff;
   overflow: hidden;
@@ -410,7 +410,7 @@ $muted: #64748b;
   display: flex;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid #eef2f1;
+  border-bottom: 1px solid #eef2f8;
   font-size: 13.5px;
   color: #334155;
 
@@ -438,7 +438,7 @@ $muted: #64748b;
     padding: 12px 6px;
     border-radius: 12px;
     background: $soft-surface;
-    border: $hairline-teal;
+    border: $hairline-brand;
   }
 
   .rv-num { font-size: 22px; font-weight: 800; color: $ink; }
@@ -468,7 +468,7 @@ $muted: #64748b;
   font-size: 12.5px;
   color: $muted;
 
-  > mat-icon { font-size: 16px; width: 16px; height: 16px; color: #0d9488; }
+  > mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
 }
 
 .save-link {
@@ -477,13 +477,13 @@ $muted: #64748b;
   gap: 4px;
   height: 28px;
   padding: 0 10px;
-  border: 1.5px solid rgba(13, 148, 136, 0.45);
+  border: 1.5px solid rgba(15, 95, 184, 0.45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
   cursor: pointer;
 
   mat-icon { font-size: 15px; width: 15px; height: 15px; }
@@ -526,8 +526,8 @@ $muted: #64748b;
   flex-direction: column;
   gap: 10px;
   padding: 12px 14px 14px;
-  border: 1.5px solid #e2ece9;
-  border-left: 4px solid #0d9488;
+  border: 1.5px solid #dde4f0;
+  border-left: 4px solid var(--pg-blue);
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -587,7 +587,7 @@ $muted: #64748b;
     padding: 0;
     border: none;
     background: transparent;
-    color: #0f766e;
+    color: var(--pg-blue-deep);
     cursor: pointer;
 
     mat-icon { font-size: 18px; width: 18px; height: 18px; }
@@ -606,7 +606,7 @@ $muted: #64748b;
   font-weight: 700;
   color: $ink;
 
-  mat-icon { font-size: 15px; width: 15px; height: 15px; color: #0d9488; }
+  mat-icon { font-size: 15px; width: 15px; height: 15px; color: var(--pg-blue); }
 }
 
 .time-input {
@@ -654,7 +654,7 @@ $muted: #64748b;
   font-size: 13.5px;
   color: $muted;
 
-  mat-icon { color: #99d8cf; }
+  mat-icon { color: #9dbfe8; }
 }
 
 .add-day {
@@ -663,18 +663,18 @@ $muted: #64748b;
   justify-content: center;
   gap: 8px;
   padding: 14px;
-  border: 2px dashed rgba(13, 148, 136, 0.4);
+  border: 2px dashed rgba(15, 95, 184, 0.4);
   border-radius: 14px;
   background: #fff;
   font: inherit;
   font-size: 14px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 
-  &:hover { background: #effaf7; border-color: #0d9488; }
-  &:focus-visible { outline: 3px solid rgba(13, 148, 136, 0.35); outline-offset: 2px; }
+  &:hover { background: #f0f5fc; border-color: var(--pg-blue); }
+  &:focus-visible { outline: 3px solid rgba(15, 95, 184, 0.35); outline-offset: 2px; }
 }
 
 // ---- Step 4: review ----
@@ -698,7 +698,7 @@ $muted: #64748b;
     top: 18px;
     bottom: -14px;
     width: 2px;
-    background: #e2ece9;
+    background: #dde4f0;
   }
 
   &:last-child::before { display: none; }
@@ -711,8 +711,8 @@ $muted: #64748b;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #0d9488;
-  box-shadow: 0 0 0 4px #e6f6f3;
+  background: var(--pg-blue);
+  box-shadow: 0 0 0 4px #e8f0fb;
 }
 
 .review-facts {
@@ -725,12 +725,12 @@ $muted: #64748b;
     align-items: center;
     gap: 8px;
     padding: 9px 0;
-    border-bottom: 1px solid #eef2f1;
+    border-bottom: 1px solid #eef2f8;
     font-size: 13.5px;
     color: #334155;
   }
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; color: #0d9488; }
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--pg-blue); }
 }
 
 // ---- Footer ----
@@ -740,7 +740,7 @@ $muted: #64748b;
   flex-wrap: wrap;
   gap: 8px;
   padding: 14px 24px 18px;
-  border-top: 1px solid #eef2f1;
+  border-top: 1px solid #eef2f8;
   background: #fff;
 }
 
@@ -750,7 +750,7 @@ $muted: #64748b;
   gap: 4px;
   font-size: 13px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 
   mat-icon { font-size: 17px; width: 17px; height: 17px; }
   .dot { margin: 0 4px; color: #cbd5e1; }

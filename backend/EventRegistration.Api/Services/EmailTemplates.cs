@@ -4,7 +4,7 @@ namespace EventRegistration.Api.Services;
 
 public static class EmailTemplates
 {
-    private const string Accent = "#0d9488";
+    private const string Accent = "#0f5fb8";
 
     // Organizer-typed text (e.g. an event description) as safe HTML laid out exactly as typed:
     // line breaks → <br>, blank lines kept, and indentation / runs of spaces → &nbsp; — so bullets
@@ -57,7 +57,7 @@ public static class EmailTemplates
                _ => System.Net.WebUtility.HtmlEncode(ev.Venue),
            }}</p>
            {(string.IsNullOrWhiteSpace(ev.Description) ? "" : $@"
-           <div style=""margin:18px 0 8px;padding:14px 16px;background:#f6faf8;border-left:3px solid {Accent};
+           <div style=""margin:18px 0 8px;padding:14px 16px;background:#f5f8fc;border-left:3px solid {Accent};
                 border-radius:6px;line-height:1.6;color:#333"">{MultilineText(ev.Description)}</div>")}
            <p style=""text-align:center;margin:28px 0"">
              <a href=""{registerUrl}"" style=""background:{Accent};color:#fff;text-decoration:none;

@@ -74,7 +74,7 @@ export async function voucherPngDataUrl(v: VoucherImageData): Promise<string> {
   ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
-  ctx.fillStyle = '#1a3d7c';
+  ctx.fillStyle = '#051f63';
   ctx.fillRect(0, 0, W, 110);
   text(22, BRANDING.appName, 40, '#ffffff', true);
   text(70, 'Airline Baggage Voucher — Golf Equipment', 24, '#ffffff');
@@ -95,7 +95,7 @@ export async function voucherPngDataUrl(v: VoucherImageData): Promise<string> {
   ctx.lineTo(W - 60, 900);
   ctx.stroke();
   text(920, `Voucher No. ${v.voucherNo}  ·  Generated ${voucherDate(v.createdAt)}`, 20, '#666666');
-  ctx.strokeStyle = '#1a3d7c';
+  ctx.strokeStyle = '#051f63';
   ctx.lineWidth = 4;
   ctx.strokeRect(2, 2, W - 4, H - 4);
   return canvas.toDataURL('image/png');

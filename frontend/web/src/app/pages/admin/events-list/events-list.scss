@@ -1,7 +1,7 @@
 // Admin Events list: header, filter/search toolbar, card grid or compact list, pager.
 // Card look (.ev-card, .ev-tag, .ev-btn, .ev-bar …) is shared and lives in styles.scss.
 
-$hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
+$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
 
 .el-page {
   display: flex;
@@ -41,7 +41,7 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
   flex-direction: column;
   gap: 14px;
   padding: 14px 16px;
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 16px;
   background: #fff;
   box-shadow: var(--card-shadow);
@@ -64,7 +64,7 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: #f1f6f4;
+  background: #f0f4fa;
   color: #334155;
   font: inherit;
   font-size: 13.5px;
@@ -75,13 +75,13 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
 
   mat-icon { font-size: 18px; width: 18px; height: 18px; line-height: 18px; }
 
-  &:hover { background: #e6f6f3; color: #0f766e; }
-  &:focus-visible { outline: 3px solid rgba(13, 148, 136, 0.35); outline-offset: 2px; }
+  &:hover { background: #e8f0fb; color: var(--pg-blue-deep); }
+  &:focus-visible { outline: 3px solid rgba(15, 95, 184, 0.35); outline-offset: 2px; }
 
   &.active {
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    box-shadow: 0 4px 12px rgba(15, 95, 184, 0.25);
 
     .el-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
   }
@@ -92,7 +92,7 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
   padding: 3px 7px;
   border-radius: 999px;
   background: #fff;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
   font-size: 12px;
   text-align: center;
 }
@@ -149,7 +149,7 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
 
 // ---- Compact list ----
 .el-list {
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 16px;
   background: #fff;
   box-shadow: var(--card-shadow);
@@ -167,15 +167,15 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
   transition: background 0.12s ease;
 
   &:last-child { border-bottom: none; }
-  &:hover { background: #f8fcfa; }
+  &:hover { background: #f8fafd; }
   &:hover .ev-go { opacity: 1; transform: translateX(2px); }
-  &:focus-visible { outline: 3px solid rgba(13, 148, 136, 0.35); outline-offset: -3px; }
+  &:focus-visible { outline: 3px solid rgba(15, 95, 184, 0.35); outline-offset: -3px; }
 }
 
 .el-row-head {
   padding-top: 10px;
   padding-bottom: 10px;
-  background: #f6faf8;
+  background: #f5f8fc;
   cursor: default;
   font-size: 12px;
   font-weight: 700;
@@ -183,12 +183,12 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
   text-transform: uppercase;
   color: #475569;
 
-  &:hover { background: #f6faf8; }
+  &:hover { background: #f5f8fc; }
 }
 
 .el-event { display: flex; align-items: center; gap: 14px; min-width: 0; }
 
-.el-date { width: 48px; height: 52px; background: #ecf8f4; border-color: transparent; }
+.el-date { width: 48px; height: 52px; background: #e8f0fb; border-color: transparent; }
 .el-date .d { font-size: 19px; }
 
 .el-event-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -213,7 +213,7 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  mat-icon { flex: none; font-size: 16px; width: 16px; height: 16px; color: #0d9488; }
+  mat-icon { flex: none; font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
 }
 
 .el-when { display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; color: #334155; }
@@ -235,7 +235,7 @@ $hairline-teal: 1px solid rgba(13, 148, 136, 0.14);
 .el-actions .ev-go { margin-left: 0; }
 
 .el-paginator {
-  border: $hairline-teal;
+  border: $hairline-brand;
   border-radius: 14px;
   background: #fff !important;
 }

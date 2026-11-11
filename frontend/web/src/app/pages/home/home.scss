@@ -29,17 +29,17 @@
 
   &:hover:not(.active) {
     background: var(--tint-primary);
-    color: #0d9488;
+    color: var(--pg-blue);
   }
 
   &.active {
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.28);
+    box-shadow: 0 4px 10px rgba(15, 95, 184, 0.28);
   }
 
   &:focus-visible {
-    outline: 2px solid #0d9488;
+    outline: 2px solid var(--pg-blue);
     outline-offset: 2px;
   }
 }
@@ -67,8 +67,8 @@
 .total-pill {
   padding: 6px 16px;
   border-radius: 999px;
-  background: #e3f5f8;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
   font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
@@ -113,7 +113,7 @@
   }
 
   &:focus-visible {
-    outline: 3px solid rgba(13, 148, 136, 0.45);
+    outline: 3px solid rgba(15, 95, 184, 0.45);
     outline-offset: 3px;
   }
 }
@@ -125,8 +125,8 @@
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
   transition: background 0.18s ease, color 0.18s ease;
 
   mat-icon {
