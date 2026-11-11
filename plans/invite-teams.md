@@ -28,7 +28,7 @@ inside the To field and tick members of a team, or a whole team, to add them as 
   partial checkbox.
 - Members already in To are shown ticked, disabled and marked "Already added".
 - A team with no members cannot be ticked. A member without a usable email cannot be picked.
-- **Add N to To** adds the picked addresses; the composer validates and de-duplicates them as usual.
+- **Add N** adds the picked addresses to To (the picker's description says so); the composer validates and de-duplicates them as usual.
 - The server's limit of 500 recipient entries per send still applies.
 
 ## Steps
@@ -52,3 +52,4 @@ inside the To field and tick members of a team, or a whole team, to add them as 
 | Date | Change |
 |---|---|
 | 2026-11-11 | Plan created and built: selection helpers, picker dialog, To-field button, specs and docs. |
+| 2026-11-11 | Picker's primary button shortened to **Add N**; the description now says picks go to the To field. |

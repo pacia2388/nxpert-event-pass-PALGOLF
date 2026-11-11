@@ -25,7 +25,8 @@ export interface InviteTeamsDialogData {
   template: `
     <h2 mat-dialog-title>Invite teams</h2>
     <mat-dialog-content>
-      <p class="hint">Tick a team to invite all its members, or open it to pick members one by one.</p>
+      <p class="hint">Tick a team to invite all its members, or open it to pick members one by one.
+        Picked members are added to the To field.</p>
       @if (loading()) {
         <div class="state"><mat-spinner diameter="28" /> <span>Loading teams…</span></div>
       } @else if (error()) {
@@ -88,7 +89,7 @@ export interface InviteTeamsDialogData {
     <mat-dialog-actions align="end">
       <button type="button" mat-button class="cancel" (click)="ref.close()">Cancel</button>
       <button type="button" mat-flat-button class="add" (click)="confirm()" [disabled]="!picked().size">
-        {{ picked().size ? 'Add ' + picked().size + ' to To' : 'Add to To' }}
+        {{ picked().size ? 'Add ' + picked().size : 'Add' }}
       </button>
     </mat-dialog-actions>
   `,

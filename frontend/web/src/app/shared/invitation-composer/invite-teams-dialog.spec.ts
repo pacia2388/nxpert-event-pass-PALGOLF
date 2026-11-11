@@ -88,6 +88,7 @@ describe('Invite teams picker', () => {
   it('lists the teams and loads a team\'s members only when it is opened', () => {
     open();
     serveTeams([eagles, birdies]);
+    expect(text()).toContain('added to the To field');
     expect(text()).toContain('Eagles');
     expect(text()).toContain('Birdies');
 
@@ -105,7 +106,7 @@ describe('Invite teams picker', () => {
     expect(addButton().disabled).toBe(true);
 
     tick(memberBox('ben@example.com'));
-    expect(addButton().textContent).toContain('Add 1 to To');
+    expect(addButton().textContent?.trim()).toBe('Add 1');
     expect(teamBox('Eagles').indeterminate).toBe(true);
 
     addButton().click();
@@ -119,7 +120,7 @@ describe('Invite teams picker', () => {
     serveMembers(detail(eagles, ['ana@example.com', 'ben@example.com']));
 
     expect(teamBox('Eagles').checked).toBe(true);
-    expect(addButton().textContent).toContain('Add 2 to To');
+    expect(addButton().textContent?.trim()).toBe('Add 2');
     addButton().click();
     expect(closedWith).toEqual(['ana@example.com', 'ben@example.com']);
   });
