@@ -4,27 +4,9 @@
   display: flex;
 }
 
-// Login wears the tournament poster's colours. They are scoped to this page; the rest of the app
-// keeps its own theme.
+// The colours are the app-wide --pg-* tokens in styles.scss; .auth-shell paints the navy ground.
 .login-shell {
-  --pg-navy: #051f63; // the poster's lower band
-  --pg-navy-mid: #0a2d7a;
-  // --pg-sky (top of the gradient) is set on the host by login.ts, which also tints the phone
-  // toolbar with it.
-  --pg-blue: #0f5fb8; // the golfer; actions and focus
-  --pg-blue-deep: #0b4a94;
-  --pg-red: #e02a2a;
-  --pg-gold: #e1b115;
-  --pg-ink: #0b1b3f;
-  --pg-ink-soft: #46557a;
-  --pg-line: #cdd7e8;
-  --pg-display: 'Montserrat', 'Roboto', sans-serif;
-
-  // Material fields and the password toggle pick up PAL blue instead of the app's teal.
-  --mat-sys-primary: var(--pg-blue);
-
   padding: 32px 20px;
-  background: linear-gradient(180deg, var(--pg-sky) 0%, var(--pg-navy-mid) 44%, var(--pg-navy) 100%);
   caret-color: var(--pg-blue);
 
   ::selection {
@@ -113,7 +95,7 @@
     inset: 0 auto 0 0;
     width: 42%;
     border-radius: 0 4px 4px 0;
-    background: linear-gradient(90deg, var(--pg-red), #e8742a 55%, var(--pg-gold));
+    background: var(--pg-progress);
     animation: login-sweep 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
   }
 }

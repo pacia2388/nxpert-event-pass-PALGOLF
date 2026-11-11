@@ -10,12 +10,11 @@ import { AuthService } from '../../core/auth.service';
 import { homeFor } from '../../core/guards';
 import { ToastService } from '../../core/toast.service';
 
-// The top of the page's sky. One value for the page gradient and the phone toolbar.
+// The top of the page's sky, for the phone toolbar. Same value as --pg-sky in styles.scss.
 const SKY = '#1a5aa8';
 
 @Component({
   selector: 'app-login',
-  host: { '[style.--pg-sky]': 'sky' },
   imports: [
     FormsModule,
     RouterLink,
@@ -32,8 +31,6 @@ export class LoginComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
-
-  protected readonly sky = SKY;
 
   constructor() {
     // Phones tint the browser toolbar from this tag. Match the page's sky while login is open,

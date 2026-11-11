@@ -10,34 +10,34 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: mat.$green-palette,
-        tertiary: mat.$spring-green-palette,
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
       ),
       typography: Roboto,
       density: 0,
     )
   );
 
-  // Brand system colours: teal primary + neutral white surfaces (Material's green palette
-  // tints every surface cream). Everything Material draws — buttons, fields, checkboxes,
+  // Brand system colours: PAL blue primary + neutral white surfaces (Material's own palette
+  // tints every surface). Everything Material draws — buttons, fields, checkboxes,
   // toggles, tabs, spinners, icons with color="primary" — picks these up.
   @include mat.theme-overrides(
     (
-      primary: #0d9488,
+      primary: #0f5fb8,
       on-primary: #ffffff,
-      primary-container: #ccf2ec,
-      on-primary-container: #064e46,
-      secondary-container: #e6f6f3,
-      on-secondary-container: #0f766e,
-      tertiary: #16a34a,
+      primary-container: #d6e4f7,
+      on-primary-container: #051f63,
+      secondary-container: #e8f0fb,
+      on-secondary-container: #0b4a94,
+      tertiary: #0a2d7a,
       error: #dc2626,
       surface: #ffffff,
       surface-bright: #ffffff,
       surface-container-lowest: #ffffff,
-      surface-container-low: #f8fbfa,
+      surface-container-low: #f8fafd,
       surface-container: #ffffff,
-      surface-container-high: #f1f6f4,
-      surface-container-highest: #e8efec,
+      surface-container-high: #f0f4fa,
+      surface-container-highest: #e6ecf5,
       on-surface: #0f172a,
       on-surface-variant: #475569,
       outline: #94a3b8,
@@ -77,14 +77,29 @@ html {
 
 // ---- Design tokens (brand, surfaces, elevation) ----
 :root {
-  --brand-grad: linear-gradient(135deg, #0d9488 0%, #22c55e 100%);
-  --brand-grad-soft: linear-gradient(135deg, #e6f7f4 0%, #eafaf0 100%);
-  --app-bg: #f1f7f4;
+  // PAL GOLF palette, taken from the tournament poster.
+  --pg-navy: #051f63; // the poster's lower band; header and footer
+  --pg-navy-mid: #0a2d7a;
+  --pg-sky: #1a5aa8; // top of the navy gradient (login.ts tints the phone toolbar with it)
+  --pg-blue: #0f5fb8; // the golfer; actions and focus
+  --pg-blue-deep: #0b4a94;
+  --pg-red: #e02a2a;
+  --pg-gold: #e1b115;
+  --pg-ink: #0b1b3f;
+  --pg-ink-soft: #46557a;
+  --pg-line: #cdd7e8;
+  --pg-display: 'Montserrat', 'Roboto', sans-serif;
+  // The poster's red-to-gold arc. Progress only, never buttons.
+  --pg-progress: linear-gradient(90deg, var(--pg-red), #e8742a 55%, var(--pg-gold));
+
+  --brand-grad: linear-gradient(135deg, var(--pg-navy-mid) 0%, var(--pg-blue) 100%);
+  --brand-grad-soft: linear-gradient(135deg, #e8f0fb 0%, #f0f5fc 100%);
+  --app-bg: #f2f5fa;
   --card-radius: 16px;
   --hairline: 1px solid rgba(15, 23, 42, 0.08);
   --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.06);
   --card-shadow-hover: 0 6px 14px rgba(15, 23, 42, 0.08), 0 18px 40px rgba(15, 23, 42, 0.12);
-  --tint-primary: rgba(13, 148, 136, 0.1);
+  --tint-primary: rgba(15, 95, 184, 0.1);
 }
 
 body {
@@ -109,10 +124,10 @@ body {
 // App-wide component look (matches Home, User Master, Login, event cards)
 // =====================================================================
 
-// ---- Cards: white, rounded, faint teal hairline, layered shadow ----
+// ---- Cards: white, rounded, faint blue hairline, layered shadow ----
 .mat-mdc-card {
   border-radius: 18px !important;
-  border: 1px solid rgba(13, 148, 136, 0.14);
+  border: 1px solid rgba(15, 95, 184, 0.14);
   box-shadow: var(--card-shadow) !important;
   background: #fff !important;
 }
@@ -127,16 +142,15 @@ body {
   font-weight: 700 !important;
 }
 
-// Filled buttons wear the brand gradient; warn-coloured ones go solid red.
+// Filled buttons are solid PAL blue; warn-coloured ones go solid red.
 .mat-mdc-unelevated-button:not(:disabled):not(.mat-warn) {
-  background-image: linear-gradient(135deg, #0d9488 0%, #22b07d 100%);
   color: #fff !important;
-  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.26);
-  transition: box-shadow 0.15s ease, filter 0.15s ease;
+  box-shadow: 0 4px 12px rgba(15, 95, 184, 0.26);
+  transition: box-shadow 0.15s ease, background-color 0.15s ease;
 
   &:hover {
-    filter: brightness(0.95);
-    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.34);
+    background-color: var(--pg-blue-deep);
+    box-shadow: 0 6px 16px rgba(15, 95, 184, 0.34);
   }
 }
 
@@ -146,19 +160,19 @@ body {
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.24);
 }
 
-// Outlined buttons: slate outline that turns teal on hover.
+// Outlined buttons: slate outline that turns blue on hover.
 .mat-mdc-outlined-button:not(:disabled) {
   border-width: 1.5px !important;
   color: #334155 !important;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
   &:hover {
-    border-color: #0d9488 !important;
-    color: #0d9488 !important;
-    background: #f3fbf8;
+    border-color: var(--pg-blue) !important;
+    color: var(--pg-blue) !important;
+    background: #f0f5fc;
   }
   &.mat-primary {
-    color: #0f766e !important;
+    color: var(--pg-blue-deep) !important;
   }
   &.mat-warn {
     color: #dc2626 !important;
@@ -166,9 +180,9 @@ body {
   }
 }
 
-// Text buttons: brand teal.
+// Text buttons: brand blue.
 .mat-mdc-button:not(:disabled):not(.mat-warn) {
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 }
 
 // ---- Page titles: soft icon tile + bold heading ----
@@ -187,8 +201,8 @@ body {
     font-size: 24px;
     line-height: 24px;
     box-sizing: border-box;
-    background: #ecf8f4;
-    color: #0d9488 !important;
+    background: #e8f0fb;
+    color: var(--pg-blue) !important;
   }
 }
 
@@ -212,7 +226,7 @@ body {
 }
 
 .mat-mdc-header-row {
-  background: #f6faf8;
+  background: #f5f8fc;
 }
 
 .mat-mdc-header-cell {
@@ -228,11 +242,11 @@ body {
 }
 
 .mat-mdc-row:hover {
-  background: #f8fcfa;
+  background: #f8fafd;
 }
 
 .table-wrap {
-  border: 1px solid rgba(13, 148, 136, 0.14);
+  border: 1px solid rgba(15, 95, 184, 0.14);
   border-radius: 14px;
   background: #fff;
 }
@@ -241,7 +255,7 @@ body {
   background: transparent !important;
 }
 
-// ---- Tabs: bold labels, teal active state ----
+// ---- Tabs: bold labels, blue active state ----
 .mat-mdc-tab .mdc-tab__text-label {
   font-weight: 700;
   letter-spacing: 0.2px;
@@ -273,9 +287,13 @@ body {
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14) !important;
 }
 
-// ---- Chips / progress ----
+// ---- Chips / progress: the poster's red-to-gold arc ----
 .mat-mdc-progress-bar {
-  --mat-progress-bar-active-indicator-color: #0d9488;
+  --mat-progress-bar-active-indicator-color: var(--pg-gold);
+
+  .mdc-linear-progress__bar-inner {
+    border-image: var(--pg-progress) 1;
+  }
 }
 
 .toolbar-row {
@@ -339,8 +357,8 @@ body {
 
 .status-pill.brand,
 .status-pill.registered {
-  background: #e6f6f3;
-  color: #0f766e;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
 }
 
 // Small tag showing how a check-in was recorded (Scan / Face / Manual), shown next to the pill.
@@ -357,8 +375,8 @@ body {
 }
 
 .method-tag.manual {
-  background: #e6f6f3;
-  color: #0f766e;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
 }
 
 // "(self)" marker next to a self-claimed kit's claimer name in the kit-claiming grid.
@@ -366,7 +384,7 @@ body {
   margin-left: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 }
 
 .badge-row {
@@ -382,7 +400,7 @@ body {
   color: var(--mat-sys-on-surface-variant);
 }
 
-// Empty-state icon sits in a soft teal circle, like the Home icon tiles.
+// Empty-state icon sits in a soft blue circle, like the Home icon tiles.
 // Direct child only, so icons inside empty-state buttons keep their normal size.
 .empty-state > mat-icon {
   box-sizing: content-box;
@@ -391,22 +409,19 @@ body {
   height: 40px;
   padding: 18px;
   border-radius: 50%;
-  background: #ecf8f4;
-  color: #0d9488;
+  background: #e8f0fb;
+  color: var(--pg-blue);
 }
 
 // Auth-style pages (login, sign-up, verify, public registration, edit response):
-// same glow backdrop as the login screen.
+// same navy backdrop as the login screen.
 .auth-shell {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 32px 20px;
-  background:
-    radial-gradient(900px 520px at 0% 0%, rgba(13, 148, 136, 0.18), transparent 60%),
-    radial-gradient(800px 520px at 100% 100%, rgba(125, 211, 106, 0.18), transparent 55%),
-    var(--app-bg);
+  background: linear-gradient(180deg, var(--pg-sky) 0%, var(--pg-navy-mid) 44%, var(--pg-navy) 100%);
 }
 
 // Floating white card with the brand gradient strip across the top.
@@ -416,13 +431,13 @@ body {
   max-width: 460px;
   border: none !important;
   border-radius: 24px !important;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14), 0 4px 14px rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 2px 6px rgba(2, 10, 40, 0.3), 0 30px 70px rgba(2, 10, 40, 0.45) !important;
 
   &::before {
     content: '';
     display: block;
     height: 6px;
-    background: linear-gradient(90deg, #0d9488 0%, #3dbb8a 55%, #7dd36a 100%);
+    background: linear-gradient(90deg, var(--pg-navy) 0%, var(--pg-navy-mid) 55%, var(--pg-blue) 100%);
   }
 
   .mat-mdc-card-header {
@@ -1079,7 +1094,7 @@ mat-card-actions {
   }
   .net-chip.online { color: #2f9e44; background: rgba(47, 158, 68, 0.12); }
   .net-chip.offline { color: #b8860b; }
-  .queue-chip { color: #0d9488; background: rgba(13, 148, 136, 0.1); }
+  .queue-chip { color: var(--pg-blue); background: rgba(15, 95, 184, 0.1); }
   .sync-msg { font-size: 13px; }
 
   .inline-icon {
@@ -1280,7 +1295,7 @@ mat-card-actions {
   }
   .notif-item.unread { background: var(--tint-primary); }
   .notif-item mat-icon.approved { color: #2f9e44; }
-  .notif-item mat-icon.kit { color: #0d9488; }
+  .notif-item mat-icon.kit { color: var(--pg-blue); }
 }
 
 .fine-print {
@@ -1297,7 +1312,7 @@ mat-card-actions {
 .clickable:hover {
   box-shadow: var(--card-shadow-hover) !important;
   transform: translateY(-3px);
-  border-color: rgba(13, 148, 136, 0.35);
+  border-color: rgba(15, 95, 184, 0.35);
 }
 
 .stat-row {
@@ -1555,7 +1570,7 @@ mat-card-actions {
   margin-left: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #0f766e;
+  color: var(--pg-blue-deep);
 }
 
 .builder-empty {
@@ -1830,11 +1845,11 @@ mat-card-actions {
 /* ===== Alerts: toasts (ToastService) + confirm dialog (ConfirmService) =====
    Both share one card language: white surface, tone-coloured icon badge, bold
    title, muted message. Tones: success = green, error = red, warning = amber,
-   info = brand teal. */
+   info = brand blue. */
 .tone-success { --tone: #16a34a; --tone-soft: #e8f7ee; }
 .tone-error   { --tone: #dc2626; --tone-soft: #fdecec; }
 .tone-warning { --tone: #d97706; --tone-soft: #fef4e2; }
-.tone-info    { --tone: #0d9488; --tone-soft: #e6f6f3; }
+.tone-info    { --tone: var(--pg-blue); --tone-soft: #e8f0fb; }
 
 // Strip MatSnackBar's own dark surface so only our card shows.
 .app-toast-panel {
@@ -2091,7 +2106,7 @@ mat-card-actions {
 
 /* ===== Event cards (admin Events, Browse Events, My Events) =====
    Same language as the Home module cards: white surface, gradient outline,
-   soft teal tiles, pill buttons. */
+   soft blue tiles, pill buttons. */
 .ev-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -2123,7 +2138,7 @@ mat-card-actions {
     box-shadow: var(--card-shadow-hover);
   }
   &:focus-visible {
-    outline: 3px solid rgba(13, 148, 136, 0.45);
+    outline: 3px solid rgba(15, 95, 184, 0.45);
     outline-offset: 3px;
   }
 }
@@ -2191,7 +2206,7 @@ mat-card-actions {
   height: 60px;
   border-radius: 14px;
   background: #fff;
-  border: 1px solid rgba(13, 148, 136, 0.18);
+  border: 1px solid rgba(15, 95, 184, 0.18);
   line-height: 1;
 
   .m {
@@ -2199,7 +2214,7 @@ mat-card-actions {
     font-weight: 800;
     letter-spacing: 0.8px;
     text-transform: uppercase;
-    color: #0d9488;
+    color: var(--pg-blue);
   }
   .d {
     margin-top: 4px;
@@ -2210,7 +2225,7 @@ mat-card-actions {
 }
 
 .ev-head .ev-date {
-  background: #ecf8f4;
+  background: #e8f0fb;
   border-color: transparent;
 }
 
@@ -2237,7 +2252,7 @@ mat-card-actions {
   margin: 2px 0 0;
   font-size: 13.5px;
   font-weight: 700;
-  color: #0d9488;
+  color: var(--pg-blue);
 }
 
 .ev-meta {
@@ -2260,7 +2275,7 @@ mat-card-actions {
     font-size: 18px;
     width: 18px;
     height: 18px;
-    color: #0d9488;
+    color: var(--pg-blue);
   }
   span {
     overflow: hidden;
@@ -2308,7 +2323,7 @@ mat-card-actions {
   &.ok { background: #e8f7ee; color: #15803d; }
   &.warn { background: #fef4e2; color: #b45309; }
   &.bad { background: #fdecec; color: #b91c1c; }
-  &.brand { background: #e6f6f3; color: #0f766e; }
+  &.brand { background: #e8f0fb; color: var(--pg-blue-deep); }
 }
 
 // Chips overlaid on the media strip.
@@ -2334,8 +2349,8 @@ mat-card-actions {
 .ev-stat {
   padding: 10px 12px;
   border-radius: 12px;
-  background: #f6faf8;
-  border: 1px solid rgba(13, 148, 136, 0.1);
+  background: #f5f8fc;
+  border: 1px solid rgba(15, 95, 184, 0.1);
 
   .num {
     display: block;
@@ -2367,7 +2382,7 @@ mat-card-actions {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--brand-grad);
+    background: var(--pg-progress);
   }
 }
 
@@ -2406,22 +2421,22 @@ mat-card-actions {
   }
 
   &:hover:not(:disabled) {
-    border-color: #0d9488;
-    color: #0d9488;
-    background: #f3fbf8;
+    border-color: var(--pg-blue);
+    color: var(--pg-blue);
+    background: #f0f5fc;
   }
 
   &.solid {
     border: none;
-    background: linear-gradient(135deg, #0d9488 0%, #22b07d 100%);
+    background: var(--pg-blue);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.28);
+    box-shadow: 0 4px 12px rgba(15, 95, 184, 0.28);
 
     // Keep the gradient: the generic .ev-btn hover would swap in a pale tint behind white text.
     &:hover:not(:disabled) {
       color: #fff;
-      background: linear-gradient(135deg, #0b8076 0%, #1c9a6c 100%);
-      box-shadow: 0 6px 16px rgba(13, 148, 136, 0.36);
+      background: var(--pg-blue-deep);
+      box-shadow: 0 6px 16px rgba(15, 95, 184, 0.36);
     }
   }
 
@@ -2438,7 +2453,7 @@ mat-card-actions {
   }
 
   &:focus-visible {
-    outline: 3px solid rgba(13, 148, 136, 0.35);
+    outline: 3px solid rgba(15, 95, 184, 0.35);
     outline-offset: 2px;
   }
 }
@@ -2574,7 +2589,7 @@ mat-card-actions {
 
 .field-prefix {
   margin: 0 4px 0 10px;
-  color: #0d9488;
+  color: var(--pg-blue);
 }
 
 .hint-error {
@@ -2590,15 +2605,15 @@ mat-card-actions {
   border-radius: 12px;
   font-size: 13.5px;
   line-height: 1.45;
-  background: #e6f6f3;
-  color: #0f5f57;
+  background: #e8f0fb;
+  color: var(--pg-blue-deep);
 
   mat-icon {
     flex: none;
     font-size: 20px;
     width: 20px;
     height: 20px;
-    color: #0d9488;
+    color: var(--pg-blue);
   }
 
   &.warn {
