@@ -36,6 +36,16 @@ public class BrandingTests
     }
 
     [Fact]
+    public void Emails_wear_PAL_blue_not_the_old_teal()
+    {
+        var html = EmailTemplates.TeamRegistrationNotice("Mia Santos", "Eagles", "Leo Cruz",
+            "https://example.com/register", 7);
+
+        Assert.Contains("#0f5fb8", html);
+        Assert.DoesNotContain("#0d9488", html);
+    }
+
+    [Fact]
     public void A_configured_app_name_reaches_the_email_footer_and_the_calendar_invite()
     {
         Branding.AppName = "Demo Cup";

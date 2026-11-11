@@ -126,7 +126,7 @@ public class PassService
                 {
                     var cid = "stub-" + s.ControlNumber.ToString("N");
                     images[cid] = _stubImages.Render(
-                        s.Color ?? "#0d9488", ev.Title, ev.BannerImage, ValidityFor(s), s.Denomination, s.ControlNumber);
+                        s.Color ?? "#0f5fb8", ev.Title, ev.BannerImage, ValidityFor(s), s.Denomination, s.ControlNumber);
                     html.Append(
                         $"<div style=\"text-align:center;margin:6px 0\">" +
                         $"<img src=\"cid:{cid}\" alt=\"Meal stub\" width=\"400\" style=\"max-width:100%;display:block;margin:0 auto\" /></div>");
