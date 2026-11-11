@@ -7,12 +7,21 @@
       <mat-card-title>
         <div class="page-title">
           <mat-icon color="primary">person_add</mat-icon>
-          <h1>Create account</h1>
+          <h1>{{ teamToken ? 'Complete your registration' : 'Create account' }}</h1>
         </div>
       </mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
+      @if (teamToken && teamState() === 'loading') {
+        <p class="muted">Checking your registration link…</p>
+      } @else if (teamToken && teamState() === 'invalid') {
+        <p role="alert">{{ teamError() }}</p>
+        <p class="muted">Ask your team lead to send a new link, or <a routerLink="/login">sign in</a>.</p>
+      } @else {
+      @if (teamToken) {
+        <p class="muted">Your team lead created your account. Fill in your details and choose your own password.</p>
+      }
       <form #f="ngForm" (ngSubmit)="submit()">
         <div class="name-row">
           <mat-form-field appearance="outline" class="nr-first">
@@ -60,7 +69,7 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
           <input matInput type="email" name="email" [(ngModel)]="email" #emailCtrl="ngModel"
-                 required email maxlength="256" autocomplete="username" />
+                 required email maxlength="256" autocomplete="username" [readonly]="!!teamToken" />
           @if (emailCtrl.hasError('required')) { <mat-error>Email is required.</mat-error> }
           @if (emailCtrl.hasError('email')) { <mat-error>Enter a valid email address.</mat-error> }
         </mat-form-field>
@@ -132,9 +141,10 @@
           type="submit"
           [disabled]="loading() || f.invalid"
         >
-          Create account
+          {{ teamToken ? 'Complete registration' : 'Create account' }}
         </button>
       </form>
+      }
 
       <p class="muted signup-line">
         Already have an account? <a routerLink="/login">Sign in</a>

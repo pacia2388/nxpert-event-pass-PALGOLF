@@ -21,12 +21,22 @@ public class TeamsController : ControllerBase
     // policy by product decision; members are expected to change it under Edit account.
     private const string DefaultMemberPassword = "char";
 
-    private readonly AppDbContext _db;
+    // How long a "complete your registration" link stays valid.
+    public const int RegistrationLinkDays = 7;
 
-    public TeamsController(AppDbContext db) => _db = db;
+    private readonly AppDbContext _db;
+    private readonly EmailService _email;
+    private readonly IConfiguration _config;
+
+    public TeamsController(AppDbContext db, EmailService email, IConfiguration config)
+    {
+        _db = db;
+        _email = email;
+        _config = config;
+    }
 
     private static TeamMemberDto ToMemberDto(TeamMember m) =>
-        new(m.UserId, m.User!.FullName, m.User.Email, m.AddedAt);
+        new(m.UserId, m.User!.FullName, m.User.Email, m.AddedAt, m.NotificationFlag, m.RegistrationToken is null);
 
     private static TeamDetailDto ToDetailDto(Team t) => new(
         t.Id, t.Description, t.Category, t.TeamLeadUserId, t.TeamLead?.FullName ?? "",
@@ -174,13 +184,16 @@ public class TeamsController : ControllerBase
 
     // ---- Team Lead: own team ----
 
-    // 204 when no team has been assigned to this Team Lead yet.
+    // The caller's team: the one a Team Lead leads, or the one a Participant is a member of
+    // (read-only for them; every write endpoint below stays TL-only). 204 when there is none.
     [HttpGet("mine")]
-    [Authorize(Roles = Roles.TeamLead)]
+    [Authorize(Roles = Roles.TeamLead + "," + Roles.Participant)]
     public async Task<ActionResult<TeamDetailDto>> Mine()
     {
-        var leadId = this.UserId();
-        var team = await TeamsWithMembers().FirstOrDefaultAsync(t => t.TeamLeadUserId == leadId);
+        var userId = this.UserId();
+        var team = User.IsInRole(Roles.TeamLead)
+            ? await TeamsWithMembers().FirstOrDefaultAsync(t => t.TeamLeadUserId == userId)
+            : await TeamsWithMembers().FirstOrDefaultAsync(t => t.Members.Any(m => m.UserId == userId));
         return team is null ? NoContent() : Ok(ToDetailDto(team));
     }
 
@@ -234,6 +247,56 @@ public class TeamsController : ControllerBase
         return await AddMemberAsync(teamId.Value, user, isNew: true);
     }
 
+    // Email the selected members of the caller's own team a single-use link to complete their
+    // account (the TL created it with a temporary password). A new link replaces the old one.
+    [HttpPost("mine/registration-notice")]
+    [Authorize(Roles = Roles.TeamLead)]
+    public async Task<ActionResult<TeamRegistrationNoticeResult>> SendRegistrationNotice(TeamRegistrationNoticeRequest req)
+    {
+        var leadId = this.UserId();
+        var team = await TeamsWithMembers().FirstOrDefaultAsync(t => t.TeamLeadUserId == leadId);
+        if (team is null)
+            return Conflict(new { message = "You have not been assigned a team yet." });
+
+        var ids = (req.UserIds ?? new()).Distinct().ToList();
+        if (ids.Count == 0)
+            return BadRequest(new { message = "Select at least one member." });
+        var selected = team.Members.Where(m => ids.Contains(m.UserId)).ToList();
+        if (selected.Count != ids.Count) // never email users outside the caller's team
+            return BadRequest(new { message = "Some selected people are not members of your team." });
+        // Members who already have a complete account (existing Participants, or who finished the
+        // link) are exempt.
+        var registered = selected.Where(m => m.RegistrationToken is null).Select(m => m.User!.FullName).ToList();
+        if (registered.Count > 0)
+            return BadRequest(new { message = $"Already registered: {string.Join(", ", registered)}." });
+
+        var frontendBase = _config["App:FrontendBaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200";
+        int sent = 0, failed = 0;
+        foreach (var m in selected)
+        {
+            var token = Guid.NewGuid();
+            var url = $"{frontendBase}/register?team={token}";
+            try
+            {
+                await _email.SendAsync(m.User!.Email, "Complete your registration",
+                    EmailTemplates.TeamRegistrationNotice(m.User.FullName, team.Description,
+                        team.TeamLead?.FullName ?? "Your team lead", url, RegistrationLinkDays));
+                m.RegistrationToken = token;
+                m.RegistrationTokenExpiresAt = DateTime.UtcNow.AddDays(RegistrationLinkDays);
+                m.NotificationFlag = true;
+                sent++;
+            }
+            catch (Exception)
+            {
+                failed++; // keep the previous flag and link
+            }
+            await Task.Delay(200); // gentle throttle to stay under Gmail burst limits
+        }
+        await _db.SaveChangesAsync();
+        return Ok(new TeamRegistrationNoticeResult(sent, failed,
+            team.Members.OrderBy(m => m.User!.FullName).Select(ToMemberDto).ToList()));
+    }
+
     // The one place a member row is written. The member cap and the one-team-per-user rule are
     // checked inside a serializable transaction so two concurrent adds cannot overfill a team, and
     // a new account is only saved together with its membership (a full team leaves no orphan user).
@@ -258,7 +321,8 @@ public class TeamsController : ControllerBase
                 return Conflict(new { message = $"{user.FullName} is already in another team." });
         }
 
-        var member = new TeamMember { TeamId = teamId, User = user };
+        // A new account is "unregistered" until the member completes it via the emailed link.
+        var member = new TeamMember { TeamId = teamId, User = user, RegistrationToken = isNew ? Guid.NewGuid() : null };
         _db.TeamMembers.Add(member);
         try
         {

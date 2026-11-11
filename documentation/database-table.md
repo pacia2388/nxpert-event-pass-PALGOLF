@@ -348,6 +348,9 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | TeamId | int | | FK → Teams (Cascade) |
 | UserId | int | | FK → Users (Restrict). **Unique**: a user is in at most one team. Must have role `Participant` |
 | AddedAt | datetime2 | | DB default `GETUTCDATE()` |
+| NotificationFlag | bit | | Default `0`. Set when the TL's registration notice email was sent to this member |
+| RegistrationToken | uniqueidentifier | ✓ | Set when a TL creates the account (member is **unregistered**); replaced on each notice; cleared when the member completes registration. **Unique** (filtered, not null) |
+| RegistrationTokenExpiresAt | datetime2 | ✓ | Notice sent time + 7 days. Null = link not sent yet (not usable) |
 
 The Team Lead is not a row in `TeamMembers` and does not count toward the member cap. The cap is
 checked in code (`TeamCategories.MaxMembers`), not by a DB constraint.

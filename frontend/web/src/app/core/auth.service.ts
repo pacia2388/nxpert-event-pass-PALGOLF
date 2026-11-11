@@ -6,6 +6,20 @@ import { AuthResponse, InviteResolveResult, VerifyEmailResult } from './models';
 
 const STORAGE_KEY = 'evt_auth';
 
+export interface RegisterBody {
+  firstName: string;
+  middleInitial?: string;
+  lastName: string;
+  senateNo: string;
+  level: string;
+  email: string;
+  password: string;
+  phone?: string;
+  organization?: string;
+  photo?: string | null;
+  birthdate: string; // yyyy-MM-dd
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly _auth = signal<AuthResponse | null>(this.load());
@@ -56,21 +70,16 @@ export class AuthService {
       .pipe(tap((res) => this.store(res)));
   }
 
-  register(body: {
-    firstName: string;
-    middleInitial?: string;
-    lastName: string;
-    senateNo: string;
-    level: string;
-    email: string;
-    password: string;
-    phone?: string;
-    organization?: string;
-    photo?: string | null;
-    birthdate: string; // yyyy-MM-dd
-  }): Observable<AuthResponse> {
+  register(body: RegisterBody): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${API_BASE}/api/auth/register`, body)
+      .pipe(tap((res) => this.store(res)));
+  }
+
+  /** Completes the account a Team Lead created, from the emailed team registration link. */
+  completeTeamRegistration(token: string, body: RegisterBody): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${API_BASE}/api/auth/team-registration/${encodeURIComponent(token)}`, body)
       .pipe(tap((res) => this.store(res)));
   }
 

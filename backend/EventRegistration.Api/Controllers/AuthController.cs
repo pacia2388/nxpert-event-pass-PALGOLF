@@ -45,16 +45,8 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest req)
     {
         var email = req.Email.Trim().ToLowerInvariant();
-        if (string.IsNullOrWhiteSpace(req.FirstName) || string.IsNullOrWhiteSpace(req.LastName))
-            return BadRequest(new { message = "First and last name are required." });
-        if (string.IsNullOrWhiteSpace(req.SenateNo))
-            return BadRequest(new { message = "ID No. is required." });
-        if (string.IsNullOrWhiteSpace(req.Level))
-            return BadRequest(new { message = "Designation is required." });
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(req.Password))
-            return BadRequest(new { message = "Email and password are required." });
-        if (BirthdateRules.Validate(req.Birthdate) is { } registerBirthdateError)
-            return BadRequest(new { message = registerBirthdateError });
+        if (ValidateRegistration(req, email) is { } error)
+            return BadRequest(new { message = error });
 
         if (await _db.Users.AnyAsync(u => u.Email == email))
             return Conflict(new { message = "An account with that email already exists." });
@@ -97,6 +89,79 @@ public class AuthController : ControllerBase
             await SendVerificationEmailAsync(user);
 
         return Ok(AuthFor(user));
+    }
+
+    // Profile checks shared by public sign-up and the team registration link.
+    private static string? ValidateRegistration(RegisterRequest req, string email)
+    {
+        if (string.IsNullOrWhiteSpace(req.FirstName) || string.IsNullOrWhiteSpace(req.LastName))
+            return "First and last name are required.";
+        if (string.IsNullOrWhiteSpace(req.SenateNo))
+            return "ID No. is required.";
+        if (string.IsNullOrWhiteSpace(req.Level))
+            return "Designation is required.";
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(req.Password))
+            return "Email and password are required.";
+        if (BirthdateRules.Validate(req.Birthdate) is { } birthdateError)
+            return birthdateError;
+        return null;
+    }
+
+    // ---- Team registration link: a Team Lead created the account; the member completes it ----
+
+    // Valid, unused, unexpired link → the team member row (with its user), else null.
+    private Task<TeamMember?> FindTeamRegistrationAsync(Guid token) =>
+        _db.TeamMembers.Include(m => m.User)
+            .FirstOrDefaultAsync(m => m.RegistrationToken == token && m.RegistrationTokenExpiresAt > DateTime.UtcNow);
+
+    private const string TeamLinkInvalid = "This registration link is invalid, expired or already used.";
+
+    [HttpGet("team-registration/{token:guid}")]
+    public async Task<ActionResult<TeamRegistrationPrefill>> TeamRegistration(Guid token)
+    {
+        var m = await FindTeamRegistrationAsync(token);
+        if (m is null) return NotFound(new { message = TeamLinkInvalid });
+        var u = m.User!;
+        return Ok(new TeamRegistrationPrefill(u.FirstName ?? "", u.MiddleInitial, u.LastName ?? "", u.Email));
+    }
+
+    // Completes the existing account: profile fields and a new password. The email comes from the
+    // account, never from the request; the role is untouched. The link is single-use.
+    [HttpPost("team-registration/{token:guid}")]
+    public async Task<ActionResult<AuthResponse>> CompleteTeamRegistration(Guid token, RegisterRequest req)
+    {
+        var m = await FindTeamRegistrationAsync(token);
+        if (m is null) return NotFound(new { message = TeamLinkInvalid });
+        var u = m.User!;
+
+        if (ValidateRegistration(req, u.Email) is { } error)
+            return BadRequest(new { message = error });
+        if (req.Password.Length < 8 || req.Password.Length > 128
+            || !req.Password.Any(char.IsLetter) || !req.Password.Any(char.IsDigit)
+            || string.Equals(req.Password, u.Email, StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { message = "Password must be 8 to 128 characters with a letter and a digit, and not your email." });
+        var photoError = ValidatePhoto(req.Photo);
+        if (photoError is not null) return BadRequest(new { message = photoError });
+
+        var first = req.FirstName.Trim();
+        var last = req.LastName.Trim();
+        var mi = (req.MiddleInitial ?? "").Trim().TrimEnd('.');
+        u.FirstName = first;
+        u.MiddleInitial = mi.Length > 0 ? mi : null;
+        u.LastName = last;
+        u.FullName = UserAccountHelper.ComposeFullName(first, mi, last);
+        u.SenateNo = req.SenateNo.Trim();
+        u.Level = req.Level!.Trim();
+        u.Birthdate = req.Birthdate;
+        u.Phone = string.IsNullOrWhiteSpace(req.Phone) ? u.Phone : req.Phone.Trim();
+        u.Organization = string.IsNullOrWhiteSpace(req.Organization) ? u.Organization : req.Organization.Trim();
+        if (!string.IsNullOrEmpty(req.Photo)) u.PhotoUrl = req.Photo;
+        u.PasswordHash = PasswordHasher.Hash(req.Password);
+        u.EmailVerified = true; // the link arrived at this address
+        m.RegistrationToken = null;
+        m.RegistrationTokenExpiresAt = null;
+        await _db.SaveChangesAsync();
+        return Ok(AuthFor(u));
     }
 
     // ---- Self-service profile: any signed-in user views/edits their own account ----

@@ -56,7 +56,13 @@ Plus one **permission** (not a role), the only per-user switch:
 |---|---|
 | See their own team and its members (`GET /api/teams/mine`) | ✓ |
 | Add a Participant to their team by name + email (`POST /api/teams/mine/members`); an unknown email creates the account | ✓, up to the cap (Senior 8, Regular 10) |
+| Send a registration notice to selected **unregistered** members of their own team (`POST /api/teams/mine/registration-notice`): emails a single-use, 7-day link to `/register?team=…` where the member completes the account and sets their own password. Registered members are exempt | ✓ |
 | Remove members, rename the team, change its category | ✗ (admin only) |
+
+**Participants on the Team page** (`/team`, "My Team" tile): view-only. They see their team name,
+category, member count and the members table (name, email, added, notified status), via
+`GET /api/teams/mine`. No add-member panel, no registration notice button, no checkboxes; the
+write endpoints are TL-only on the server. A Participant in no team sees "You are not in a team yet".
 | Voucher page (`/voucher`, prototype): enter a Philippine Airlines booking reference, get a golf equipment voucher code. Also open to Participants; reached from the account menu | ✓ |
 | Every other page (Home, Browse Events, My Events, Calendar, Mail Planner, Edit account, admin pages, scanners) | ✗, redirected to `/team` ³ |
 
@@ -93,7 +99,7 @@ Changing a role's capabilities means editing both projects and redeploying.
 | `/home`, `/events`, `/my-events` | `authGuard` | Any signed-in user except TL |
 | `/calendar`, `/mail-planner`, `/account` | `nonMerchantGuard` | Signed in, not Merchant, not TL |
 | `/admin/events`, `/admin/events/:id` | `confirmerGuard` | Admin, SuperAdmin, Can confirm (not TL) |
-| `/team` | `isTeamLead` | TL only |
+| `/team` | `participantOrTlGuard` | TL (view + manage own team) · Participant (view own team, read-only) |
 | `/voucher` (prototype) | `voucherGuard` | Participant, TL |
 | `/admin/dashboard`, `/admin/users`, `/admin/teams`, `/admin/settings`, `/admin/events/new`, `/admin/events/:id/edit`, `/scanner/:eventId`, `/scanner/:eventId/tv` | `adminGuard` | Admin, SuperAdmin |
 | `/merchant/scan` | `merchantGuard` | Merchant, Admin, SuperAdmin |

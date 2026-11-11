@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -8,7 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ToastService } from '../../core/toast.service';
-import { AuthService } from '../../core/auth.service';
+import { AuthService, RegisterBody } from '../../core/auth.service';
+import { ApiService } from '../../core/api.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BIRTHDATE_MIN, birthdateMax, isValidBirthdate, toIsoDate } from '../../shared/birthdate';
 
@@ -27,12 +28,19 @@ import { BIRTHDATE_MIN, birthdateMax, isValidBirthdate, toIsoDate } from '../../
   ],
   templateUrl: './register.html',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private api = inject(ApiService);
+
+  /** Token from a team registration link (?team=): completes the account the Team Lead created. */
+  readonly teamToken = this.route.snapshot.queryParamMap.get('team');
+  /** Team link state: loading the pre-fill, ready, or the link is not usable. */
+  teamState = signal<'loading' | 'ready' | 'invalid'>('loading');
+  teamError = signal('');
 
   firstName = '';
   middleInitial = '';
@@ -49,6 +57,23 @@ export class RegisterComponent {
   photo: string | null = null;
   photoError = signal<string | null>(null);
   loading = signal(false);
+
+  ngOnInit(): void {
+    if (!this.teamToken) return;
+    this.api.getTeamRegistration(this.teamToken).subscribe({
+      next: (p) => {
+        this.firstName = p.firstName;
+        this.middleInitial = p.middleInitial ?? '';
+        this.lastName = p.lastName;
+        this.email = p.email;
+        this.teamState.set('ready');
+      },
+      error: (err) => {
+        this.teamError.set(err?.error?.message ?? 'This registration link is invalid, expired or already used.');
+        this.teamState.set('invalid');
+      },
+    });
+  }
 
   // Read the chosen photo, downscale it (max 512px) and store it as a compact JPEG data URL.
   onPhotoSelected(event: Event): void {
@@ -102,8 +127,7 @@ export class RegisterComponent {
       return;
     }
     this.loading.set(true);
-    this.auth
-      .register({
+    const body: RegisterBody = {
         firstName: this.firstName.trim(),
         middleInitial: this.middleInitial.trim() || undefined,
         lastName: this.lastName.trim(),
@@ -115,12 +139,15 @@ export class RegisterComponent {
         organization: this.organization || undefined,
         photo: this.photo,
         birthdate: toIsoDate(this.birthdate)!,
-      })
+      };
+    (this.teamToken ? this.auth.completeTeamRegistration(this.teamToken, body) : this.auth.register(body))
       .subscribe({
         next: () => {
           this.loading.set(false);
           // Demo: activate immediately (no email verification). Fake the confirmation.
-          this.toast.success('Account created — confirmation email sent (demo).');
+          this.toast.success(
+            this.teamToken ? 'Registration complete.' : 'Account created — confirmation email sent (demo).',
+          );
           const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
           this.router.navigateByUrl(returnUrl ?? '/my-events');
         },
