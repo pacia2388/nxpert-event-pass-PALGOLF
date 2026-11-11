@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { EventDto } from '../../core/models';
 import { TeamInviteChanges } from '../../core/team-invite.util';
 import { InvitationComposerComponent } from './invitation-composer';
@@ -83,6 +83,18 @@ describe('Invitation composer: Invite teams', () => {
     picked = { add: ['cy@example.com'], remove: ['ana@example.com'] };
     clickInviteTeams();
     expect(chips(fieldOf('To recipients'))).toEqual(['ben@example.com', 'cy@example.com']);
+  });
+
+  it('shows the picked members as soon as the picker closes', async () => {
+    compose(undefined);
+    // The real picker closes some time after the click, outside any change detection pass.
+    const closed = new Subject<TeamInviteChanges | undefined>();
+    vi.spyOn(TestBed.inject(MatDialog), 'open').mockReturnValue({ afterClosed: () => closed } as never);
+    clickInviteTeams();
+
+    closed.next({ add: ['ana@example.com'], remove: [] });
+    await fixture.whenStable();
+    expect(chips(fieldOf('To recipients'))).toEqual(['ana@example.com']);
   });
 
   it('leaves To unchanged when the picker is cancelled', () => {

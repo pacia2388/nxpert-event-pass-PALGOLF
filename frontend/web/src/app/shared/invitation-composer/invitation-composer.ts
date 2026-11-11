@@ -1,4 +1,4 @@
-import { Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, QueryList, ViewChild, ViewChildren, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, QueryList, ViewChild, ViewChildren, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -79,6 +79,7 @@ export class InvitationComposerComponent implements OnChanges {
   private confirmer = inject(ConfirmService);
   private dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
+  private changeDetector = inject(ChangeDetectorRef);
   private auth = inject(AuthService);
 
   readonly allUsers = ALL_USERS;
@@ -438,6 +439,8 @@ export class InvitationComposerComponent implements OnChanges {
         // Members unticked in the picker leave To; newly ticked ones join it.
         this.recipients.to = this.recipients.to.filter((a) => !changes.remove.includes(a));
         if (changes.add.length) this.add('to', changes.add.join(','));
+        // The picker closes outside an event on this component, and `recipients` is not a signal.
+        this.changeDetector.markForCheck();
       });
   }
 
