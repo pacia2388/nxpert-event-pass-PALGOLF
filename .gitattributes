@@ -1,0 +1,8 @@
+# Store and check out text files with LF, whatever core.autocrlf says, so files written
+# with LF (editors, scripts, sed -i) never show as modified with no diff.
+* text=auto eol=lf
+
+# Windows scripts keep CRLF.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
