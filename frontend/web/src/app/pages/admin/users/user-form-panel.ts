@@ -103,6 +103,11 @@ export class UserFormPanelComponent {
     return !!this.form()?.dirty || !!this.newPhoto() || this.clearPhoto() || !!this.newFace() || this.clearFace();
   }
 
+  /** Puts the current record back in the form, dropping edits and touched markers. */
+  reload(): void {
+    this.reset(this.user());
+  }
+
   private reset(u: UserDto | null): void {
     this.firstName = u?.firstName ?? '';
     this.middleInitial = u?.middleInitial ?? '';
