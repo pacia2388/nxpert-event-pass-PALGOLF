@@ -86,8 +86,8 @@
       <form #f="ngForm" class="uf" (ngSubmit)="save()" autocomplete="off">
         <mat-form-field appearance="outline" class="span-2">
           <mat-label>Team name</mat-label>
-          <input matInput name="description" [(ngModel)]="description" required minlength="2" maxlength="200" />
-          @if (description.trim().length < 2) {
+          <input matInput name="description" [(ngModel)]="description" #descriptionModel="ngModel" required minlength="2" maxlength="200" />
+          @if (descriptionModel.touched && description.trim().length < 2) {
             <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
           }
         </mat-form-field>
@@ -102,7 +102,7 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Captain</mat-label>
-          <mat-select name="teamLeadUserId" [(ngModel)]="teamLeadUserId" required>
+          <mat-select name="teamLeadUserId" [(ngModel)]="teamLeadUserId" #leadModel="ngModel" required>
             @for (l of leads(); track l.user.id) {
               <mat-option [value]="l.user.id" [disabled]="!!l.otherTeam">
                 {{ l.user.fullName }}
@@ -110,7 +110,7 @@
               </mat-option>
             }
           </mat-select>
-          @if (teamLeadUserId == null) {
+          @if (leadModel.touched && teamLeadUserId == null) {
             <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
           }
         </mat-form-field>
