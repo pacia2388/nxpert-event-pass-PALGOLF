@@ -49,7 +49,9 @@ public record UserDto(
     string? SenateNo, string? Level, string Email, string Username, string Role, string? Organization, string? Phone,
     string NotificationChannel,
     bool CanConfirmRegistrations, bool EmailVerified, DateTime CreatedAt, string? PhotoUrl, bool HasFace,
-    DateOnly? Birthdate);
+    DateOnly? Birthdate,
+    // The team this user is a member of (null = none). Filled on the users list only.
+    int? TeamId = null);
 
 // Password is required on create, optional on update (blank = keep current).
 // Face: a JSON array of 128 floats (the face descriptor) captured during facial registration;

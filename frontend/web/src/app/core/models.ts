@@ -36,6 +36,8 @@ export interface UserDto {
   photoUrl: string | null;
   hasFace: boolean;
   birthdate: string | null; // yyyy-MM-dd
+  /** The team this user is a member of; set on the users list only (null/absent = none). */
+  teamId?: number | null;
 }
 
 // ---- Teams ----
