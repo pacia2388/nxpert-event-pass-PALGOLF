@@ -37,8 +37,8 @@
 
   <mat-form-field appearance="outline">
     <mat-label>First name</mat-label>
-    <input matInput name="firstName" [(ngModel)]="firstName" required maxlength="100" />
-    @if (!firstName.trim()) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
+    <input matInput name="firstName" [(ngModel)]="firstName" #firstNameModel="ngModel" required pattern=".*\S.*" maxlength="100" />
+    @if (firstNameModel.invalid && firstNameModel.touched) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
   </mat-form-field>
 
   <div class="uf-pair">
@@ -48,15 +48,18 @@
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label>Last name</mat-label>
-      <input matInput name="lastName" [(ngModel)]="lastName" required maxlength="100" />
-      @if (!lastName.trim()) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
+      <input matInput name="lastName" [(ngModel)]="lastName" #lastNameModel="ngModel" required pattern=".*\S.*" maxlength="100" />
+      @if (lastNameModel.invalid && lastNameModel.touched) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
     </mat-form-field>
   </div>
 
   <mat-form-field appearance="outline">
     <mat-label>Email</mat-label>
-    <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256" />
-    @if (!email.trim()) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
+    <input matInput type="email" name="email" [(ngModel)]="email" #emailModel="ngModel" required maxlength="256"
+           pattern="\s*[^\s@]+@[^\s@]+\.[^\s@]+\s*" />
+    @if (emailModel.invalid && emailModel.touched) {
+      <mat-icon matSuffix class="req" [matTooltip]="emailModel.hasError('required') ? 'Required' : 'Enter a valid email address'">error</mat-icon>
+    }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
@@ -76,10 +79,12 @@
 
   <mat-form-field appearance="outline">
     <mat-label>{{ isEdit ? 'New password' : 'Password' }}</mat-label>
-    <input matInput type="password" name="password" [(ngModel)]="password"
+    <input matInput type="password" name="password" [(ngModel)]="password" #passwordModel="ngModel"
            [required]="!isEdit" minlength="8" autocomplete="new-password"
            [placeholder]="isEdit ? 'Leave blank to keep' : 'At least 8 characters'" />
-    @if (!isEdit && !password) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
+    @if (passwordModel.invalid && passwordModel.touched) {
+      <mat-icon matSuffix class="req" [matTooltip]="passwordModel.hasError('minlength') ? 'At least 8 characters' : 'Required'">error</mat-icon>
+    }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
@@ -109,7 +114,8 @@
 
   <mat-form-field appearance="outline">
     <mat-label>Send pass via</mat-label>
-    <mat-select name="notificationChannel" [(ngModel)]="notificationChannel">
+    <mat-select name="notificationChannel" [(ngModel)]="notificationChannel"
+                (selectionChange)="phoneModel.control.markAsTouched()">
       <mat-option value="Email">Email</mat-option>
       <mat-option value="Viber">Viber</mat-option>
       <mat-option value="Both">Both (Email &amp; Viber)</mat-option>
@@ -122,7 +128,7 @@
            (input)="onPhoneInput($event)" inputmode="tel" maxlength="16"
            placeholder="+63 000 000 0000"
            pattern="\+63 \d{3} \d{3} \d{4}" [required]="phoneRequired()" />
-    @if (phoneRequired() && !phone) { <mat-icon matSuffix class="req" matTooltip="Required for Viber">error</mat-icon> }
+    @if (phoneModel.hasError('required') && phoneModel.touched) { <mat-icon matSuffix class="req" matTooltip="Required for Viber">error</mat-icon> }
     @if (phoneModel.hasError('pattern')) {
       <mat-error>Use +63 000 000 0000.</mat-error>
     }
