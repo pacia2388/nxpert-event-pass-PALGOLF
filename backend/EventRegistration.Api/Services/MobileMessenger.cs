@@ -9,7 +9,7 @@ namespace EventRegistration.Api.Services;
 /// </summary>
 public interface IMobileSender
 {
-    Task SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    Task SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null);
     Task SendTextAsync(string phone, string subject, string text);
     Task SendMealStubsAsync(string phone, string eventTitle,
@@ -42,9 +42,9 @@ public class MobileMessenger
             : _viber;
     }
 
-    public async Task SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    public async Task SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null) =>
-        await (await ResolveAsync()).SendPassAsync(phone, title, startsAt, venue, attendeeName, passToken, qrPng, editUrl);
+        await (await ResolveAsync()).SendPassAsync(phone, title, startsAt, endsAt, venue, attendeeName, passToken, qrPng, editUrl);
 
     public async Task SendTextAsync(string phone, string subject, string text) =>
         await (await ResolveAsync()).SendTextAsync(phone, subject, text);

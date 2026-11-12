@@ -50,12 +50,12 @@ public class ViberService : IMobileSender
     /// base URL is configured, the QR pass is delivered as an image message pointing at the
     /// public pass-QR endpoint; otherwise a text message is sent. Falls back to the outbox.
     /// </summary>
-    public async Task SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    public async Task SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null)
     {
         var text =
             $"Hi {attendeeName}, your registration for \"{title}\" is confirmed.\n" +
-            $"When: {startsAt:dddd, MMM d yyyy, h:mm tt}\n" +
+            $"{ScheduleText.Text(startsAt, endsAt)}\n" +
             $"Where: {venue}\n" +
             "Present the QR entry pass at the entrance." +
             (string.IsNullOrWhiteSpace(editUrl) ? "" : $"\n\nNeed to update your details? {editUrl}");

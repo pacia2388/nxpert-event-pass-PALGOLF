@@ -228,7 +228,7 @@ public record RegisterResult(int Created, int AlreadyRegistered, string EventTit
     string? EditToken = null);
 
 public record RegistrationDto(
-    int Id, int EventId, string EventTitle, DateTime StartsAt, string Venue,
+    int Id, int EventId, string EventTitle, DateTime StartsAt, DateTime EndsAt, string Venue,
     Guid Token, DateTime RegisteredAt, DateTime? ConfirmedAt, DateTime? CheckedInAt,
     int? SessionId, string? SessionTitle, string? SessionPosterImage, bool HasFormFields,
     // Online / Hybrid: the join link, only once the registration is confirmed.

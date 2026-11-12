@@ -55,14 +55,14 @@ public class SmsService : IMobileSender
     /// <summary>
     /// Sends the entry-pass details to a phone over SMS (text only — no QR image). Falls back to the outbox.
     /// </summary>
-    public async Task SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    public async Task SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null)
     {
         // Clickable link to the entry-pass page (opens in the recipient's browser and shows the QR).
         var passUrl = BuildPassUrl(passToken);
         var text =
             $"Hi {attendeeName}, your registration for \"{title}\" is confirmed.\n" +
-            $"When: {startsAt:MMM d yyyy, h:mm tt}\n" +
+            $"{ScheduleText.Text(startsAt, endsAt)}\n" +
             $"Where: {venue}\n" +
             (passUrl is null
                 ? "Please present your QR entry pass at the entrance."

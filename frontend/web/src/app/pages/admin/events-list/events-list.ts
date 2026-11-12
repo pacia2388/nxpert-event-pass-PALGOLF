@@ -15,6 +15,7 @@ import { ToastService } from '../../../core/toast.service';
 import { ApiService } from '../../../core/api.service';
 import { AuthService } from '../../../core/auth.service';
 import { EventDto } from '../../../core/models';
+import { ScheduleComponent } from '../../../shared/schedule';
 
 type Phase = 'live' | 'upcoming' | 'past';
 type EventFilter = 'all' | Phase | 'draft' | 'closed';
@@ -34,7 +35,7 @@ function writePref(key: string, value: string): void {
 
 @Component({
   selector: 'app-events-list',
-  imports: [
+  imports: [ScheduleComponent, 
     DatePipe,
     NgTemplateOutlet,
     FormsModule,

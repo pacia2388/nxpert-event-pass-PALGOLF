@@ -6,6 +6,9 @@ public static class EmailTemplates
 {
     private const string Accent = "#0f5fb8";
 
+    // Text typed by people (names, titles, venues) shown as text, never as markup.
+    private static string E(string? text) => System.Net.WebUtility.HtmlEncode(text ?? "");
+
     // Organizer-typed text (e.g. an event description) as safe HTML laid out exactly as typed:
     // line breaks → <br>, blank lines kept, and indentation / runs of spaces → &nbsp; — so bullets
     // and indented lines survive clients that ignore white-space:pre-wrap (Outlook desktop).
@@ -24,12 +27,10 @@ public static class EmailTemplates
         }));
     }
 
-    // "Wednesday, October 14 2026 · 9:00 AM–5:00 PM" (same day), else a full start – end range —
-    // the same wording the registration page uses.
-    private static string WhenText(DateTime start, DateTime end) =>
-        end.Date == start.Date
-            ? $"{start:dddd, MMMM d yyyy} · {start:h:mm tt}–{end:h:mm tt}"
-            : $"{start:ddd, MMM d yyyy, h:mm tt} – {end:ddd, MMM d yyyy, h:mm tt}";
+    // "Starts:" and "Ends:" on separate lines — the same wording the web app's schedule uses.
+    private static string WhenLines(DateTime start, DateTime end) =>
+        $@"<p style=""margin:4px 0""><strong>Starts:</strong> {ScheduleText.When(start)}</p>
+           <p style=""margin:4px 0""><strong>Ends:</strong> {ScheduleText.When(end)}</p>";
 
     private static string Shell(string title, string inner) => $@"
 <div style=""font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;
@@ -49,7 +50,7 @@ public static class EmailTemplates
         "You're invited!",
         $@"<p>You have been invited to:</p>
            <h2 style=""margin:8px 0;color:{Accent}"">{System.Net.WebUtility.HtmlEncode(ev.Title)}</h2>
-           <p style=""margin:4px 0""><strong>When:</strong> {WhenText(ev.StartsAt, ev.EndsAt)}</p>
+           {WhenLines(ev.StartsAt, ev.EndsAt)}
            <p style=""margin:4px 0""><strong>Where:</strong> {ev.Format switch
            {
                EventFormats.Online => "Online meeting — the join link is sent once your registration is confirmed",
@@ -95,16 +96,16 @@ public static class EmailTemplates
 
     // Registration confirmed. In-person events show the QR entry pass; online events show the
     // meeting join button instead; hybrid events show both. `meetingUrl` is set for Online/Hybrid.
-    public static string Confirmation(string title, DateTime startsAt, string venue, string attendeeName,
+    public static string Confirmation(string title, DateTime startsAt, DateTime endsAt, string venue, string attendeeName,
         string? editUrl = null, string? meetingUrl = null, bool showPass = true) => Shell(
         "Registration confirmed",
-        $@"<p>Hi {attendeeName},</p>
-           <p>Good news — your registration for <strong>{title}</strong> has been
+        $@"<p>Hi {E(attendeeName)},</p>
+           <p>Good news — your registration for <strong>{E(title)}</strong> has been
               <strong>confirmed</strong>.{(showPass
                 ? " Your entry pass is below; present this QR code at the door for check-in."
                 : " Use the button below to join the online meeting.")}</p>
-           <p style=""margin:4px 0""><strong>When:</strong> {startsAt:dddd, MMM d yyyy, h:mm tt}</p>
-           <p style=""margin:4px 0""><strong>Where:</strong> {(showPass ? venue : "Online")}{(showPass && meetingUrl is not null ? " · or join online" : "")}</p>
+           {WhenLines(startsAt, endsAt)}
+           <p style=""margin:4px 0""><strong>Where:</strong> {(showPass ? E(venue) : "Online")}{(showPass && meetingUrl is not null ? " · or join online" : "")}</p>
            {(meetingUrl is null ? "" : JoinBlock(meetingUrl))}
            {(showPass ? @"<div style=""text-align:center;margin:24px 0"">
              <img src=""cid:qrcode"" alt=""Your entry QR code"" width=""220"" height=""220""
@@ -129,32 +130,32 @@ public static class EmailTemplates
     }
 
     // The online meeting changed (time, title or link): the attached invite updates the calendar entry.
-    public static string MeetingUpdated(string title, DateTime startsAt, string attendeeName, string meetingUrl) => Shell(
+    public static string MeetingUpdated(string title, DateTime startsAt, DateTime endsAt, string attendeeName, string meetingUrl) => Shell(
         "Meeting details updated",
-        $@"<p>Hi {attendeeName},</p>
-           <p>The online meeting details for <strong>{title}</strong> have changed. The attached
+        $@"<p>Hi {E(attendeeName)},</p>
+           <p>The online meeting details for <strong>{E(title)}</strong> have changed. The attached
               invite updates the entry in your calendar.</p>
-           <p style=""margin:4px 0""><strong>When:</strong> {startsAt:dddd, MMM d yyyy, h:mm tt}</p>
+           {WhenLines(startsAt, endsAt)}
            {JoinBlock(meetingUrl)}");
 
     // Online meeting withdrawn: the attached CANCEL removes it from the calendar.
-    public static string MeetingCancelled(string title, DateTime startsAt, string attendeeName, MeetingCancelReason reason) => Shell(
+    public static string MeetingCancelled(string title, DateTime startsAt, DateTime endsAt, string attendeeName, MeetingCancelReason reason) => Shell(
         reason switch
         {
             MeetingCancelReason.EventCancelled => "Event cancelled",
             MeetingCancelReason.NowInPerson => "Online meeting removed",
             _ => "Registration cancelled",
         },
-        $@"<p>Hi {attendeeName},</p>
+        $@"<p>Hi {E(attendeeName)},</p>
            <p>{reason switch
               {
-                  MeetingCancelReason.EventCancelled => $"<strong>{title}</strong> has been cancelled.",
+                  MeetingCancelReason.EventCancelled => $"<strong>{E(title)}</strong> has been cancelled.",
                   MeetingCancelReason.NowInPerson =>
-                      $"<strong>{title}</strong> will now be held <strong>in person only</strong> — your registration still stands.",
-                  _ => $"Your registration for <strong>{title}</strong> has been cancelled.",
+                      $"<strong>{E(title)}</strong> will now be held <strong>in person only</strong> — your registration still stands.",
+                  _ => $"Your registration for <strong>{E(title)}</strong> has been cancelled.",
               }}
-              The online meeting on {startsAt:dddd, MMM d yyyy, h:mm tt} has been removed; the attached
-              update takes it off your calendar.</p>
+              The online meeting below has been removed; the attached update takes it off your calendar.</p>
+           {WhenLines(startsAt, endsAt)}
            <p style=""color:#888;font-size:13px"">If you think this is a mistake, please contact the event organizer.</p>");
 
     // "Here's your edit link" email (the public-page recovery / re-send flow).
@@ -233,10 +234,10 @@ public static class EmailTemplates
 
     public static string Pass(Event ev, string attendeeName) => Shell(
         "Your Event Pass",
-        $@"<p>Hi {attendeeName},</p>
-           <p>You're registered for <strong>{ev.Title}</strong>. Present this QR code at the door for check-in.</p>
-           <p style=""margin:4px 0""><strong>When:</strong> {ev.StartsAt:dddd, MMM d yyyy, h:mm tt}</p>
-           <p style=""margin:4px 0""><strong>Where:</strong> {ev.Venue}</p>
+        $@"<p>Hi {E(attendeeName)},</p>
+           <p>You're registered for <strong>{E(ev.Title)}</strong>. Present this QR code at the door for check-in.</p>
+           {WhenLines(ev.StartsAt, ev.EndsAt)}
+           <p style=""margin:4px 0""><strong>Where:</strong> {E(ev.Venue)}</p>
            <div style=""text-align:center;margin:24px 0"">
              <img src=""cid:qrcode"" alt=""Your entry QR code"" width=""220"" height=""220""
                   style=""border:8px solid #fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.12)"" />

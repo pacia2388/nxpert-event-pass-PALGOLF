@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, QueryList, ViewChild, ViewChildren, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, QueryList, ViewChild, ViewChildren, LOCALE_ID, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +21,7 @@ import { AuthService } from '../../core/auth.service';
 import { ALL_USERS, expandRecipients, invitationErrorMessage, recipientAddress } from '../../core/invitation.util';
 import { MatDialog } from '@angular/material/dialog';
 import { formatScheduleLabel, openScheduleDateDialog } from './schedule-date-dialog';
+import { scheduleWhen } from '../schedule';
 import { openInviteTeamsDialog } from './invite-teams-dialog';
 import { IMAGE_TYPES, cleanNode, imageBudget, insertAtSelection, newImage, pasteMessage, readPaste, toPng } from '../rich-text/rich-text';
 
@@ -79,6 +80,7 @@ export class InvitationComposerComponent implements OnChanges {
   protected readonly appName = BRANDING.appName;
 
   private api = inject(ApiService);
+  private locale = inject(LOCALE_ID);
   private toast = inject(ToastService);
   private confirmer = inject(ConfirmService);
   private dialog = inject(MatDialog);
@@ -483,8 +485,13 @@ export class InvitationComposerComponent implements OnChanges {
     return `${location.origin}/e/${encodeURIComponent(this.event.publicSlug)}`;
   }
 
-  get sameDay(): boolean {
-    return new Date(this.event.startsAt).toDateString() === new Date(this.event.endsAt).toDateString();
+  // Mirror the "Starts:" / "Ends:" lines of the server's invitation card.
+  get startsWhen(): string {
+    return scheduleWhen(this.event.startsAt, this.locale);
+  }
+
+  get endsWhen(): string {
+    return scheduleWhen(this.event.endsAt, this.locale);
   }
 
   // Mirrors the "Where" line of the server's invitation card.

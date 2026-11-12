@@ -1,6 +1,6 @@
 <h2 mat-dialog-title>{{ reg.eventTitle }}</h2>
 <mat-dialog-content class="pass-content">
-  <p class="muted">{{ reg.startsAt | date: 'EEE, MMM d y, h:mm a' }}</p>
+  <p class="muted"><app-schedule [start]="reg.startsAt" [end]="reg.endsAt" /></p>
   <div class="qr-wrap">
     @if (qrDataUrl()) {
       <img [src]="qrDataUrl()" alt="Your entry QR code" width="240" height="240" />
