@@ -1,5 +1,7 @@
 # Roles, capabilities and user registration
 
+Short page-by-role summary: [roles-page-access.md](roles-page-access.md).
+
 ## Roles
 
 Roles are **hard-coded**. There is no roles or permissions table. A user has exactly one role, stored
@@ -103,6 +105,11 @@ Changing a role's capabilities means editing both projects and redeploying.
 | `/voucher` (prototype) | `voucherGuard` | Participant, Captain |
 | `/admin/dashboard`, `/admin/users`, `/admin/teams`, `/admin/settings`, `/admin/events/new`, `/admin/events/:id/edit`, `/scanner/:eventId`, `/scanner/:eventId/tv` | `adminGuard` | Admin, SuperAdmin |
 | `/merchant/scan` | `merchantGuard` | Merchant, Admin, SuperAdmin |
+
+> **Not needed, hidden from the menu (2026-11-12):** *My Events* (`/my-events`, all roles) and
+> *Reminders* (`/mail-planner`, non-admins) are commented out of the Home launcher
+> (`pages/home/home.ts`). Their routes and guards are unchanged, so a direct URL or in-page link
+> still opens them. See [roles-page-access.md](roles-page-access.md).
 
 ---
 
