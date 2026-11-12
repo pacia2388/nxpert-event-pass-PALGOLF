@@ -1,10 +1,9 @@
 name: CI
 
+# DEV_1818 always has an open PR into main, so the PR trigger covers its pushes.
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [DEV_1818]
 
 jobs:
   api:
