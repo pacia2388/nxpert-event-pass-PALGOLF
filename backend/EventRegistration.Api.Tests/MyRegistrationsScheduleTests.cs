@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Json;
 
 namespace EventRegistration.Api.Tests;
@@ -8,6 +9,10 @@ namespace EventRegistration.Api.Tests;
 public class MyRegistrationsScheduleTests(ApiFixture api)
 {
     private record EventBody(int Id);
+    // The app formats schedules in English whatever the machine's culture.
+    private static string Invariant(DateTime value) =>
+        value.ToString("ddd, MMM d yyyy, h:mm tt", CultureInfo.InvariantCulture);
+
     private record MineBody(int EventId, DateTime StartsAt, DateTime EndsAt, Guid Token);
 
     private async Task<(MineBody Reg, DateTime Start, DateTime End)> RegisterAsync()
@@ -46,7 +51,7 @@ public class MyRegistrationsScheduleTests(ApiFixture api)
 
         var html = await api.Anonymous().GetStringAsync($"/api/passes/{reg.Token}");
 
-        Assert.Contains($"Starts: {start:ddd, MMM d yyyy, h:mm tt}</p>", html);
-        Assert.Contains($"Ends: {end:ddd, MMM d yyyy, h:mm tt}</p>", html);
+        Assert.Contains($"Starts: {Invariant(start)}</p>", html);
+        Assert.Contains($"Ends: {Invariant(end)}</p>", html);
     }
 }
