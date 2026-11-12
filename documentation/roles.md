@@ -58,12 +58,14 @@ Plus one **permission** (not a role), the only per-user switch:
 |---|---|
 | See their own team and its members (`GET /api/teams/mine`) | ✓ |
 | Add a Participant to their team by name + email (`POST /api/teams/mine/members`); an unknown email creates the account | ✓, up to the cap (Senior 8, Regular 10) |
-| Send a registration notice to selected **unregistered** members of their own team (`POST /api/teams/mine/registration-notice`): emails a single-use, 7-day link to `/register?team=…` where the member completes the account and sets their own password. Registered members are exempt | ✓ |
-| Remove members, rename the team, change its category | ✗ (admin only) |
+| Look up existing Participants while typing the email (`GET /api/teams/mine/candidates?email=…`): email starts with the text (3+ characters), Participants in no team only, at most 8. Picking one fills the name fields | ✓ |
+| Send a registration notice to the checked **unregistered** members of their own team (`POST /api/teams/mine/registration-notice`): emails a single-use, 7-day link to `/register?team=…` where the member completes the account and sets their own password. Registered members are exempt | ✓ |
+| Remove a member from their own team (`DELETE /api/teams/mine/members/{userId}`): check one or more members and click **Remove (n)** beside the Members title, then confirm. The same checkboxes pick who gets the registration notice; nothing starts checked. Only the membership goes, with any pending registration link; the account, passes and registrations are kept, and the person can be added again | ✓ |
+| Rename the team, change its category | ✗ (admin only) |
 
 **Participants on the Team page** (`/team`, "My Team" tile): view-only. They see their team name,
 category, member count and the members table (name, email, added, notified status), via
-`GET /api/teams/mine`. No add-member panel, no registration notice button, no checkboxes; the
+`GET /api/teams/mine`. No add-member panel, no registration notice button, no checkboxes, no Remove button; the
 write endpoints are Captain-only on the server. A Participant in no team sees "You are not in a team yet".
 | Voucher page (`/voucher`, prototype): enter a Philippine Airlines booking reference, get a golf equipment voucher code. Also open to Participants; reached from the account menu | ✓ |
 | Every other page (Home, Browse Events, My Events, Calendar, Mail Planner, Edit account, admin pages, scanners) | ✗, redirected to `/team` ³ |

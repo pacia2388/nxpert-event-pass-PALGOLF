@@ -36,6 +36,8 @@ export interface UserDto {
   photoUrl: string | null;
   hasFace: boolean;
   birthdate: string | null; // yyyy-MM-dd
+  /** The team this user is a member of; set on the users list only (null/absent = none). */
+  teamId?: number | null;
 }
 
 // ---- Teams ----
@@ -73,6 +75,14 @@ export interface TeamUpsert {
 }
 // Captain: add a member by name + email. An unknown email creates a Participant account.
 export interface TeamMemberCreate {
+  firstName: string;
+  middleInitial: string | null;
+  lastName: string;
+  email: string;
+}
+/** An existing Participant (in no team yet) suggested while a Captain types an email. */
+export interface TeamCandidate {
+  userId: number;
   firstName: string;
   middleInitial: string | null;
   lastName: string;

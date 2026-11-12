@@ -218,4 +218,22 @@ public class AdminManagesTeamsTests(ApiFixture api)
         Assert.True(delete.IsSuccessStatusCode);
         Assert.Equal(0, (await Detail(admin, team.Id)).MemberCount);
     }
+
+    private record ListedUser(int Id, int? TeamId);
+
+    [Fact]
+    public async Task The_users_list_shows_which_team_each_member_is_in()
+    {
+        var admin = await api.AdminAsync();
+        var team = await api.CreateTeamAsync(admin, "Regular");
+        var member = await api.CreateUserAsync(admin, "Participant");
+        var loner = await api.CreateUserAsync(admin, "Participant");
+        (await admin.PostAsJsonAsync($"/api/teams/{team.Id}/members", new { userId = member.Id }))
+            .EnsureSuccessStatusCode();
+
+        var users = (await admin.GetFromJsonAsync<List<ListedUser>>("/api/users"))!;
+
+        Assert.Equal(team.Id, users.Single(u => u.Id == member.Id).TeamId);
+        Assert.Null(users.Single(u => u.Id == loner.Id).TeamId);
+    }
 }
