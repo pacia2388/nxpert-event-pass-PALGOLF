@@ -27,7 +27,7 @@ export function scheduleLines(start: DateInput, end: DateInput, locale = 'en-US'
   template: `@for (line of lines(); track $index) { <span class="schedule-line">{{ line }}</span> }`,
   styles: `
     /* min-width: 0 lets the lines shrink inside flex rows (e.g. .ev-line) so long ones end in "…". */
-    :host { display: inline-flex; flex-direction: column; vertical-align: top; min-width: 0; max-width: 100%; }
+    :host { display: inline-flex; flex-direction: column; row-gap: 2px; vertical-align: top; min-width: 0; max-width: 100%; line-height: 1.45; }
     .schedule-line { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   `,
 })
