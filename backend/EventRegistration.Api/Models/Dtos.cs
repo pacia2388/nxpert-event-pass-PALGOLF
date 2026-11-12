@@ -27,6 +27,9 @@ public record TeamRegistrationNoticeResult(int Sent, int Failed, List<TeamMember
 // Pre-fill for the register page opened from a team registration link.
 public record TeamRegistrationPrefill(string FirstName, string? MiddleInitial, string LastName, string Email);
 // Created = a new account was made (it signs in with the default temporary password).
+// An existing Participant a Captain can add, suggested while typing an email.
+public record TeamCandidateDto(int UserId, string FirstName, string? MiddleInitial, string LastName, string Email);
+
 public record TeamMemberAddResult(TeamMemberDto Member, bool Created);
 
 // Email holds the login identifier — an email address OR a username.

@@ -247,6 +247,29 @@ public class TeamsController : ControllerBase
         return await AddMemberAsync(teamId.Value, user, isNew: true);
     }
 
+    // Existing Participants the caller can add: email starts with the typed text (at least
+    // 3 characters) and not in any team yet. Capped so it never lists the whole user base.
+    public const int CandidateMinChars = 3;
+    public const int CandidateLimit = 8;
+
+    [HttpGet("mine/candidates")]
+    [Authorize(Roles = Roles.Captain)]
+    public async Task<ActionResult<IEnumerable<TeamCandidateDto>>> Candidates([FromQuery] string? email)
+    {
+        var q = (email ?? "").Trim().ToLowerInvariant();
+        if (q.Length < CandidateMinChars || q.Length > 256) return Ok(Array.Empty<TeamCandidateDto>());
+
+        var rows = await _db.Users
+            .Where(u => u.Role == Roles.Participant && u.Email.StartsWith(q)
+                && !_db.TeamMembers.Any(m => m.UserId == u.Id))
+            .OrderBy(u => u.Email)
+            .Take(CandidateLimit)
+            .Select(u => new { u.Id, u.FirstName, u.MiddleInitial, u.LastName, u.FullName, u.Email })
+            .ToListAsync();
+        return Ok(rows.Select(u => new TeamCandidateDto(
+            u.Id, u.FirstName ?? u.FullName, u.MiddleInitial, u.LastName ?? "", u.Email)));
+    }
+
     // Remove a member from the caller's own team. Only the membership goes (with any pending
     // registration link); the account, passes and registrations are kept.
     [HttpDelete("mine/members/{userId:int}")]
