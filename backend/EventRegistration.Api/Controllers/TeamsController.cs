@@ -247,6 +247,21 @@ public class TeamsController : ControllerBase
         return await AddMemberAsync(teamId.Value, user, isNew: true);
     }
 
+    // Remove a member from the caller's own team. Only the membership goes (with any pending
+    // registration link); the account, passes and registrations are kept.
+    [HttpDelete("mine/members/{userId:int}")]
+    [Authorize(Roles = Roles.Captain)]
+    public async Task<IActionResult> RemoveMine(int userId)
+    {
+        var leadId = this.UserId();
+        var member = await _db.TeamMembers
+            .FirstOrDefaultAsync(m => m.UserId == userId && m.Team!.TeamLeadUserId == leadId);
+        if (member is null) return NotFound(new { message = "That person is not a member of your team." });
+        _db.TeamMembers.Remove(member);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
     // Email the selected members of the caller's own team a single-use link to complete their
     // account (the Captain created it with a temporary password). A new link replaces the old one.
     [HttpPost("mine/registration-notice")]
