@@ -78,6 +78,14 @@ export interface TeamMemberCreate {
   lastName: string;
   email: string;
 }
+/** An existing Participant (in no team yet) suggested while a Captain types an email. */
+export interface TeamCandidate {
+  userId: number;
+  firstName: string;
+  middleInitial: string | null;
+  lastName: string;
+  email: string;
+}
 export interface TeamRegistrationNoticeResult {
   sent: number;
   failed: number;

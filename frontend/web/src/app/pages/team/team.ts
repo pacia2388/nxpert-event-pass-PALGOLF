@@ -9,16 +9,22 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { ConfirmService } from '../../core/confirm.service';
 import { AuthService } from '../../core/auth.service';
-import { TeamDetailDto, TeamMemberDto } from '../../core/models';
+import { TeamCandidate, TeamDetailDto, TeamMemberDto } from '../../core/models';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Matches TeamsController.CandidateMinChars. */
+const CANDIDATE_MIN_CHARS = 3;
 
-// The Captain's only page: their team, its members, and a form to add a Participant by name
-// and email. An email that is not in the system yet creates the account.
+// The Captain's only page: their team, its members, and a form to add a Participant by email
+// and name. Typing an email suggests existing Participants (picking one fills the names); an
+// email that is not in the system yet creates the account.
 @Component({
   selector: 'app-team',
   imports: [
@@ -32,6 +38,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     MatProgressBarModule,
     MatCheckboxModule,
     MatTooltipModule,
+    MatAutocompleteModule,
   ],
   templateUrl: './team.html',
   styleUrl: './team.scss',
@@ -165,6 +172,52 @@ export class TeamComponent implements OnInit {
     });
   }
 
+  // ---- Email lookup: suggest existing Participants (in no team) as the Captain types ----
+
+  /** Suggestions for the current email text. */
+  candidates = signal<TeamCandidate[]>([]);
+  /** The suggestion the Captain picked, while the email still matches it. */
+  picked = signal<TeamCandidate | null>(null);
+  private readonly emailTyped = new Subject<string>();
+
+  /** The input shows the email when a suggestion is chosen (the option value is the object). */
+  readonly candidateEmail = (v: TeamCandidate | string | null): string =>
+    typeof v === 'string' ? v : (v?.email ?? '');
+
+  constructor() {
+    this.emailTyped
+      .pipe(
+        map((v) => v.trim().toLowerCase()),
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((q) =>
+          q.length < CANDIDATE_MIN_CHARS
+            ? of([] as TeamCandidate[])
+            : this.api.findTeamCandidates(q).pipe(catchError(() => of([] as TeamCandidate[]))),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe((list) => this.candidates.set(list));
+  }
+
+  onEmailChange(value: TeamCandidate | string | null): void {
+    if (value !== null && typeof value === 'object') return; // handled by pick()
+    const text = value ?? '';
+    const p = this.picked();
+    if (p && text.trim().toLowerCase() !== p.email) this.picked.set(null);
+    this.emailTyped.next(text);
+  }
+
+  /** Fill the form from an existing Participant. */
+  pick(c: TeamCandidate): void {
+    this.email = c.email;
+    this.firstName = c.firstName;
+    this.middleInitial = c.middleInitial ?? '';
+    this.lastName = c.lastName;
+    this.picked.set(c);
+    this.candidates.set([]);
+  }
+
   get valid(): boolean {
     return !!this.firstName.trim() && !!this.lastName.trim() && EMAIL_RE.test(this.email.trim());
   }
@@ -198,6 +251,8 @@ export class TeamComponent implements OnInit {
           );
           if (!res.member.registered) this.toggle(res.member, true);
           this.form()?.resetForm({ firstName: '', middleInitial: '', lastName: '', email: '' });
+          this.picked.set(null);
+          this.candidates.set([]);
           this.toast.success(
             res.created
               ? `Account created for ${res.member.fullName} and added to the team.`

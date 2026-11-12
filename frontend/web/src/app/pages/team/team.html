@@ -100,6 +100,24 @@
 
         <form #f="ngForm" class="tp-form" (ngSubmit)="add()" autocomplete="off">
           <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256"
+                   [disabled]="isFull()" [matAutocomplete]="candidateAuto"
+                   (ngModelChange)="onEmailChange($event)" />
+            @if (picked()) {
+              <mat-hint>Existing participant: joins with their own account and password.</mat-hint>
+            }
+            <mat-autocomplete #candidateAuto="matAutocomplete" [displayWith]="candidateEmail" (optionSelected)="pick($event.option.value)">
+              @for (c of candidates(); track c.userId) {
+                <mat-option [value]="c" class="cand-option">
+                  <span class="cand-name">{{ c.firstName }}{{ c.middleInitial ? ' ' + c.middleInitial + '.' : '' }} {{ c.lastName }}</span>
+                  <span class="cand-email">{{ c.email }}</span>
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
             <mat-label>First name</mat-label>
             <input matInput name="firstName" [(ngModel)]="firstName" required maxlength="100"
                    [disabled]="isFull()" />
@@ -118,12 +136,6 @@
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256"
-                   [disabled]="isFull()" />
-          </mat-form-field>
-
           <button mat-flat-button color="primary" type="submit" [disabled]="saving() || isFull()">
             <mat-icon>person_add</mat-icon> Add to team
           </button>
@@ -133,9 +145,10 @@
         </form>
 
         <p class="tp-hint">
-          If the email is new, a Participant account is created and signs in with the temporary
-          password <strong>char</strong>. If the email already belongs to a Participant, that
-          person joins the team and keeps their password.
+          Start with the email: Participants who are not in a team yet appear as you type, and
+          picking one fills in their name. They join the team and keep their password. If the
+          email is new, a Participant account is created and signs in with the temporary
+          password <strong>char</strong>.
         </p>
       </section>
       }
