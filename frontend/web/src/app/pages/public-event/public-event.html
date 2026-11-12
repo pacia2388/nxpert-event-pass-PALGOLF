@@ -21,7 +21,7 @@
       <mat-card-content>
         <h1 class="event-heading">{{ e.title }}</h1>
         <p class="detail-row"><mat-icon class="inline-icon">schedule</mat-icon>
-          {{ e.startsAt | date: 'EEEE, MMMM d y' }} · {{ e.startsAt | date: 'h:mm a' }}–{{ e.endsAt | date: 'h:mm a' }}
+          <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
         </p>
         @if (e.format === 'Online') {
           <p class="detail-row"><mat-icon class="inline-icon">videocam</mat-icon>

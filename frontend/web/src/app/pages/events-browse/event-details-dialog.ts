@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { EventDto } from '../../core/models';
 import { openImageLightbox } from '../../shared/image-lightbox';
+import { ScheduleComponent } from '../../shared/schedule-range';
 
 export interface EventDetailsData {
   event: EventDto;
@@ -16,7 +16,7 @@ export interface EventDetailsData {
 
 @Component({
   selector: 'app-event-details-dialog',
-  imports: [DatePipe, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [ScheduleComponent, MatDialogModule, MatButtonModule, MatIconModule],
   templateUrl: './event-details-dialog.html',
   styleUrl: './event-details-dialog.scss',
 })

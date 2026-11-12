@@ -47,7 +47,7 @@
         <mat-card class="clickable" [routerLink]="['/admin/events', e.id]">
           <mat-card-header>
             <mat-card-title>{{ e.title }}</mat-card-title>
-            <mat-card-subtitle>{{ e.startsAt | date: 'EEE, MMM d y, h:mm a' }}</mat-card-subtitle>
+            <mat-card-subtitle><app-schedule [start]="e.startsAt" [end]="e.endsAt" /></mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
             <div class="attend-line">

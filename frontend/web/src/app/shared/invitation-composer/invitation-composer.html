@@ -190,14 +190,8 @@
             <div class="mail-card-body">
               <p>You have been invited to:</p>
               <p class="mail-event">{{ event.title }}</p>
-              <p>
-                <strong>When:</strong>
-                @if (sameDay) {
-                  {{ event.startsAt | date: 'EEEE, MMMM d y' }} · {{ event.startsAt | date: 'h:mm a' }}–{{ event.endsAt | date: 'h:mm a' }}
-                } @else {
-                  {{ event.startsAt | date: 'EEE, MMM d y, h:mm a' }} – {{ event.endsAt | date: 'EEE, MMM d y, h:mm a' }}
-                }
-              </p>
+              <p><strong>Starts:</strong> {{ event.startsAt | date: 'EEE, MMM d y, h:mm a' }}</p>
+              <p><strong>Ends:</strong> {{ event.endsAt | date: 'EEE, MMM d y, h:mm a' }}</p>
               <p><strong>Where:</strong> {{ whereText }}</p>
               @if (event.description) {
                 <p class="mail-desc">{{ event.description }}</p>

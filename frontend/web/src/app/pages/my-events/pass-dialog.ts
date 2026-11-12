@@ -1,14 +1,14 @@
 import { Component, Inject, OnInit, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RegistrationDto } from '../../core/models';
 import { downloadPass, fileSlug, passQrDataUrl } from '../../core/qr.util';
+import { ScheduleComponent } from '../../shared/schedule-range';
 
 @Component({
   selector: 'app-pass-dialog',
-  imports: [DatePipe, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [ScheduleComponent, MatDialogModule, MatButtonModule, MatIconModule],
   templateUrl: './pass-dialog.html',
 })
 export class PassDialogComponent implements OnInit {

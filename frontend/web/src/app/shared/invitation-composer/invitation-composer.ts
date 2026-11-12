@@ -483,10 +483,6 @@ export class InvitationComposerComponent implements OnChanges {
     return `${location.origin}/e/${encodeURIComponent(this.event.publicSlug)}`;
   }
 
-  get sameDay(): boolean {
-    return new Date(this.event.startsAt).toDateString() === new Date(this.event.endsAt).toDateString();
-  }
-
   // Mirrors the "Where" line of the server's invitation card.
   get whereText(): string {
     if (this.event.format === 'Online') return 'Online meeting — the join link is sent once your registration is confirmed';

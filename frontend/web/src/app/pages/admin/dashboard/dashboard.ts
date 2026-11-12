@@ -18,10 +18,11 @@ import {
   EventSubEventBreakdown,
   SubEventCount,
 } from '../../../core/models';
+import { ScheduleComponent } from '../../../shared/schedule-range';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [
+  imports: [ScheduleComponent, 
     DatePipe,
     FormsModule,
     RouterLink,

@@ -14,10 +14,11 @@ import { PassDialogComponent } from './pass-dialog';
 import { FeedbackDialogComponent } from './feedback-dialog';
 import { ResponsesDialogComponent } from './responses-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
+import { ScheduleComponent } from '../../shared/schedule-range';
 
 @Component({
   selector: 'app-my-events',
-  imports: [
+  imports: [ScheduleComponent, 
     DatePipe,
     MatButtonModule,
     MatIconModule,

@@ -20,10 +20,11 @@ import { DynamicFieldsComponent } from '../../shared/dynamic-fields/dynamic-fiel
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
 import { formatPhMobile, isCompletePhMobile } from '../../shared/ph-phone';
 import { firstValueFrom } from 'rxjs';
+import { ScheduleComponent } from '../../shared/schedule-range';
 
 @Component({
   selector: 'app-public-event',
-  imports: [
+  imports: [ScheduleComponent, 
     DatePipe,
     DecimalPipe,
     FormsModule,

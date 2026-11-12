@@ -12,10 +12,11 @@ import { ApiService } from '../../core/api.service';
 import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
+import { ScheduleComponent } from '../../shared/schedule-range';
 
 @Component({
   selector: 'app-events-browse',
-  imports: [
+  imports: [ScheduleComponent, 
     DatePipe,
     FormsModule,
     RouterLink,
