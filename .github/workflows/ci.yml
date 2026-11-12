@@ -1,8 +1,11 @@
 name: CI
 
-# DEV_1818 always has an open PR into main, so the PR trigger covers its pushes.
+# PRs into main, and main itself (direct pushes and merged PRs). DEV_1818 always has an open
+# PR into main, so the PR trigger covers its pushes without a second run.
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 jobs:
