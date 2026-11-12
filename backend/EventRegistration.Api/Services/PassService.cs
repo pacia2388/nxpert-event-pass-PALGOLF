@@ -53,6 +53,7 @@ public class PassService
         // For a sub-event registration, the pass shows the session's title/time/venue.
         var title = reg.Session is not null ? $"{ev.Title} — {reg.Session.Title}" : ev.Title;
         var startsAt = reg.Session?.StartsAt ?? ev.StartsAt;
+        var endsAt = reg.Session?.EndsAt ?? ev.EndsAt;
         var venue = reg.Session?.Venue ?? ev.Venue;
         var name = reg.DisplayName;
         var qrPng = _qr.GeneratePng($"REG:{reg.Token}");
@@ -82,14 +83,14 @@ public class PassService
         if (NotificationChannels.UsesViber(channel) && !string.IsNullOrWhiteSpace(phone))
         {
             if (showPass)
-                await _mobile.SendPassAsync(phone!, title, startsAt, venue, name, reg.Token.ToString(), qrPng, editUrl);
+                await _mobile.SendPassAsync(phone!, title, startsAt, endsAt, venue, name, reg.Token.ToString(), qrPng, editUrl);
             if (meetingUrl is not null)
             {
                 var text = showPass
                     ? $"You can also join \"{title}\" online: {meetingUrl}"
-                    : $"Hi {name}, your registration for \"{title}\" is confirmed. " +
-                      $"When: {startsAt:ddd, MMM d yyyy, h:mm tt}. Join online: {meetingUrl}" +
-                      (editUrl is null ? "" : $" · Edit your response: {editUrl}");
+                    : $"Hi {name}, your registration for \"{title}\" is confirmed.\n" +
+                      $"{ScheduleText.Text(startsAt, endsAt)}\nJoin online: {meetingUrl}" +
+                      (editUrl is null ? "" : $"\nEdit your response: {editUrl}");
                 await _mobile.SendTextAsync(phone!, $"Registration confirmed — {title}", text);
             }
             if (stubs.Count > 0)
@@ -114,7 +115,7 @@ public class PassService
             // vertical denomination — all baked into a single PNG so it renders identically anywhere).
             var images = showPass ? new Dictionary<string, byte[]> { ["qrcode"] = qrPng } : new();
             var html = new StringBuilder(
-                EmailTemplates.Confirmation(title, startsAt, venue, name, editUrl, meetingUrl, showPass));
+                EmailTemplates.Confirmation(title, startsAt, endsAt, venue, name, editUrl, meetingUrl, showPass));
             if (stubs.Count > 0)
             {
                 html.Append(
@@ -168,17 +169,18 @@ public class PassService
         url ??= $"{FrontendBase}/e/{ev.PublicSlug}";
         var title = reg.Session is not null ? $"{ev.Title} — {reg.Session.Title}" : ev.Title;
         var startsAt = reg.Session?.StartsAt ?? ev.StartsAt;
+        var endsAt = reg.Session?.EndsAt ?? ev.EndsAt;
         var subject = $"Updated: {title}";
 
         var channel = reg.User?.NotificationChannel ?? reg.GuestNotificationChannel ?? NotificationChannels.Email;
         if (NotificationChannels.UsesViber(channel) && !string.IsNullOrWhiteSpace(reg.DisplayPhone))
             await _mobile.SendTextAsync(reg.DisplayPhone!, subject,
-                $"Hi {reg.DisplayName}, the event details for \"{title}\" have changed. " +
-                $"When: {startsAt:ddd, MMM d yyyy, h:mm tt}. Join: {url}");
+                $"Hi {reg.DisplayName}, the event details for \"{title}\" have changed.\n" +
+                $"{ScheduleText.Text(startsAt, endsAt)}\nJoin: {url}");
 
         if (invite is not null && (NotificationChannels.UsesEmail(channel) || string.IsNullOrWhiteSpace(reg.DisplayPhone)))
             await _email.SendAsync(invite.AttendeeEmail, subject,
-                EventFormats.HasOnline(ev.Format) ? EmailTemplates.MeetingUpdated(title, startsAt, reg.DisplayName, url) :
+                EventFormats.HasOnline(ev.Format) ? EmailTemplates.MeetingUpdated(title, startsAt, endsAt, reg.DisplayName, url) :
                     "<p>The event details have changed. The attached calendar invitation updates your existing event.</p>" +
                     EmailTemplates.Invitation(ev, System.Net.WebUtility.HtmlEncode(url)),
                 attachments: new[] { new EmailAttachment(CalendarInvite.FileName, CalendarInvite.Request(invite), CalendarInvite.ContentType(false)) });
@@ -201,7 +203,7 @@ public class PassService
             _ => $"Registration cancelled — {invite.Title}",
         };
         await _email.SendAsync(invite.AttendeeEmail, subject,
-            EmailTemplates.MeetingCancelled(invite.Title, invite.StartsAt, reg.DisplayName, reason),
+            EmailTemplates.MeetingCancelled(invite.Title, invite.StartsAt, invite.EndsAt, reg.DisplayName, reason),
             attachments: new[] { new EmailAttachment(CalendarInvite.FileName, CalendarInvite.Cancel(invite), CalendarInvite.ContentType(true)) });
     }
 
