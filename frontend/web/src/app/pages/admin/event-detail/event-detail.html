@@ -34,7 +34,7 @@
         <div class="ed-meta">
           <span class="ed-meta-item">
             <mat-icon>schedule</mat-icon>
-            {{ e.startsAt | date: 'EEE, MMM d y, h:mm a' }} – {{ e.endsAt | date: 'h:mm a' }}
+            <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
           </span>
           @if (e.format !== 'Online') {
             <span class="ed-meta-item"><mat-icon>place</mat-icon> {{ e.venue }}</span>

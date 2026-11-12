@@ -473,6 +473,7 @@ export interface RegistrationDto {
   eventId: number;
   eventTitle: string;
   startsAt: string;
+  endsAt: string;
   venue: string;
   token: string;
   registeredAt: string;

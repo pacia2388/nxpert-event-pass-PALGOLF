@@ -179,8 +179,10 @@ public class MailPlanDispatcher(AppDbContext db, EmailService email, MobileMesse
         var eventBlock = ev is null ? "" :
             "<div style=\"margin-top:24px;padding:12px 16px;border:1px solid #e0e0e0;border-radius:8px\">" +
             $"<div style=\"font-weight:700\">{WebUtility.HtmlEncode(ev.Title)}</div>" +
-            $"<div style=\"color:#5f6368\">{WebUtility.HtmlEncode(ev.StartsAt.ToString("dddd, MMMM d, yyyy · h:mm tt", System.Globalization.CultureInfo.InvariantCulture))}" +
-            (string.IsNullOrWhiteSpace(ev.Venue) ? "" : " · " + WebUtility.HtmlEncode(ev.Venue)) + "</div></div>";
+            $"<div style=\"color:#5f6368\">{WebUtility.HtmlEncode(ScheduleText.Starts(ev.StartsAt))}</div>" +
+            $"<div style=\"color:#5f6368\">{WebUtility.HtmlEncode(ScheduleText.Ends(ev.EndsAt))}</div>" +
+            (string.IsNullOrWhiteSpace(ev.Venue) ? "" : $"<div style=\"color:#5f6368\">{WebUtility.HtmlEncode(ev.Venue)}</div>") +
+            "</div>";
         return "<!doctype html><html><body style=\"font-family:Segoe UI,Arial,sans-serif;color:#202124\">" +
             "<div style=\"max-width:800px;margin:0 auto;font-size:15px;line-height:1.6\">" + body + eventBlock +
             $"<p style=\"margin-top:28px;font-size:12px;color:#5f6368\">Sent by {WebUtility.HtmlEncode(fromName)}. " +

@@ -8,7 +8,7 @@
     </div>
   }
   <p class="ev-row"><mat-icon class="inline-icon">schedule</mat-icon>
-    {{ e.startsAt | date: 'EEE, MMM d y, h:mm a' }} – {{ e.endsAt | date: 'MMM d, h:mm a' }}
+    <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
   </p>
   @if (e.format === 'Online') {
     <p class="ev-row"><mat-icon class="inline-icon">videocam</mat-icon>
@@ -77,7 +77,7 @@
                 }
               </div>
               <p class="dsc-meta"><mat-icon class="inline-icon">schedule</mat-icon>
-                {{ s.startsAt | date: 'EEE, MMM d, h:mm a' }} – {{ s.endsAt | date: 'h:mm a' }}
+                <app-schedule [start]="s.startsAt" [end]="s.endsAt" />
               </p>
               @if (s.venue) {
                 <p class="dsc-meta"><mat-icon class="inline-icon">place</mat-icon> {{ s.venue }}</p>

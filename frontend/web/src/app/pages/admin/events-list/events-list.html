@@ -118,7 +118,7 @@
 
                 <div class="ev-meta">
                   <p class="ev-line"><mat-icon>schedule</mat-icon>
-                    <span>{{ e.startsAt | date: 'EEE, MMM d y, h:mm a' }}</span></p>
+                    <app-schedule [start]="e.startsAt" [end]="e.endsAt" /></p>
                   @if (e.format === 'Online') {
                     <p class="ev-line"><mat-icon>videocam</mat-icon> <span>Online meeting</span></p>
                   } @else {
@@ -186,8 +186,7 @@
                 </div>
               </div>
               <div class="el-when" role="cell">
-                <span>{{ e.startsAt | date: 'EEE, MMM d y' }}</span>
-                <span class="muted">{{ e.startsAt | date: 'h:mm a' }} – {{ e.endsAt | date: 'h:mm a' }}</span>
+                <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
               </div>
               <div class="el-metric" role="cell">
                 <span class="el-num">{{ e.registeredCount }}@if (e.capacity) {<span class="cap"> / {{ e.capacity }}</span>}</span>

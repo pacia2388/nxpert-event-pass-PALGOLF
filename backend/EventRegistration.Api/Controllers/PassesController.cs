@@ -40,6 +40,7 @@ public class PassesController : ControllerBase
         var ev = reg.Event;
         var title = reg.Session is not null ? $"{ev.Title} — {reg.Session.Title}" : ev.Title;
         var startsAt = reg.Session?.StartsAt ?? ev.StartsAt;
+        var endsAt = reg.Session?.EndsAt ?? ev.EndsAt;
         var venue = reg.Session?.Venue ?? ev.Venue;
         var name = reg.DisplayName;
 
@@ -71,7 +72,8 @@ public class PassesController : ControllerBase
             "<div class=\"body\">" +
             $"<img class=\"qr\" src=\"{qrDataUri}\" alt=\"Entry pass QR code\" />" +
             $"<p class=\"name\">{E(name)}</p>" +
-            $"<p class=\"meta\">{E(startsAt.ToString("dddd, MMM d yyyy, h:mm tt"))}</p>" +
+            $"<p class=\"meta\">{E(ScheduleText.Starts(startsAt))}</p>" +
+            $"<p class=\"meta\">{E(ScheduleText.Ends(endsAt))}</p>" +
             $"<p class=\"meta\">{E(venue)}</p>" +
             "<p class=\"hint\">Present this QR code at the entrance.</p>" +
             "</div></div></body></html>";
