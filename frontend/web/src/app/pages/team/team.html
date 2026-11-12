@@ -71,7 +71,7 @@
                     @if (canEdit()) {
                     <td class="col-action">
                       <button type="button" mat-icon-button (click)="removeMember(m)"
-                              [disabled]="removing() === m.userId"
+                              [disabled]="removing() !== null"
                               [attr.aria-label]="'Remove ' + m.fullName" matTooltip="Remove from team">
                         <mat-icon>person_remove</mat-icon>
                       </button>
@@ -105,7 +105,7 @@
                    [disabled]="isFull()" [matAutocomplete]="candidateAuto"
                    (ngModelChange)="onEmailChange($event)" />
             @if (picked()) {
-              <mat-hint>Existing participant: joins with their own account and password.</mat-hint>
+              <mat-hint>Existing participant: joins with their own account, name and password. Change the email to add someone else.</mat-hint>
             }
             <mat-autocomplete #candidateAuto="matAutocomplete" [displayWith]="candidateEmail" (optionSelected)="pick($event.option.value)">
               @for (c of candidates(); track c.userId) {
@@ -120,19 +120,19 @@
           <mat-form-field appearance="outline">
             <mat-label>First name</mat-label>
             <input matInput name="firstName" [(ngModel)]="firstName" required maxlength="100"
-                   [disabled]="isFull()" />
+                   [disabled]="isFull()" [readonly]="!!picked()" />
           </mat-form-field>
 
           <div class="tp-pair">
             <mat-form-field appearance="outline" class="mi">
               <mat-label>M.I.</mat-label>
               <input matInput name="middleInitial" [(ngModel)]="middleInitial" maxlength="5"
-                     [disabled]="isFull()" />
+                     [disabled]="isFull()" [readonly]="!!picked()" />
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Last name</mat-label>
               <input matInput name="lastName" [(ngModel)]="lastName" required maxlength="100"
-                     [disabled]="isFull()" />
+                     [disabled]="isFull()" [readonly]="!!picked()" />
             </mat-form-field>
           </div>
 

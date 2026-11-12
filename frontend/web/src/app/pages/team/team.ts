@@ -11,7 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
+import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { ConfirmService } from '../../core/confirm.service';
@@ -19,8 +19,6 @@ import { AuthService } from '../../core/auth.service';
 import { TeamCandidate, TeamDetailDto, TeamMemberDto } from '../../core/models';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** Matches TeamsController.CandidateMinChars. */
-const CANDIDATE_MIN_CHARS = 3;
 
 // The Captain's only page: their team, its members, and a form to add a Participant by email
 // and name. Typing an email suggests existing Participants (picking one fills the names); an
@@ -189,9 +187,10 @@ export class TeamComponent implements OnInit {
       .pipe(
         map((v) => v.trim().toLowerCase()),
         debounceTime(250),
-        distinctUntilChanged(),
+        // No distinctUntilChanged: after a pick or an add clears the list, typing the same text
+        // again must fetch again. The server decides the minimum length.
         switchMap((q) =>
-          q.length < CANDIDATE_MIN_CHARS
+          !q
             ? of([] as TeamCandidate[])
             : this.api.findTeamCandidates(q).pipe(catchError(() => of([] as TeamCandidate[]))),
         ),

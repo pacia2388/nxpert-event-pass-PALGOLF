@@ -359,8 +359,12 @@ public class TeamsController : ControllerBase
                 return Conflict(new { message = $"{user.FullName} is already in another team." });
         }
 
-        // A new account is "unregistered" until the member completes it via the emailed link.
-        var member = new TeamMember { TeamId = teamId, User = user, RegistrationToken = isNew ? Guid.NewGuid() : null };
+        // A new account is "unregistered" until the member completes it via the emailed link. So is
+        // an existing one still on the temporary password: a Captain created it, it was removed
+        // from a team before being completed, and is now being added again. (Completing the link
+        // always sets a policy-compliant password, which can never be the temporary one.)
+        var unregistered = isNew || PasswordHasher.Verify(DefaultMemberPassword, user.PasswordHash);
+        var member = new TeamMember { TeamId = teamId, User = user, RegistrationToken = unregistered ? Guid.NewGuid() : null };
         _db.TeamMembers.Add(member);
         try
         {

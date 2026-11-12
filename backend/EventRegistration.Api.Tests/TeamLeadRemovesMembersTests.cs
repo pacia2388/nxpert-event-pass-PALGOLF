@@ -28,6 +28,24 @@ public class TeamLeadRemovesMembersTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task A_re_added_member_who_never_completed_their_account_is_still_unregistered()
+    {
+        var admin = await api.AdminAsync();
+        var team = await api.CreateTeamAsync(admin, "Regular");
+        var email = ApiFixture.NewEmail();
+        var created = await (await team.LeadClient.PostAsJsonAsync("/api/teams/mine/members",
+            ApiFixture.Member(email))).Content.ReadFromJsonAsync<AddResultBody>();
+        await team.LeadClient.DeleteAsync($"/api/teams/mine/members/{created!.Member.UserId}");
+
+        var again = await team.LeadClient.PostAsJsonAsync("/api/teams/mine/members", ApiFixture.Member(email));
+        var notice = await team.LeadClient.PostAsJsonAsync("/api/teams/mine/registration-notice",
+            new { userIds = new[] { created.Member.UserId } });
+
+        Assert.False((await again.Content.ReadFromJsonAsync<AddResultBody>())!.Member.Registered);
+        Assert.Equal(HttpStatusCode.OK, notice.StatusCode);
+    }
+
+    [Fact]
     public async Task A_captain_cannot_remove_a_member_of_another_team()
     {
         var admin = await api.AdminAsync();
