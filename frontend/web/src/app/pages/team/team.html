@@ -99,7 +99,8 @@
         }
 
         <form #f="ngForm" class="tp-form" (ngSubmit)="add()" autocomplete="off">
-          <mat-form-field appearance="outline">
+          <!-- Dynamic subscript: the two-line "Existing participant" hint pushes the next field down. -->
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="email-field">
             <mat-label>Email</mat-label>
             <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256"
                    [disabled]="isFull()" [matAutocomplete]="candidateAuto"
