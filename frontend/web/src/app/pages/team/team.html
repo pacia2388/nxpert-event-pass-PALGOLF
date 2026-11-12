@@ -13,8 +13,9 @@
         </div>
         @if (canEdit()) {
           <button mat-stroked-button color="primary" type="button" (click)="sendNotice()"
-                  [disabled]="sending() || !selected().size">
-            <mat-icon>mail</mat-icon> Send registration notice ({{ selected().size }})
+                  [disabled]="sending() || !noticeIds().length"
+                  matTooltip="Goes to the checked members who are not registered yet">
+            <mat-icon>mail</mat-icon> Send registration notice ({{ noticeIds().length }})
           </button>
         }
       </div>
@@ -22,7 +23,15 @@
 
     <div class="tp-grid" [class.read-only]="!canEdit()">
       <section class="tp-card" aria-label="Team members">
-        <h2 class="tp-card-title"><mat-icon>groups</mat-icon> Members</h2>
+        <h2 class="tp-card-title">
+          <mat-icon>groups</mat-icon> Members
+          @if (canEdit() && t.members.length) {
+            <button mat-stroked-button color="warn" type="button" class="tp-remove" (click)="removeSelected()"
+                    [disabled]="removing() || !selected().size">
+              <mat-icon>person_remove</mat-icon> Remove ({{ selected().size }})
+            </button>
+          }
+        </h2>
         @if (t.members.length) {
           <div class="tp-table-wrap">
             <table class="tp-table">
@@ -30,9 +39,9 @@
                 <tr>
                   @if (canEdit()) {
                   <th class="col-check">
-                    <mat-checkbox aria-label="Select all unregistered members"
+                    <mat-checkbox aria-label="Select all members"
                                   [checked]="allChecked()" [indeterminate]="someChecked()"
-                                  [disabled]="!pending().length" (change)="toggleAll($event.checked)">
+                                  [disabled]="removing()" (change)="toggleAll($event.checked)">
                     </mat-checkbox>
                   </th>
                   }
@@ -48,7 +57,7 @@
                     @if (canEdit()) {
                     <td class="col-check">
                       <mat-checkbox [attr.aria-label]="'Select ' + m.fullName"
-                                    [checked]="isChecked(m)" [disabled]="m.registered"
+                                    [checked]="isChecked(m)" [disabled]="removing()"
                                     (change)="toggle(m, $event.checked)">
                       </mat-checkbox>
                     </td>
@@ -87,30 +96,43 @@
         }
 
         <form #f="ngForm" class="tp-form" (ngSubmit)="add()" autocomplete="off">
+          <!-- Dynamic subscript: the two-line "Existing participant" hint pushes the next field down. -->
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="email-field">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256"
+                   [disabled]="isFull()" [matAutocomplete]="candidateAuto"
+                   (ngModelChange)="onEmailChange($event)" />
+            @if (picked()) {
+              <mat-hint>Existing participant: joins with their own account, name and password. Change the email to add someone else.</mat-hint>
+            }
+            <mat-autocomplete #candidateAuto="matAutocomplete" [displayWith]="candidateEmail" (optionSelected)="pick($event.option.value)">
+              @for (c of candidates(); track c.userId) {
+                <mat-option [value]="c" class="cand-option">
+                  <span class="cand-name">{{ c.firstName }}{{ c.middleInitial ? ' ' + c.middleInitial + '.' : '' }} {{ c.lastName }}</span>
+                  <span class="cand-email">{{ c.email }}</span>
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
           <mat-form-field appearance="outline">
             <mat-label>First name</mat-label>
             <input matInput name="firstName" [(ngModel)]="firstName" required maxlength="100"
-                   [disabled]="isFull()" />
+                   [disabled]="isFull()" [readonly]="!!picked()" />
           </mat-form-field>
 
           <div class="tp-pair">
             <mat-form-field appearance="outline" class="mi">
               <mat-label>M.I.</mat-label>
               <input matInput name="middleInitial" [(ngModel)]="middleInitial" maxlength="5"
-                     [disabled]="isFull()" />
+                     [disabled]="isFull()" [readonly]="!!picked()" />
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Last name</mat-label>
               <input matInput name="lastName" [(ngModel)]="lastName" required maxlength="100"
-                     [disabled]="isFull()" />
+                     [disabled]="isFull()" [readonly]="!!picked()" />
             </mat-form-field>
           </div>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256"
-                   [disabled]="isFull()" />
-          </mat-form-field>
 
           <button mat-flat-button color="primary" type="submit" [disabled]="saving() || isFull()">
             <mat-icon>person_add</mat-icon> Add to team
@@ -121,9 +143,10 @@
         </form>
 
         <p class="tp-hint">
-          If the email is new, a Participant account is created and signs in with the temporary
-          password <strong>char</strong>. If the email already belongs to a Participant, that
-          person joins the team and keeps their password.
+          Start with the email: Participants who are not in a team yet appear as you type, and
+          picking one fills in their name. They join the team and keep their password. If the
+          email is new, a Participant account is created and signs in with the temporary
+          password <strong>char</strong>.
         </p>
       </section>
       }

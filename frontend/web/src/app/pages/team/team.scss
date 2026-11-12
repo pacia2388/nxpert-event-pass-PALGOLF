@@ -161,6 +161,33 @@
   white-space: nowrap;
 }
 
+// Two-line suggestion (name, then email). The options render in a CDK overlay outside this
+// component, so the selector has to be global; the cand-option class keeps it scoped.
+::ng-deep .cand-option .mdc-list-item__primary-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  padding: 4px 0;
+
+  .cand-name {
+    font-weight: 600;
+  }
+
+  .cand-email {
+    font-size: 12.5px;
+    opacity: 0.7;
+  }
+}
+
+// Bulk remove for the checked members, at the far right of the Members title.
+.tp-card-title .tp-remove {
+  margin-left: auto;
+
+  mat-icon {
+    color: inherit;
+  }
+}
+
 .st {
   display: inline-flex;
   align-items: center;
@@ -282,4 +309,10 @@
   .col-date {
     display: none;
   }
+}
+
+// The email hint can wrap to three lines, so its subscript grows (subscriptSizing="dynamic"); keep
+// the usual 20px when it is empty so the form doesn't shift as the hint comes and goes.
+.email-field ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  min-height: 20px;
 }
