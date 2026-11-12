@@ -96,15 +96,11 @@
         }
 
         <form #f="ngForm" class="tp-form" (ngSubmit)="add()" autocomplete="off">
-          <!-- Dynamic subscript: the two-line "Existing participant" hint pushes the next field down. -->
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="email-field">
+          <mat-form-field appearance="outline">
             <mat-label>Email</mat-label>
             <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256"
                    [disabled]="isFull()" [matAutocomplete]="candidateAuto"
                    (ngModelChange)="onEmailChange($event)" />
-            @if (picked()) {
-              <mat-hint>Existing participant: joins with their own account, name and password. Change the email to add someone else.</mat-hint>
-            }
             <mat-autocomplete #candidateAuto="matAutocomplete" [displayWith]="candidateEmail" (optionSelected)="pick($event.option.value)">
               @for (c of candidates(); track c.userId) {
                 <mat-option [value]="c" class="cand-option">
