@@ -17,7 +17,6 @@ echo Worktree:      %WT%
 rem Untracked local files (git ignores them, so a new worktree lacks them).
 for %%f in (
   "start-all.ps1"
-  "CLAUDE.md"
   "backend\EventRegistration.Api\appsettings.Development.Local.json"
   "facerog-engine\.env.local"
   "facerog-engine\.env"
