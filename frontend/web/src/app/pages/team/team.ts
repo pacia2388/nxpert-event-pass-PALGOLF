@@ -11,7 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import { Subject, catchError, debounceTime, forkJoin, map, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { ConfirmService } from '../../core/confirm.service';
@@ -58,14 +58,20 @@ export class TeamComponent implements OnInit {
   team = signal<TeamDetailDto | null>(null);
 
   sending = signal(false);
-  /** userIds checked to receive the registration notice. Only unregistered members can be checked. */
+  /**
+   * userIds of the checked members. One selection drives both header actions: Remove acts on all
+   * of them, the registration notice on the unregistered ones only. Nothing starts checked, so a
+   * removal is always a deliberate pick.
+   */
   selected = signal<ReadonlySet<number>>(new Set());
 
   /** Members who can still get the notice (account not completed yet). */
   readonly pending = computed(() => this.team()?.members.filter((m) => !m.registered) ?? []);
+  /** Checked members the notice goes to (registered members are exempt). */
+  readonly noticeIds = computed(() => this.pending().filter((m) => this.selected().has(m.userId)).map((m) => m.userId));
   readonly allChecked = computed(() => {
-    const p = this.pending();
-    return p.length > 0 && p.every((m) => this.selected().has(m.userId));
+    const ms = this.team()?.members ?? [];
+    return ms.length > 0 && ms.every((m) => this.selected().has(m.userId));
   });
   readonly someChecked = computed(() => this.selected().size > 0 && !this.allChecked());
 
@@ -88,16 +94,15 @@ export class TeamComponent implements OnInit {
     this.api.getMyTeam().subscribe({
       next: (t) => {
         this.team.set(t);
-        this.resetSelection();
+        this.clearSelection();
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
   }
 
-  /** Default: unregistered members not notified yet. */
-  private resetSelection(): void {
-    this.selected.set(new Set(this.pending().filter((m) => !m.notificationFlag).map((m) => m.userId)));
+  private clearSelection(): void {
+    this.selected.set(new Set());
   }
 
   isChecked(m: TeamMemberDto): boolean {
@@ -112,11 +117,11 @@ export class TeamComponent implements OnInit {
   }
 
   toggleAll(checked: boolean): void {
-    this.selected.set(new Set(checked ? this.pending().map((m) => m.userId) : []));
+    this.selected.set(new Set(checked ? (this.team()?.members ?? []).map((m) => m.userId) : []));
   }
 
   async sendNotice(): Promise<void> {
-    const ids = [...this.selected()];
+    const ids = this.noticeIds();
     if (!ids.length || this.sending()) return;
     const ok = await this.confirmer.confirm({
       title: 'Send registration notice?',
@@ -129,7 +134,7 @@ export class TeamComponent implements OnInit {
       next: (res) => {
         this.sending.set(false);
         this.team.update((t) => (t ? { ...t, members: res.members } : t));
-        this.resetSelection();
+        this.clearSelection();
         const msg = `Registration notice sent to ${res.sent} member${res.sent === 1 ? '' : 's'}.`;
         if (res.failed) this.toast.warning(`${msg} ${res.failed} could not be sent; try again.`);
         else this.toast.success(msg);
@@ -141,32 +146,41 @@ export class TeamComponent implements OnInit {
     });
   }
 
-  /** userId of the member being removed, or null. */
-  removing = signal<number | null>(null);
+  removing = signal(false);
 
-  async removeMember(m: TeamMemberDto): Promise<void> {
-    if (this.removing() !== null) return;
+  /** Remove every checked member (one request each); members that fail stay checked. */
+  async removeSelected(): Promise<void> {
+    const members = (this.team()?.members ?? []).filter((m) => this.selected().has(m.userId));
+    if (!members.length || this.removing()) return;
+    const one = members.length === 1;
     const ok = await this.confirmer.confirm({
-      title: 'Remove member?',
-      message: `${m.fullName} will be removed from your team. Their account is kept, and any registration link they received stops working.`,
+      title: one ? 'Remove member?' : `Remove ${members.length} members?`,
+      message: `${one ? members[0].fullName : `${members.length} members`} will be removed from your team. Their accounts are kept, and any registration link they received stops working.`,
       confirmText: 'Remove',
       tone: 'warning',
     });
     if (!ok) return;
-    this.removing.set(m.userId);
-    this.api.removeMyTeamMember(m.userId).subscribe({
-      next: () => {
-        this.removing.set(null);
-        this.team.update((t) =>
-          t ? { ...t, memberCount: t.memberCount - 1, members: t.members.filter((x) => x.userId !== m.userId) } : t,
-        );
-        this.toggle(m, false);
-        this.toast.success(`${m.fullName} removed from the team.`);
-      },
-      error: (err) => {
-        this.removing.set(null);
-        this.toast.error(err?.error?.message ?? 'Could not remove this member.');
-      },
+    this.removing.set(true);
+    forkJoin(
+      members.map((m) =>
+        this.api.removeMyTeamMember(m.userId).pipe(
+          map(() => true),
+          // 404 = no longer a member (removed elsewhere meanwhile), so it is gone either way.
+          catchError((err) => of(err?.status === 404)),
+        ),
+      ),
+    ).subscribe((results) => {
+      this.removing.set(false);
+      const gone = new Set(members.filter((_, i) => results[i]).map((m) => m.userId));
+      this.team.update((t) =>
+        t ? { ...t, memberCount: t.memberCount - gone.size, members: t.members.filter((x) => !gone.has(x.userId)) } : t,
+      );
+      this.selected.set(new Set([...this.selected()].filter((id) => !gone.has(id))));
+      const failed = members.length - gone.size;
+      const msg = one && !failed ? `${members[0].fullName} removed from the team.` : `${gone.size} removed from the team.`;
+      if (!failed) this.toast.success(msg);
+      else if (gone.size) this.toast.warning(`${msg} ${failed} could not be removed; they are still selected.`);
+      else this.toast.error(one ? 'Could not remove this member.' : 'Could not remove these members.');
     });
   }
 
@@ -248,7 +262,6 @@ export class TeamComponent implements OnInit {
                 }
               : t,
           );
-          if (!res.member.registered) this.toggle(res.member, true);
           this.form()?.resetForm({ firstName: '', middleInitial: '', lastName: '', email: '' });
           this.picked.set(null);
           this.candidates.set([]);

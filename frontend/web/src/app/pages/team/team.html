@@ -13,8 +13,9 @@
         </div>
         @if (canEdit()) {
           <button mat-stroked-button color="primary" type="button" (click)="sendNotice()"
-                  [disabled]="sending() || !selected().size">
-            <mat-icon>mail</mat-icon> Send registration notice ({{ selected().size }})
+                  [disabled]="sending() || !noticeIds().length"
+                  matTooltip="Goes to the checked members who are not registered yet">
+            <mat-icon>mail</mat-icon> Send registration notice ({{ noticeIds().length }})
           </button>
         }
       </div>
@@ -22,7 +23,15 @@
 
     <div class="tp-grid" [class.read-only]="!canEdit()">
       <section class="tp-card" aria-label="Team members">
-        <h2 class="tp-card-title"><mat-icon>groups</mat-icon> Members</h2>
+        <h2 class="tp-card-title">
+          <mat-icon>groups</mat-icon> Members
+          @if (canEdit() && t.members.length) {
+            <button mat-stroked-button color="warn" type="button" class="tp-remove" (click)="removeSelected()"
+                    [disabled]="removing() || !selected().size">
+              <mat-icon>person_remove</mat-icon> Remove ({{ selected().size }})
+            </button>
+          }
+        </h2>
         @if (t.members.length) {
           <div class="tp-table-wrap">
             <table class="tp-table">
@@ -30,9 +39,9 @@
                 <tr>
                   @if (canEdit()) {
                   <th class="col-check">
-                    <mat-checkbox aria-label="Select all unregistered members"
+                    <mat-checkbox aria-label="Select all members"
                                   [checked]="allChecked()" [indeterminate]="someChecked()"
-                                  [disabled]="!pending().length" (change)="toggleAll($event.checked)">
+                                  [disabled]="removing()" (change)="toggleAll($event.checked)">
                     </mat-checkbox>
                   </th>
                   }
@@ -40,9 +49,6 @@
                   <th>Email</th>
                   <th class="col-date">Added</th>
                   <th class="col-status">Notified</th>
-                  @if (canEdit()) {
-                  <th class="col-action"><span class="cdk-visually-hidden">Actions</span></th>
-                  }
                 </tr>
               </thead>
               <tbody>
@@ -51,7 +57,7 @@
                     @if (canEdit()) {
                     <td class="col-check">
                       <mat-checkbox [attr.aria-label]="'Select ' + m.fullName"
-                                    [checked]="isChecked(m)" [disabled]="m.registered"
+                                    [checked]="isChecked(m)" [disabled]="removing()"
                                     (change)="toggle(m, $event.checked)">
                       </mat-checkbox>
                     </td>
@@ -68,15 +74,6 @@
                         <span class="st st-none">Not yet</span>
                       }
                     </td>
-                    @if (canEdit()) {
-                    <td class="col-action">
-                      <button type="button" mat-icon-button (click)="removeMember(m)"
-                              [disabled]="removing() !== null"
-                              [attr.aria-label]="'Remove ' + m.fullName" matTooltip="Remove from team">
-                        <mat-icon>person_remove</mat-icon>
-                      </button>
-                    </td>
-                    }
                   </tr>
                 }
               </tbody>
