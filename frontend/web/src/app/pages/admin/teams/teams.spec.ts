@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MatTooltip } from '@angular/material/tooltip';
+import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { ApiService } from '../../../core/api.service';
 import { TeamsComponent } from './teams';
@@ -34,5 +36,17 @@ describe('Teams page form', () => {
     fixture.detectChanges();
 
     expect(requiredMarkers()).toBe(2);
+  });
+
+  it('says a one-letter team name is too short, not missing', () => {
+    const name = root().querySelector<HTMLInputElement>('input[name="description"]')!;
+    name.dispatchEvent(new Event('focus'));
+    name.value = ' A ';
+    name.dispatchEvent(new Event('input'));
+    name.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    const icon = fixture.debugElement.query(By.css('mat-form-field:has(input[name="description"]) mat-icon.req'));
+    expect(icon?.injector.get(MatTooltip).message).toBe('At least 2 characters');
   });
 });

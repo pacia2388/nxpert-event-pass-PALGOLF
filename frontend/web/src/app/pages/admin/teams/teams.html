@@ -86,9 +86,11 @@
       <form #f="ngForm" class="uf" (ngSubmit)="save()" autocomplete="off">
         <mat-form-field appearance="outline" class="span-2">
           <mat-label>Team name</mat-label>
-          <input matInput name="description" [(ngModel)]="description" #descriptionModel="ngModel" required minlength="2" maxlength="200" />
-          @if (descriptionModel.touched && description.trim().length < 2) {
-            <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
+          <input matInput name="description" [(ngModel)]="description" #descriptionModel="ngModel" required
+                 pattern="\s*\S.*\S\s*" maxlength="200" />
+          @if (descriptionModel.invalid && descriptionModel.touched) {
+            <mat-icon matSuffix class="req"
+                      [matTooltip]="descriptionModel.hasError('required') ? 'Required' : 'At least 2 characters'">error</mat-icon>
           }
         </mat-form-field>
 
@@ -110,7 +112,7 @@
               </mat-option>
             }
           </mat-select>
-          @if (leadModel.touched && teamLeadUserId == null) {
+          @if (leadModel.invalid && leadModel.touched) {
             <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
           }
         </mat-form-field>
