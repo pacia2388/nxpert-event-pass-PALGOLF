@@ -6,6 +6,9 @@ public static class EmailTemplates
 {
     private const string Accent = "#0f5fb8";
 
+    // Text typed by people (names, titles, venues) shown as text, never as markup.
+    private static string E(string? text) => System.Net.WebUtility.HtmlEncode(text ?? "");
+
     // Organizer-typed text (e.g. an event description) as safe HTML laid out exactly as typed:
     // line breaks → <br>, blank lines kept, and indentation / runs of spaces → &nbsp; — so bullets
     // and indented lines survive clients that ignore white-space:pre-wrap (Outlook desktop).
@@ -96,13 +99,13 @@ public static class EmailTemplates
     public static string Confirmation(string title, DateTime startsAt, DateTime endsAt, string venue, string attendeeName,
         string? editUrl = null, string? meetingUrl = null, bool showPass = true) => Shell(
         "Registration confirmed",
-        $@"<p>Hi {attendeeName},</p>
-           <p>Good news — your registration for <strong>{title}</strong> has been
+        $@"<p>Hi {E(attendeeName)},</p>
+           <p>Good news — your registration for <strong>{E(title)}</strong> has been
               <strong>confirmed</strong>.{(showPass
                 ? " Your entry pass is below; present this QR code at the door for check-in."
                 : " Use the button below to join the online meeting.")}</p>
            {WhenLines(startsAt, endsAt)}
-           <p style=""margin:4px 0""><strong>Where:</strong> {(showPass ? venue : "Online")}{(showPass && meetingUrl is not null ? " · or join online" : "")}</p>
+           <p style=""margin:4px 0""><strong>Where:</strong> {(showPass ? E(venue) : "Online")}{(showPass && meetingUrl is not null ? " · or join online" : "")}</p>
            {(meetingUrl is null ? "" : JoinBlock(meetingUrl))}
            {(showPass ? @"<div style=""text-align:center;margin:24px 0"">
              <img src=""cid:qrcode"" alt=""Your entry QR code"" width=""220"" height=""220""
@@ -129,8 +132,8 @@ public static class EmailTemplates
     // The online meeting changed (time, title or link): the attached invite updates the calendar entry.
     public static string MeetingUpdated(string title, DateTime startsAt, DateTime endsAt, string attendeeName, string meetingUrl) => Shell(
         "Meeting details updated",
-        $@"<p>Hi {attendeeName},</p>
-           <p>The online meeting details for <strong>{title}</strong> have changed. The attached
+        $@"<p>Hi {E(attendeeName)},</p>
+           <p>The online meeting details for <strong>{E(title)}</strong> have changed. The attached
               invite updates the entry in your calendar.</p>
            {WhenLines(startsAt, endsAt)}
            {JoinBlock(meetingUrl)}");
@@ -143,13 +146,13 @@ public static class EmailTemplates
             MeetingCancelReason.NowInPerson => "Online meeting removed",
             _ => "Registration cancelled",
         },
-        $@"<p>Hi {attendeeName},</p>
+        $@"<p>Hi {E(attendeeName)},</p>
            <p>{reason switch
               {
-                  MeetingCancelReason.EventCancelled => $"<strong>{title}</strong> has been cancelled.",
+                  MeetingCancelReason.EventCancelled => $"<strong>{E(title)}</strong> has been cancelled.",
                   MeetingCancelReason.NowInPerson =>
-                      $"<strong>{title}</strong> will now be held <strong>in person only</strong> — your registration still stands.",
-                  _ => $"Your registration for <strong>{title}</strong> has been cancelled.",
+                      $"<strong>{E(title)}</strong> will now be held <strong>in person only</strong> — your registration still stands.",
+                  _ => $"Your registration for <strong>{E(title)}</strong> has been cancelled.",
               }}
               The online meeting below has been removed; the attached update takes it off your calendar.</p>
            {WhenLines(startsAt, endsAt)}
@@ -231,10 +234,10 @@ public static class EmailTemplates
 
     public static string Pass(Event ev, string attendeeName) => Shell(
         "Your Event Pass",
-        $@"<p>Hi {attendeeName},</p>
-           <p>You're registered for <strong>{ev.Title}</strong>. Present this QR code at the door for check-in.</p>
+        $@"<p>Hi {E(attendeeName)},</p>
+           <p>You're registered for <strong>{E(ev.Title)}</strong>. Present this QR code at the door for check-in.</p>
            {WhenLines(ev.StartsAt, ev.EndsAt)}
-           <p style=""margin:4px 0""><strong>Where:</strong> {ev.Venue}</p>
+           <p style=""margin:4px 0""><strong>Where:</strong> {E(ev.Venue)}</p>
            <div style=""text-align:center;margin:24px 0"">
              <img src=""cid:qrcode"" alt=""Your entry QR code"" width=""220"" height=""220""
                   style=""border:8px solid #fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.12)"" />
