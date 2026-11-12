@@ -15,7 +15,7 @@ import { ToastService } from '../../../core/toast.service';
 import { ApiService } from '../../../core/api.service';
 import { AuthService } from '../../../core/auth.service';
 import { EventDto } from '../../../core/models';
-import { ScheduleComponent } from '../../../shared/schedule-range';
+import { ScheduleComponent } from '../../../shared/schedule';
 
 type Phase = 'live' | 'upcoming' | 'past';
 type EventFilter = 'all' | Phase | 'draft' | 'closed';

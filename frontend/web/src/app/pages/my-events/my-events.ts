@@ -14,7 +14,7 @@ import { PassDialogComponent } from './pass-dialog';
 import { FeedbackDialogComponent } from './feedback-dialog';
 import { ResponsesDialogComponent } from './responses-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
-import { ScheduleComponent } from '../../shared/schedule-range';
+import { ScheduleComponent } from '../../shared/schedule';
 
 @Component({
   selector: 'app-my-events',

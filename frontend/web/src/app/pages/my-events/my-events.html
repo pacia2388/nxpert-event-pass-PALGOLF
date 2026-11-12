@@ -44,7 +44,7 @@
           </div>
           <div class="ev-meta">
             <p class="ev-line"><mat-icon>schedule</mat-icon>
-              <span><app-schedule [start]="reg.startsAt" [end]="reg.endsAt" /></span></p>
+              <app-schedule [start]="reg.startsAt" [end]="reg.endsAt" /></p>
             @if (reg.format !== 'Online') {
               <p class="ev-line"><mat-icon>place</mat-icon> <span>{{ reg.venue }}</span></p>
             }

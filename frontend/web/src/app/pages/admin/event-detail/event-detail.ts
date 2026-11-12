@@ -30,7 +30,7 @@ import { ImageViewerDialogComponent } from '../../../shared/image-viewer/image-v
 import { KitClaimDialogComponent, KitClaimResult } from '../../../shared/kit-claim-dialog';
 import { ViberBroadcastDialogComponent } from '../../../shared/viber-broadcast-dialog';
 import { InvitationComposerComponent } from '../../../shared/invitation-composer/invitation-composer';
-import { ScheduleComponent } from '../../../shared/schedule-range';
+import { ScheduleComponent } from '../../../shared/schedule';
 
 @Component({
   selector: 'app-event-detail',

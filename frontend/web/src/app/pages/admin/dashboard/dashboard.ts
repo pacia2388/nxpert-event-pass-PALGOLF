@@ -18,7 +18,7 @@ import {
   EventSubEventBreakdown,
   SubEventCount,
 } from '../../../core/models';
-import { ScheduleComponent } from '../../../shared/schedule-range';
+import { ScheduleComponent } from '../../../shared/schedule';
 
 @Component({
   selector: 'app-dashboard',

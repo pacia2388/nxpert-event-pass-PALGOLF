@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RegistrationDto } from '../../core/models';
 import { downloadPass, fileSlug, passQrDataUrl } from '../../core/qr.util';
-import { ScheduleComponent } from '../../shared/schedule-range';
+import { ScheduleComponent } from '../../shared/schedule';
 
 @Component({
   selector: 'app-pass-dialog',

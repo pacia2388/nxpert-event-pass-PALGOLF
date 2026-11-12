@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { EventDto } from '../../core/models';
 import { openImageLightbox } from '../../shared/image-lightbox';
-import { ScheduleComponent } from '../../shared/schedule-range';
+import { ScheduleComponent } from '../../shared/schedule';
 
 export interface EventDetailsData {
   event: EventDto;

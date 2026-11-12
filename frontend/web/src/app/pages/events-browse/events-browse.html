@@ -63,7 +63,7 @@
           <h2 class="ev-name">{{ e.title }}</h2>
           <div class="ev-meta">
             <p class="ev-line"><mat-icon>schedule</mat-icon>
-              <span><app-schedule [start]="e.startsAt" [end]="e.endsAt" /></span>
+              <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
             </p>
             @if (e.format === 'Online') {
               <p class="ev-line"><mat-icon>videocam</mat-icon> <span>Online meeting</span></p>
