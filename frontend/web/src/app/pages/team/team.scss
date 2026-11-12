@@ -161,6 +161,14 @@
   white-space: nowrap;
 }
 
+.tp-table th.col-action,
+.tp-table td.col-action {
+  width: 1%;
+  padding-top: 0;
+  padding-bottom: 0;
+  text-align: right;
+}
+
 .st {
   display: inline-flex;
   align-items: center;

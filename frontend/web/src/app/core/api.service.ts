@@ -617,6 +617,9 @@ export class ApiService {
   addMyTeamMember(body: TeamMemberCreate): Observable<TeamMemberAddResult> {
     return this.http.post<TeamMemberAddResult>(this.url('/api/teams/mine/members'), body);
   }
+  removeMyTeamMember(userId: number): Observable<void> {
+    return this.http.delete<void>(this.url(`/api/teams/mine/members/${userId}`));
+  }
   sendTeamRegistrationNotice(userIds: number[]): Observable<TeamRegistrationNoticeResult> {
     return this.http.post<TeamRegistrationNoticeResult>(this.url('/api/teams/mine/registration-notice'), { userIds });
   }

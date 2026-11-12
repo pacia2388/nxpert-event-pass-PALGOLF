@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { ConfirmService } from '../../core/confirm.service';
@@ -30,6 +31,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatCheckboxModule,
+    MatTooltipModule,
   ],
   templateUrl: './team.html',
   styleUrl: './team.scss',
@@ -130,6 +132,35 @@ export class TeamComponent implements OnInit {
       error: (err) => {
         this.sending.set(false);
         this.toast.error(err?.error?.message ?? 'Could not send the registration notice.');
+      },
+    });
+  }
+
+  /** userId of the member being removed, or null. */
+  removing = signal<number | null>(null);
+
+  async removeMember(m: TeamMemberDto): Promise<void> {
+    if (this.removing() !== null) return;
+    const ok = await this.confirmer.confirm({
+      title: 'Remove member?',
+      message: `${m.fullName} will be removed from your team. Their account is kept, and any registration link they received stops working.`,
+      confirmText: 'Remove',
+      tone: 'warning',
+    });
+    if (!ok) return;
+    this.removing.set(m.userId);
+    this.api.removeMyTeamMember(m.userId).subscribe({
+      next: () => {
+        this.removing.set(null);
+        this.team.update((t) =>
+          t ? { ...t, memberCount: t.memberCount - 1, members: t.members.filter((x) => x.userId !== m.userId) } : t,
+        );
+        this.toggle(m, false);
+        this.toast.success(`${m.fullName} removed from the team.`);
+      },
+      error: (err) => {
+        this.removing.set(null);
+        this.toast.error(err?.error?.message ?? 'Could not remove this member.');
       },
     });
   }
