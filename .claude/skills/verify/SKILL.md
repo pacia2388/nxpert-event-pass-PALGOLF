@@ -29,7 +29,8 @@ Use `preview_start` with these `.claude/launch.json` names. Start only what the 
 | Name | Port | Serves |
 |------|------|--------|
 | `api` | 5088 | .NET API (Development, LocalDB). Starts with Email, Viber and SMS **off** |
-| `web` | 4200 | Angular SPA (`web-alt`: 4300, when 4200 is taken by another checkout) |
+| `web` | 4200 | Angular SPA, talks to `api` |
+| `api-alt` / `web-alt` | 5090 / 4400 | Same pair for when another checkout holds 5088 / 4200; `web-alt` talks to `api-alt` (`frontend/web/config/alt/appSettings.json`), so no config edits |
 | `face` | 8000 | Face engine dashboard + API; needed only for face check-in / TV scanner changes |
 
 - **Messaging stays off.** The committed `appsettings.json` enables real Gmail and Viber; the `api`
@@ -39,14 +40,18 @@ Use `preview_start` with these `.claude/launch.json` names. Start only what the 
 - The API takes ~15 s to build; the NU1902/NU1903 package warnings are pre-existing.
 - First start on an empty DB seeds it. Dropping the DB (`dotnet ef database drop --force`) needs
   the user's go-ahead.
-- In a worktree, run `scripts\setup-worktree.cmd` first, and stop the main checkout's servers (same
-  ports) or use `web-alt`.
+- In a worktree, run `scripts\setup-worktree.cmd` first, then use `api-alt` + `web-alt`.
 
 ## 3. Drive the surface
 
+For a flow worth keeping, write a Playwright spec in `frontend/web/e2e/<role>/` instead of seeding
+the dev DB by hand: it starts its own API (5188), web app (4300) and throwaway DB, signs in per role,
+and arranges data through `adminApi` (`e2e/helpers/data.ts`). Run one file with
+`npm run e2e --prefix frontend/web -- e2e/<role>/<file>.spec.ts`.
+
 | Change in | Drive it through |
 |-----------|------------------|
-| `frontend/web/**` | The browser pane at `http://localhost:4200/<route>` (routes: `frontend/web/src/app/app.routes.ts`). Click through as a user would; screenshot. |
+| `frontend/web/**` | The browser pane at `http://localhost:4200/<route>` (routes: `frontend/web/src/app/app.routes.ts`). Click through as a user would; screenshot. For template or style changes, check at 1440px+ and at 375px (`resize_window`), then reset to `desktop`. |
 | `backend/**` controllers/services | The screen that calls it, plus `curl` for edge cases (below). |
 | Email/pass/stub templates | Trigger the send in the UI, then open the outbox `.html` in the pane. |
 | `facerog-engine/**` | `http://localhost:8000` dashboard, or the TV at `/scanner/<eventId>/tv`. |
@@ -54,8 +59,16 @@ Use `preview_start` with these `.claude/launch.json` names. Start only what the 
 **Accounts** (Development seed, `Data/DbSeeder.cs`): admin `admin@demo.com` / `Admin123!`;
 seeded participants use `Passw0rd!`. The pane often keeps a signed-in session — open the page
 before signing in. Sign out and in again after changing a user's grants (they apply at next sign-in).
+Typing into the login form in the pane can fail to submit; sign in with `javascript_tool` on any
+app page instead, then navigate:
 
-**API calls:**
+```js
+const r = await fetch('<api>/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'admin@demo.com', password: 'Admin123!' }) });
+localStorage.setItem('evt_auth', await r.text());
+```
+
+**API calls** (`api-alt`: port 5090):
 
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:5088/api/auth/login -H "Content-Type: application/json" \
