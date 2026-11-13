@@ -17,8 +17,8 @@ not match the category gets a warning before registering.
 | Warning | Confirm dialog on **Register** (account flow); safe option **Cancel** pre-selected; "Register anyway" continues. Not enforced on the server |
 | Unknown age | Guests and users with no birthdate: no warning |
 | Privacy | Birthdate stays out of event DTOs; the page reads the user's own birthdate via `GET /api/auth/me` |
-| Pill | Admin Events list cards and Browse Events cards: "Senior (65+)" / "Regular" |
-| Event form | Category toggle: No category / Senior (65+) / Regular |
+| Pill | Admin Events list cards and Browse Events cards: "Senior" / "Regular" (no age range on the label) |
+| Event form | Category toggle: No category / Senior / Regular |
 
 ## Affected modules
 
@@ -57,3 +57,4 @@ not match the category gets a warning before registering.
 |------|--------|
 | 2026-11-13 | Plan created |
 | 2026-11-13 | Implemented: category column, form toggle, card pills, register warning; 7 API, 7 unit, 4 e2e tests |
+| 2026-11-13 | Label shortened from "Senior (65+)" to "Senior" on the pill and form toggle |
