@@ -105,7 +105,7 @@ Null = column allows NULL.
 | StartsAt | datetime2 | | Wall-clock (server local time) |
 | EndsAt | datetime2 | | |
 | Venue | nvarchar(300) | | |
-| IsPublicLinkEnabled | bit | | Default true; must be on to appear in Browse Events |
+| IsPublicLinkEnabled | bit | | Default true; must be on to appear in Browse Events (Published or Closed) |
 | PublicSlug | nvarchar(100) | | **Unique**; public URL `/e/{slug}` |
 | CreatedByUserId | int | | User id (no FK) |
 | Status | nvarchar(20) | | **`Draft` · `Published` (default) · `Closed`** |
