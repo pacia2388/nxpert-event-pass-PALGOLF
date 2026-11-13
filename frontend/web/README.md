@@ -44,6 +44,15 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
+## Linting
+
+```bash
+npm run lint
+```
+
+Rules live in `eslint.config.js`. Accessibility warnings are existing debt, capped by `maxWarnings`
+in `angular.json`: a new one fails the lint, and fixing one means lowering the cap.
+
 ## Running end-to-end tests
 
 The Playwright suite in `e2e/` starts its own API and web server on a throwaway database:
