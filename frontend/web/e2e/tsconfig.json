@@ -1,0 +1,12 @@
+/* Type-checks the Playwright suite. Kept apart from tsconfig.spec.json so Playwright and Vitest
+   globals don't clash. */
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["./**/*.ts", "../playwright.config.ts"]
+}

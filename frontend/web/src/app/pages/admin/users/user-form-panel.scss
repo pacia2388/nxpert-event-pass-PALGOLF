@@ -75,7 +75,7 @@
   }
 }
 
-// Red "!" marker on required fields that are still empty.
+// Red "!" marker on required fields left empty after the admin touches them or tries to save.
 .req {
   color: #e53935;
   font-size: 20px;

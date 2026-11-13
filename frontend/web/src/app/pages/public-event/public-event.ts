@@ -22,10 +22,12 @@ import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face
 import { PhoneCountryService } from '../../core/phone-country.service';
 import { PhoneFieldComponent } from '../../shared/phone-field/phone-field';
 import { firstValueFrom } from 'rxjs';
+import { ScheduleComponent } from '../../shared/schedule';
 
 @Component({
   selector: 'app-public-event',
   imports: [
+    ScheduleComponent,
     PhoneFieldComponent,
     DatePipe,
     DecimalPipe,

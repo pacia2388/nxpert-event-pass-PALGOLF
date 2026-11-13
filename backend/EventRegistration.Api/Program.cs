@@ -103,6 +103,12 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
+// Say where email goes, so a run's log answers it without opening the local settings.
+if (emailSettings.Enabled)
+    app.Logger.LogInformation("Email delivery: SMTP via {Host}:{Port}.", emailSettings.Host, emailSettings.Port);
+else
+    app.Logger.LogInformation("Email delivery: outbox (SMTP is off).");
+
 // ---- Migrate + seed on startup ----
 // Applying migrations on startup is controlled by the Database:AutoMigrate flag in appsettings
 // (default true), so a published/deployed build can bring the schema up to date automatically —

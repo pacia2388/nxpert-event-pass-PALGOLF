@@ -95,7 +95,9 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<IEnumerable<UserDto>>> List()
     {
         var users = await _db.Users.OrderBy(u => u.FullName).ToListAsync();
-        return Ok(users.Select(u => ToDto(u)));
+        // A user is in at most one team (unique index on TeamMembers.UserId).
+        var teamOf = await _db.TeamMembers.ToDictionaryAsync(m => m.UserId, m => (int?)m.TeamId);
+        return Ok(users.Select(u => ToDto(u) with { TeamId = teamOf.GetValueOrDefault(u.Id) }));
     }
 
     [HttpGet("{id:int}")]

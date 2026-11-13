@@ -105,7 +105,7 @@ export class UsersComponent implements OnInit {
         this.users.set(list);
         this.loading.set(false);
         const id = selectId ?? this.selected()?.id;
-        this.selected.set(id != null ? (list.find((u) => u.id === id) ?? null) : null);
+        this.show(id != null ? (list.find((u) => u.id === id) ?? null) : null);
       },
       error: () => this.loading.set(false),
     });
@@ -134,7 +134,13 @@ export class UsersComponent implements OnInit {
 
   async newUser(): Promise<void> {
     if (!(await this.confirmDiscard())) return;
-    this.selected.set(null);
+    this.show(null);
+  }
+
+  // Setting the same record again doesn't notify the panel, so reload it directly.
+  private show(u: UserDto | null): void {
+    if (this.selected() === u) this.panel().reload();
+    else this.selected.set(u);
   }
 
   save(): void {

@@ -1,0 +1,78 @@
+name: CI
+
+# PRs into main, and main itself (direct pushes and merged PRs). DEV_1818 always has an open
+# PR into main, so the PR trigger covers its pushes without a second run.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  api:
+    # The API tests host the real app against SQL Server LocalDB, which needs Windows.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Install SQL Server LocalDB
+        shell: pwsh
+        run: |
+          choco install sqllocaldb -y --no-progress
+          sqllocaldb create MSSQLLocalDB -s
+      - run: dotnet test backend/EventRegistration.Api.Tests
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/web/package-lock.json
+      - run: npm ci
+      - run: npx ng test --watch=false
+      - run: npx ng build
+
+  e2e:
+    # Playwright drives the web app against the real API on a throwaway LocalDB database, which
+    # needs Windows. playwright.config.ts starts both servers and drops the database afterwards.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: frontend/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/web/package-lock.json
+      - name: Install SQL Server LocalDB
+        shell: pwsh
+        run: |
+          choco install sqllocaldb -y --no-progress
+          sqllocaldb create MSSQLLocalDB -s
+      - run: npm ci
+      - run: npx playwright install chromium
+      # Build first so the API starts within the webServer timeout.
+      - run: dotnet build ../../backend/EventRegistration.Api
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            frontend/web/playwright-report
+            frontend/web/test-results
+          retention-days: 14

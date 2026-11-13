@@ -26,6 +26,9 @@ public record TeamRegistrationNoticeRequest([MaxLength(50)] List<int> UserIds);
 public record TeamRegistrationNoticeResult(int Sent, int Failed, List<TeamMemberDto> Members);
 // Pre-fill for the register page opened from a team registration link.
 public record TeamRegistrationPrefill(string FirstName, string? MiddleInitial, string LastName, string Email);
+// An existing Participant a Captain can add, suggested while typing an email.
+public record TeamCandidateDto(int UserId, string FirstName, string? MiddleInitial, string LastName, string Email);
+
 // Created = a new account was made (it signs in with the default temporary password).
 public record TeamMemberAddResult(TeamMemberDto Member, bool Created);
 
@@ -46,7 +49,9 @@ public record UserDto(
     string? SenateNo, string? Level, string Email, string Username, string Role, string? Organization, string? Phone,
     string NotificationChannel,
     bool CanConfirmRegistrations, bool EmailVerified, DateTime CreatedAt, string? PhotoUrl, bool HasFace,
-    DateOnly? Birthdate);
+    DateOnly? Birthdate,
+    // The team this user is a member of (null = none). Filled on the users list only.
+    int? TeamId = null);
 
 // Password is required on create, optional on update (blank = keep current).
 // Face: a JSON array of 128 floats (the face descriptor) captured during facial registration;
@@ -231,7 +236,7 @@ public record RegisterResult(int Created, int AlreadyRegistered, string EventTit
     string? EditToken = null);
 
 public record RegistrationDto(
-    int Id, int EventId, string EventTitle, DateTime StartsAt, string Venue,
+    int Id, int EventId, string EventTitle, DateTime StartsAt, DateTime EndsAt, string Venue,
     Guid Token, DateTime RegisteredAt, DateTime? ConfirmedAt, DateTime? CheckedInAt,
     int? SessionId, string? SessionTitle, string? SessionPosterImage, bool HasFormFields,
     // Online / Hybrid: the join link, only once the registration is confirmed.

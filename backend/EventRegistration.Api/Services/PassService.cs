@@ -92,6 +92,7 @@ public class PassService
         // For a sub-event registration, the pass shows the session's title/time/venue.
         var title = reg.Session is not null ? $"{ev.Title} — {reg.Session.Title}" : ev.Title;
         var startsAt = reg.Session?.StartsAt ?? ev.StartsAt;
+        var endsAt = reg.Session?.EndsAt ?? ev.EndsAt;
         var venue = reg.Session?.Venue ?? ev.Venue;
         var name = reg.DisplayName;
         var qrPng = _qr.GeneratePng($"REG:{reg.Token}");
@@ -119,12 +120,12 @@ public class PassService
         async Task<DeliveryResult> Mobile(IMobileSender m)
         {
             var result = showPass
-                ? await m.SendPassAsync(phone!, title, startsAt, venue, name, reg.Token.ToString(), qrPng, editUrl)
+                ? await m.SendPassAsync(phone!, title, startsAt, endsAt, venue, name, reg.Token.ToString(), qrPng, editUrl)
                 : await m.SendTextAsync(phone!, $"Registration confirmed — {title}",
-                    $"Hi {name}, your registration for \"{title}\" is confirmed. " +
-                    $"When: {startsAt:ddd, MMM d yyyy, h:mm tt}." +
-                    (meetingUrl is null ? "" : $" Join online: {meetingUrl}") +
-                    $" · Edit your response: {editUrl}");
+                    $"Hi {name}, your registration for \"{title}\" is confirmed.\n" +
+                    $"{ScheduleText.Text(startsAt, endsAt)}" +
+                    (meetingUrl is null ? "" : $"\nJoin online: {meetingUrl}") +
+                    (editUrl is null ? "" : $"\nEdit your response: {editUrl}"));
             if (!result.Delivered()) return result;
             if (showPass && meetingUrl is not null)
                 await m.SendTextAsync(phone!, $"Registration confirmed — {title}", $"You can also join \"{title}\" online: {meetingUrl}");
@@ -141,7 +142,7 @@ public class PassService
             // vertical denomination — all baked into a single PNG so it renders identically anywhere).
             var images = showPass ? new Dictionary<string, byte[]> { ["qrcode"] = qrPng } : new();
             var html = new StringBuilder(
-                EmailTemplates.Confirmation(title, startsAt, venue, name, editUrl, meetingUrl, showPass));
+                EmailTemplates.Confirmation(title, startsAt, endsAt, venue, name, editUrl, meetingUrl, showPass));
             if (stubs.Count > 0)
             {
                 html.Append(
@@ -193,14 +194,15 @@ public class PassService
         url ??= $"{FrontendBase}/e/{ev.PublicSlug}";
         var title = reg.Session is not null ? $"{ev.Title} — {reg.Session.Title}" : ev.Title;
         var startsAt = reg.Session?.StartsAt ?? ev.StartsAt;
+        var endsAt = reg.Session?.EndsAt ?? ev.EndsAt;
         var subject = $"Updated: {title}";
 
         return await DeliverAsync(reg, ChannelOf(reg),
             m => m.SendTextAsync(reg.DisplayPhone!, subject,
-                $"Hi {reg.DisplayName}, the event details for \"{title}\" have changed. " +
-                $"When: {startsAt:ddd, MMM d yyyy, h:mm tt}. Join: {url}"),
+                $"Hi {reg.DisplayName}, the event details for \"{title}\" have changed.\n" +
+                $"{ScheduleText.Text(startsAt, endsAt)}\nJoin: {url}"),
             invite is null ? null : () => _email.SendAsync(invite.AttendeeEmail, subject,
-                EventFormats.HasOnline(ev.Format) ? EmailTemplates.MeetingUpdated(title, startsAt, reg.DisplayName, url) :
+                EventFormats.HasOnline(ev.Format) ? EmailTemplates.MeetingUpdated(title, startsAt, endsAt, reg.DisplayName, url) :
                     "<p>The event details have changed. The attached calendar invitation updates your existing event.</p>" +
                     EmailTemplates.Invitation(ev, System.Net.WebUtility.HtmlEncode(url)),
                 attachments: new[] { new EmailAttachment(CalendarInvite.FileName, CalendarInvite.Request(invite), CalendarInvite.ContentType(false)) }),
@@ -244,7 +246,7 @@ public class PassService
             _ => $"Registration cancelled — {s.Invite.Title}",
         };
         return _email.SendAsync(s.Invite.AttendeeEmail, subject,
-            EmailTemplates.MeetingCancelled(s.Invite.Title, s.Invite.StartsAt, s.DisplayName, s.Reason),
+            EmailTemplates.MeetingCancelled(s.Invite.Title, s.Invite.StartsAt, s.Invite.EndsAt, s.DisplayName, s.Reason),
             attachments: new[] { new EmailAttachment(CalendarInvite.FileName, CalendarInvite.Cancel(s.Invite), CalendarInvite.ContentType(true)) });
     }
 

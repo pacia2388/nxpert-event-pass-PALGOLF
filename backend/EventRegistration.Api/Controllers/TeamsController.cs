@@ -247,6 +247,44 @@ public class TeamsController : ControllerBase
         return await AddMemberAsync(teamId.Value, user, isNew: true);
     }
 
+    // Existing Participants the caller can add: email starts with the typed text (at least
+    // 3 characters) and not in any team yet. Capped so it never lists the whole user base.
+    public const int CandidateMinChars = 3;
+    public const int CandidateLimit = 8;
+
+    [HttpGet("mine/candidates")]
+    [Authorize(Roles = Roles.Captain)]
+    public async Task<ActionResult<IEnumerable<TeamCandidateDto>>> Candidates([FromQuery] string? email)
+    {
+        var q = (email ?? "").Trim().ToLowerInvariant();
+        if (q.Length < CandidateMinChars || q.Length > 256) return Ok(Array.Empty<TeamCandidateDto>());
+
+        var rows = await _db.Users
+            .Where(u => u.Role == Roles.Participant && u.Email.StartsWith(q)
+                && !_db.TeamMembers.Any(m => m.UserId == u.Id))
+            .OrderBy(u => u.Email)
+            .Take(CandidateLimit)
+            .Select(u => new { u.Id, u.FirstName, u.MiddleInitial, u.LastName, u.FullName, u.Email })
+            .ToListAsync();
+        return Ok(rows.Select(u => new TeamCandidateDto(
+            u.Id, u.FirstName ?? u.FullName, u.MiddleInitial, u.LastName ?? "", u.Email)));
+    }
+
+    // Remove a member from the caller's own team. Only the membership goes (with any pending
+    // registration link); the account, passes and registrations are kept.
+    [HttpDelete("mine/members/{userId:int}")]
+    [Authorize(Roles = Roles.Captain)]
+    public async Task<IActionResult> RemoveMine(int userId)
+    {
+        var leadId = this.UserId();
+        var member = await _db.TeamMembers
+            .FirstOrDefaultAsync(m => m.UserId == userId && m.Team!.TeamLeadUserId == leadId);
+        if (member is null) return NotFound(new { message = "That person is not a member of your team." });
+        _db.TeamMembers.Remove(member);
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
     // Email the selected members of the caller's own team a single-use link to complete their
     // account (the Captain created it with a temporary password). A new link replaces the old one.
     [HttpPost("mine/registration-notice")]
@@ -326,8 +364,12 @@ public class TeamsController : ControllerBase
                 return Conflict(new { message = $"{user.FullName} is already in another team." });
         }
 
-        // A new account is "unregistered" until the member completes it via the emailed link.
-        var member = new TeamMember { TeamId = teamId, User = user, RegistrationToken = isNew ? Guid.NewGuid() : null };
+        // A new account is "unregistered" until the member completes it via the emailed link. So is
+        // an existing one still on the temporary password: a Captain created it, it was removed
+        // from a team before being completed, and is now being added again. (Completing the link
+        // always sets a policy-compliant password, which can never be the temporary one.)
+        var unregistered = isNew || PasswordHasher.Verify(DefaultMemberPassword, user.PasswordHash);
+        var member = new TeamMember { TeamId = teamId, User = user, RegistrationToken = unregistered ? Guid.NewGuid() : null };
         _db.TeamMembers.Add(member);
         try
         {

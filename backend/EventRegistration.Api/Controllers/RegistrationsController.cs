@@ -40,6 +40,7 @@ public class RegistrationsController : ControllerBase
         return Ok(regs.Select(r => new RegistrationDto(
             r.Id, r.EventId, r.Event!.Title,
             r.Session != null ? r.Session.StartsAt : r.Event.StartsAt,
+            r.Session != null ? r.Session.EndsAt : r.Event.EndsAt,
             r.Session != null ? (r.Session.Venue ?? r.Event.Venue) : r.Event.Venue,
             r.Token, r.RegisteredAt, r.ConfirmedAt, r.CheckedInAt,
             r.SessionId, r.Session != null ? r.Session.Title : null,

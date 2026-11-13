@@ -13,7 +13,7 @@ public interface IMobileSender
 {
     // Send the email when this channel fails (config Viber:/Sms:FallbackToEmail).
     bool FallbackToEmail { get; }
-    Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null);
     Task<DeliveryResult> SendTextAsync(string phone, string subject, string text);
     Task<DeliveryResult> SendMealStubsAsync(string phone, string eventTitle,
@@ -57,9 +57,9 @@ public class MobileMessenger
         return new MobileRoute(sms ? "SMS" : "Viber", sms ? _sms : _viber, codes);
     }
 
-    public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null) =>
-        await (await ResolveAsync()).SendPassAsync(phone, title, startsAt, venue, attendeeName, passToken, qrPng, editUrl);
+        await (await ResolveAsync()).SendPassAsync(phone, title, startsAt, endsAt, venue, attendeeName, passToken, qrPng, editUrl);
 
     public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text) =>
         await (await ResolveAsync()).SendTextAsync(phone, subject, text);

@@ -30,10 +30,11 @@ import { ImageViewerDialogComponent } from '../../../shared/image-viewer/image-v
 import { KitClaimDialogComponent, KitClaimResult } from '../../../shared/kit-claim-dialog';
 import { ViberBroadcastDialogComponent } from '../../../shared/viber-broadcast-dialog';
 import { InvitationComposerComponent } from '../../../shared/invitation-composer/invitation-composer';
+import { ScheduleComponent } from '../../../shared/schedule';
 
 @Component({
   selector: 'app-event-detail',
-  imports: [
+  imports: [ScheduleComponent, 
     DatePipe,
     DecimalPipe,
     FormsModule,
@@ -327,7 +328,9 @@ export class EventDetailComponent implements OnInit {
   }
 
   reload(): void {
-    this.loading.set(true);
+    // Spinner on first load only: later reloads refresh in place, so the page (and its open
+    // tab) stays mounted after confirming, checking in or cancelling.
+    if (!this.event()) this.loading.set(true);
     this.api.getEvent(this.id).subscribe({
       next: (e) => {
         this.event.set(e);
