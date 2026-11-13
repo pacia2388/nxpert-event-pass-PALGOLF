@@ -11,23 +11,25 @@
     <p>No events are open for registration right now.</p>
   </div>
 } @else {
-  <mat-form-field appearance="outline" class="full-width search-field">
-    <mat-label>Search events</mat-label>
-    <mat-icon matPrefix>search</mat-icon>
-    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)"
-           placeholder="Title, venue, or description" />
-    @if (search()) {
-      <button matIconSuffix mat-icon-button aria-label="Clear" (click)="search.set('')">
-        <mat-icon>close</mat-icon>
-      </button>
-    }
-  </mat-form-field>
+  <div class="browse-toolbar">
+    <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+      <mat-label>Search events</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)"
+             placeholder="Title, venue, or description" />
+      @if (search()) {
+        <button matIconSuffix mat-icon-button aria-label="Clear" (click)="search.set('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
 
-  <div class="pill-tabs" role="group" aria-label="Filter events">
-    @for (t of tabs; track t) {
-      <button type="button" class="pill-tab" [class.active]="tab() === t"
-              [attr.aria-pressed]="tab() === t" (click)="selectTab(t)">{{ t }}</button>
-    }
+    <div class="pill-tabs" role="group" aria-label="Filter events">
+      @for (t of tabs; track t) {
+        <button type="button" class="pill-tab" [class.active]="tab() === t"
+                [attr.aria-pressed]="tab() === t" (click)="selectTab(t)">{{ t }}</button>
+      }
+    </div>
   </div>
 
   @if (registrationsFailed()) {
