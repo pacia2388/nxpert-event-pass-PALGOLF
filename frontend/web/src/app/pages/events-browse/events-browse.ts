@@ -15,6 +15,7 @@ import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
+import { CategoryPillComponent } from '../../shared/category-pill';
 import { EVENT_TABS, EventTab, canRegister, eventTab, isClosed, isEnded } from './event-tab';
 
 type TabFilter = 'All' | EventTab;
@@ -22,7 +23,7 @@ const TAB_FILTERS: TabFilter[] = ['All', ...EVENT_TABS];
 
 @Component({
   selector: 'app-events-browse',
-  imports: [ScheduleComponent, 
+  imports: [CategoryPillComponent, ScheduleComponent, 
     DatePipe,
     FormsModule,
     RouterLink,

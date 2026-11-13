@@ -13,6 +13,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
+import { ConfirmService } from '../../core/confirm.service';
+import { categoryAgeWarning } from '../../core/event-category';
 import { OfflineService } from '../../core/offline.service';
 import { ToastService } from '../../core/toast.service';
 import { EventDto, MealDto } from '../../core/models';
@@ -54,6 +56,7 @@ export class PublicEventComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private toast = inject(ToastService);
+  private confirmer = inject(ConfirmService);
   private dialog = inject(MatDialog);
 
   slug = '';
@@ -174,6 +177,7 @@ export class PublicEventComponent implements OnInit {
     this.api.getPublicEvent(this.slug).subscribe({
       next: (e) => {
         this.event.set(e);
+        if (e.category) this.auth.myBirthdate(); // warm the session cache so Register doesn't wait
         this.loading.set(false);
       },
       error: (err) => {
@@ -207,7 +211,7 @@ export class PublicEventComponent implements OnInit {
   }
 
   // ---- Logged-in account holders: original behavior (auto-filled, lands in My Events) ----
-  registerAsUser(dyn?: DynamicFieldsComponent): void {
+  async registerAsUser(dyn?: DynamicFieldsComponent): Promise<void> {
     const e = this.event();
     if (!e) return;
     const ids = [...this.selectedSessions()];
@@ -216,6 +220,10 @@ export class PublicEventComponent implements OnInit {
       return;
     }
     this.registering.set(true);
+    if (!(await this.confirmCategoryAge(e.category))) {
+      this.registering.set(false);
+      return;
+    }
     this.api.registerForEvent(e.id, ids, dyn?.collect() ?? {}).subscribe({
       next: (res) => {
         this.showSuccess(res.attendeeName || this.auth.fullName(), true, true, res.created, res.editToken ?? null);
@@ -225,6 +233,20 @@ export class PublicEventComponent implements OnInit {
         this.registering.set(false);
         this.toast.error(err?.error?.message ?? 'Registration failed. Please try again.');
       },
+    });
+  }
+
+  // Senior (65+) / Regular events: warn a player whose age doesn't match before registering.
+  // Resolves true to go ahead. No category or no birthdate on file → no warning.
+  private async confirmCategoryAge(category: EventDto['category']): Promise<boolean> {
+    if (!category) return true;
+    const message = categoryAgeWarning(category, await this.auth.myBirthdate());
+    if (!message) return true;
+    return this.confirmer.confirm({
+      title: category === 'Senior' ? 'This event is for seniors' : 'This event is for regular players',
+      message: `${message} Register anyway?`,
+      confirmText: 'Register anyway',
+      tone: 'warning',
     });
   }
 

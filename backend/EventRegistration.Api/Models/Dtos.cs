@@ -172,7 +172,7 @@ public record EventUpsertRequest(
     List<FormFieldDef>? FormFields, string? BannerImage, string? WelcomeMessage,
     List<SessionUpsertRequest>? Sessions, string? RegistrationFees, List<ScheduleItem>? Schedule,
     bool NotifyOnKitClaim = false, List<MealUpsertRequest>? Meals = null,
-    string? Format = null, string? MeetingUrl = null);
+    string? Format = null, string? MeetingUrl = null, string? Category = null);
 
 public record EventDto(
     int Id, string Title, string Description, DateTime StartsAt, DateTime EndsAt,
@@ -183,7 +183,9 @@ public record EventDto(
     bool NotifyOnKitClaim, List<MealDto> Meals,
     // Format: InPerson / Online / Hybrid. MeetingUrl is only filled for admin responses — public
     // and browse responses never expose the join link (confirmed registrants get it via My Events).
-    string Format = EventFormats.InPerson, string? MeetingUrl = null, bool VerifyOnly = false);
+    string Format = EventFormats.InPerson, string? MeetingUrl = null, bool VerifyOnly = false,
+    // Senior / Regular / null (no category).
+    string? Category = null);
 // Turn an event's verify-only mode on or off (scanner switch).
 public record VerifyOnlyRequest(bool Enabled);
 

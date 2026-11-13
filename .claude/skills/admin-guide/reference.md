@@ -99,6 +99,9 @@ centred on the page. Fill in:
   - **In person** — enter the **Venue**.
   - **Online** — no venue; paste the **Online meeting link**.
   - **Hybrid** — both the **Venue** and the **Online meeting link**.
+- **Category** — **No category**, **Senior** (players 65 and older) or **Regular** (under 65).
+  Shows as a pill next to the status pill on event cards. Players whose age doesn't match get a
+  warning when they register, but can still register.
 - **TV welcome message** (optional) — the greeting on the check-in TV screen (default
   "Welcome").
 - **Registration fees** (optional) — free text shown on the registration page.

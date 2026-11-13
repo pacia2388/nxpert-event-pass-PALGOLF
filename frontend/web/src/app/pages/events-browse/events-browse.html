@@ -72,6 +72,9 @@
             } @else {
               <span class="ev-tag ok"><mat-icon>how_to_reg</mat-icon> Open</span>
             }
+            @if (e.category) {
+              <app-category-pill [category]="e.category" />
+            }
             @if (e.format === 'Online' || e.format === 'Hybrid') {
               <span class="ev-tag brand"><mat-icon>videocam</mat-icon> {{ e.format }}</span>
             }
