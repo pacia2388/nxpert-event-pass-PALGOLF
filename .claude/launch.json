@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "backend/EventRegistration.Api", "--launch-profile", "http", "--", "--Email:Enabled=false", "--Viber:Enabled=false", "--Sms:Enabled=false"],
+      "port": 5088
+    },
+    {
       "name": "web",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start", "--prefix", "frontend/web"],
@@ -12,6 +18,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start", "--prefix", "frontend/web", "--", "--port", "4300"],
       "port": 4300
+    },
+    {
+      "name": "face",
+      "runtimeExecutable": "facerog-engine/.venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--app-dir", "facerog-engine", "--host", "127.0.0.1", "--port", "8000"],
+      "port": 8000
     }
   ]
 }
