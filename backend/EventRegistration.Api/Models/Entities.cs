@@ -49,6 +49,23 @@ public static class EventFormats
     public static bool HasVenue(string? f) => f != Online;
 }
 
+// Who an event is for. null = no category (everyone). Senior = 65 and older.
+public static class EventCategories
+{
+    public const string Senior = "Senior";
+    public const string Regular = "Regular";
+
+    public static bool IsValid(string? c) => string.IsNullOrWhiteSpace(c) || Clean(c) is not null;
+
+    // Blank → null; otherwise the canonical value, trimmed and matched ignoring case (null if unknown).
+    public static string? Clean(string? c) => c?.Trim().ToLowerInvariant() switch
+    {
+        "senior" => Senior,
+        "regular" => Regular,
+        _ => null,
+    };
+}
+
 public static class EventStatus
 {
     public const string Draft = "Draft";
@@ -198,6 +215,8 @@ public class Event
     // Calendar-invite revision (iCalendar SEQUENCE). Bumped whenever an online event's time,
     // title or link changes, so re-sent invites replace the earlier calendar entry.
     public int InviteSequence { get; set; }
+    // Who the event is for: Senior (65+), Regular, or null (no category). See EventCategories.
+    [MaxLength(10)] public string? Category { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public ICollection<Invitation> Invitations { get; set; } = new List<Invitation>();

@@ -50,6 +50,10 @@ namespace EventRegistration.Api.Migrations
                     b.Property<int?>("Capacity")
                         .HasColumnType("int");
 
+                    b.Property<string>("Category")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<int?>("CompanyId")
                         .HasColumnType("int");
 
