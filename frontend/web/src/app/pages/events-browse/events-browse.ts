@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -62,7 +63,7 @@ export class EventsBrowseComponent implements OnInit {
 
   readonly tabs = TAB_FILTERS;
   // The chosen tab lives in ?tab= so a reload or Back keeps it.
-  tab = signal<TabFilter>(this.tabFromUrl());
+  tab = signal<TabFilter>('All');
   // Ticks every minute so events move to Ended while the page stays open.
   now = signal(Date.now());
   registrationsFailed = signal(false);
@@ -83,6 +84,10 @@ export class EventsBrowseComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Follow ?tab= — on first load and when a link changes it while the page is open.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => this.tab.set(TAB_FILTERS.find((f) => f === params.get('tab')) ?? 'All'));
     const clock = setInterval(() => this.now.set(Date.now()), 60_000);
     this.destroyRef.onDestroy(() => clearInterval(clock));
     // Wait for both lists: the tabs need the user's registrations to sort events.
@@ -106,11 +111,6 @@ export class EventsBrowseComponent implements OnInit {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
-  }
-
-  private tabFromUrl(): TabFilter {
-    const t = this.route.snapshot.queryParamMap.get('tab');
-    return TAB_FILTERS.find((f) => f === t) ?? 'All';
   }
 
   isPast(e: EventDto): boolean {
