@@ -46,7 +46,7 @@ Use `preview_start` with these `.claude/launch.json` names. Start only what the 
 
 | Change in | Drive it through |
 |-----------|------------------|
-| `frontend/web/**` | The browser pane at `http://localhost:4200/<route>` (routes: `frontend/web/src/app/app.routes.ts`). Click through as a user would; screenshot. |
+| `frontend/web/**` | The browser pane at `http://localhost:4200/<route>` (routes: `frontend/web/src/app/app.routes.ts`). Click through as a user would. Read text with `read_page` / `get_page_text`; screenshot at `scale: 0.5` for evidence (a full-scale `zoom` costs ~100K characters). |
 | `backend/**` controllers/services | The screen that calls it, plus `curl` for edge cases (below). |
 | Email/pass/stub templates | Trigger the send in the UI, then open the outbox `.html` in the pane. |
 | `facerog-engine/**` | `http://localhost:8000` dashboard, or the TV at `/scanner/<eventId>/tv`. |
