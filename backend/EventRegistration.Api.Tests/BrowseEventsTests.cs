@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 
 namespace EventRegistration.Api.Tests;
 
-// Browse Events lists self-serve events: published or closed, with the public link on.
+// Browse Events and the Calendar list self-serve events: published or closed, with the public link on.
 // Closed events appear under their own tab; drafts and invite-only events stay hidden.
 [Collection("api")]
 public class BrowseEventsTests(ApiFixture api)
@@ -40,5 +40,24 @@ public class BrowseEventsTests(ApiFixture api)
         Assert.Equal("Closed", Assert.Single(browse, e => e.Id == closed).Status);
         Assert.DoesNotContain(browse, e => e.Id == draft);
         Assert.DoesNotContain(browse, e => e.Id == closedInviteOnly);
+    }
+
+    private record CalendarEvent(int Id, string Status);
+    private record CalendarBody(List<CalendarEvent> Events);
+
+    [Fact]
+    public async Task Calendar_shows_a_participant_the_same_closed_events_as_Browse()
+    {
+        var admin = await api.AdminAsync();
+        var closed = await CreateAsync(admin, "Published", publicLink: true);
+        (await admin.PostAsync($"/api/events/{closed}/close", null)).EnsureSuccessStatusCode();
+
+        var user = await api.CreateUserAsync(admin, "Participant");
+        var client = await api.SignInAsync(user.Email, ApiFixture.UserPassword);
+        var from = DateTime.Today.ToString("yyyy-MM-dd");
+        var to = DateTime.Today.AddDays(30).ToString("yyyy-MM-dd");
+        var calendar = (await client.GetFromJsonAsync<CalendarBody>($"/api/calendar?from={from}&to={to}"))!;
+
+        Assert.Equal("Closed", Assert.Single(calendar.Events, e => e.Id == closed).Status);
     }
 }
