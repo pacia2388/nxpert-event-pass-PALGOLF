@@ -55,10 +55,15 @@ public static class EventCategories
     public const string Senior = "Senior";
     public const string Regular = "Regular";
 
-    public static bool IsValid(string? c) => string.IsNullOrWhiteSpace(c) || c == Senior || c == Regular;
+    public static bool IsValid(string? c) => string.IsNullOrWhiteSpace(c) || Clean(c) is not null;
 
-    // Blank → null; otherwise the value as given (call IsValid first).
-    public static string? Clean(string? c) => string.IsNullOrWhiteSpace(c) ? null : c;
+    // Blank → null; otherwise the canonical value, trimmed and matched ignoring case (null if unknown).
+    public static string? Clean(string? c) => c?.Trim().ToLowerInvariant() switch
+    {
+        "senior" => Senior,
+        "regular" => Regular,
+        _ => null,
+    };
 }
 
 public static class EventStatus

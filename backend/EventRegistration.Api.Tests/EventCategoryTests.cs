@@ -57,8 +57,20 @@ public class EventCategoryTests(ApiFixture api)
     }
 
     [Theory]
+    [InlineData(" Senior ", "Senior")]
+    [InlineData("regular", "Regular")]
+    public async Task A_category_is_trimmed_and_matched_ignoring_case(string sent, string saved)
+    {
+        var admin = await api.AdminAsync();
+
+        var created = await Create(admin, sent);
+
+        Assert.Equal(saved, created.Category);
+    }
+
+    [Theory]
     [InlineData("Junior")]
-    [InlineData("senior")]
+    [InlineData("Seniors")]
     public async Task An_unknown_category_is_rejected(string category)
     {
         var admin = await api.AdminAsync();
