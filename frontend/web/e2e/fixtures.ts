@@ -40,6 +40,9 @@ export const test = base.extend<Fixtures>({
     async ({ page }, use) => {
       await useE2eApi(page);
       await use();
+      // A test can end while the page is still loading appSettings.json; drop the in-flight
+      // route.fetch quietly instead of failing the run with "Test ended".
+      await page.unrouteAll({ behavior: 'ignoreErrors' });
     },
     { auto: true },
   ],
