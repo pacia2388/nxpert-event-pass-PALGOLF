@@ -63,6 +63,8 @@
             }
             @if (isPast(e)) {
               <span class="ev-tag"><mat-icon>history</mat-icon> Ended</span>
+            } @else if (isClosed(e)) {
+              <span class="ev-tag"><mat-icon>block</mat-icon> Closed</span>
             } @else if (e.isFull) {
               <span class="ev-tag warn"><mat-icon>groups</mat-icon> Full</span>
             } @else {
@@ -106,8 +108,8 @@
             </a>
           } @else {
             <a class="ev-btn solid" [routerLink]="['/e', e.publicSlug]">
-              <mat-icon>{{ isPast(e) ? 'visibility' : 'how_to_reg' }}</mat-icon>
-              {{ isPast(e) ? 'View' : (isRegistered(e) ? 'Add sub-event' : 'Register') }}
+              <mat-icon>{{ canRegister(e) ? 'how_to_reg' : 'visibility' }}</mat-icon>
+              {{ !canRegister(e) ? 'View' : (isRegistered(e) ? 'Add sub-event' : 'Register') }}
             </a>
           }
         </div>

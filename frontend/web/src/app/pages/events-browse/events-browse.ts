@@ -117,6 +117,15 @@ export class EventsBrowseComponent implements OnInit {
     return isEnded(e, this.now());
   }
 
+  isClosed(e: EventDto): boolean {
+    return e.status === 'Closed';
+  }
+
+  // Ended and closed events can be viewed but no longer take registrations.
+  canRegister(e: EventDto): boolean {
+    return !this.isPast(e) && !this.isClosed(e);
+  }
+
   isRegistered(e: EventDto): boolean {
     return this.registeredEventIds().has(e.id);
   }
