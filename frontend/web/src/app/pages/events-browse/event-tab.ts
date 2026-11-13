@@ -2,8 +2,19 @@ export type EventTab = 'Open' | 'Registered' | 'Closed' | 'Ended';
 
 export const EVENT_TABS: EventTab[] = ['Open', 'Registered', 'Closed', 'Ended'];
 
+type TabbedEvent = { endsAt: string; status: string };
+
 export function isEnded(e: { endsAt: string }, now = Date.now()): boolean {
   return new Date(e.endsAt).getTime() < now;
+}
+
+export function isClosed(e: { status: string }): boolean {
+  return e.status === 'Closed';
+}
+
+/** Ended and closed events can be viewed but no longer take registrations. */
+export function canRegister(e: TabbedEvent, now = Date.now()): boolean {
+  return !isEnded(e, now) && !isClosed(e);
 }
 
 /**
@@ -11,12 +22,8 @@ export function isEnded(e: { endsAt: string }, now = Date.now()): boolean {
  * events the user registered for are Registered (even if registration has since closed), then
  * closed events are Closed, and the rest are Open.
  */
-export function eventTab(
-  e: { endsAt: string; status: string },
-  registered: boolean,
-  now = Date.now(),
-): EventTab {
+export function eventTab(e: TabbedEvent, registered: boolean, now = Date.now()): EventTab {
   if (isEnded(e, now)) return 'Ended';
   if (registered) return 'Registered';
-  return e.status === 'Closed' ? 'Closed' : 'Open';
+  return isClosed(e) ? 'Closed' : 'Open';
 }

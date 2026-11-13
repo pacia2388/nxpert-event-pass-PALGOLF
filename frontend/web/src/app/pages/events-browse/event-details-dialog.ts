@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { EventDto } from '../../core/models';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
-import { isEnded } from './event-tab';
+import { canRegister } from './event-tab';
 
 export interface EventDetailsData {
   event: EventDto;
@@ -34,9 +34,8 @@ export class EventDetailsDialogComponent {
     openImageLightbox(this.dialog, src);
   }
 
-  // Ended and closed events can be viewed but no longer take registrations.
   canRegister(): boolean {
-    return !isEnded(this.e) && this.e.status !== 'Closed';
+    return canRegister(this.e);
   }
 
   close(): void {

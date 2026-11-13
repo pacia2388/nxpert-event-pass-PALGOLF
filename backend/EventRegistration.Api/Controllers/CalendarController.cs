@@ -23,7 +23,7 @@ public class CalendarController(AppDbContext db) : ControllerBase
             User.HasClaim(Permissions.ConfirmRegistrations, "true");
         var events = db.Events.AsNoTracking().Where(e => e.StartsAt < to && e.EndsAt > from);
         if (!manage) events = events.Where(e =>
-            (e.IsPublicLinkEnabled && e.Status == EventStatus.Published) ||
+            (e.IsPublicLinkEnabled && EventStatus.Listed.Contains(e.Status)) ||
             db.Registrations.Any(r => r.EventId == e.Id && r.UserId == uid) ||
             (e.Status != EventStatus.Draft && db.Invitations.Any(i => i.EventId == e.Id && i.Email.ToLower() == email)));
         var rows = await events.OrderBy(e => e.StartsAt).Select(e => new {

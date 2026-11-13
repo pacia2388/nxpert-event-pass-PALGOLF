@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,7 +15,7 @@ import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
-import { EVENT_TABS, EventTab, eventTab, isEnded } from './event-tab';
+import { EVENT_TABS, EventTab, canRegister, eventTab, isClosed, isEnded } from './event-tab';
 
 type TabFilter = 'All' | EventTab;
 const TAB_FILTERS: TabFilter[] = ['All', ...EVENT_TABS];
@@ -62,7 +63,7 @@ export class EventsBrowseComponent implements OnInit {
 
   readonly tabs = TAB_FILTERS;
   // The chosen tab lives in ?tab= so a reload or Back keeps it.
-  tab = signal<TabFilter>(this.tabFromUrl());
+  tab = signal<TabFilter>('All');
   // Ticks every minute so events move to Ended while the page stays open.
   now = signal(Date.now());
   registrationsFailed = signal(false);
@@ -83,6 +84,10 @@ export class EventsBrowseComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Follow ?tab= — on first load and when a link changes it while the page is open.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => this.tab.set(TAB_FILTERS.find((f) => f === params.get('tab')) ?? 'All'));
     const clock = setInterval(() => this.now.set(Date.now()), 60_000);
     this.destroyRef.onDestroy(() => clearInterval(clock));
     // Wait for both lists: the tabs need the user's registrations to sort events.
@@ -108,22 +113,16 @@ export class EventsBrowseComponent implements OnInit {
     });
   }
 
-  private tabFromUrl(): TabFilter {
-    const t = this.route.snapshot.queryParamMap.get('tab');
-    return TAB_FILTERS.find((f) => f === t) ?? 'All';
-  }
-
   isPast(e: EventDto): boolean {
     return isEnded(e, this.now());
   }
 
   isClosed(e: EventDto): boolean {
-    return e.status === 'Closed';
+    return isClosed(e);
   }
 
-  // Ended and closed events can be viewed but no longer take registrations.
   canRegister(e: EventDto): boolean {
-    return !this.isPast(e) && !this.isClosed(e);
+    return canRegister(e, this.now());
   }
 
   isRegistered(e: EventDto): boolean {

@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { EventDto } from '../../core/models';
@@ -23,7 +23,7 @@ describe('Browse Events tabs', () => {
       providers: [
         provideRouter([]),
         ...(opts.tab
-          ? [{ provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap({ tab: opts.tab }) } } }]
+          ? [{ provide: ActivatedRoute, useValue: { queryParamMap: of(convertToParamMap({ tab: opts.tab })) } }]
           : []),
         {
           provide: ApiService,
@@ -107,6 +107,14 @@ describe('Browse Events tabs', () => {
   it('opens on the tab named in the address', async () => {
     await setup({ tab: 'Registered' });
     expect(titles()).toEqual(['My Classic']);
+  });
+
+  it('follows a new ?tab= while the page is already open', async () => {
+    await setup();
+    await TestBed.inject(Router).navigateByUrl('/?tab=Closed');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(titles()).toEqual(['Shut Cup']);
   });
 
   it('warns when your registrations could not be loaded', async () => {
