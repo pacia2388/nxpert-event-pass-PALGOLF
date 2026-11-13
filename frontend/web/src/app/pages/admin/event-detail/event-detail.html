@@ -139,7 +139,8 @@
   </section>
 
   <section class="ed-panel">
-  <mat-tab-group class="ed-tabs" mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="150ms">
+  <mat-tab-group class="ed-tabs" mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="150ms"
+                 [selectedIndex]="selectedTab()" (selectedIndexChange)="selectedTab.set($event)">
     <!-- Invites (admin only) -->
     @if (auth.isAdmin()) {
     <mat-tab label="Invite">
@@ -290,7 +291,7 @@
                   <mat-checkbox
                     [checked]="isAttendeeSelected(a.registrationId)"
                     (change)="toggleAttendee(a.registrationId)"
-                    [attr.aria-label]="'Select ' + a.fullName">
+                    [aria-label]="'Select ' + a.fullName">
                   </mat-checkbox>
                 </td>
               </ng-container>

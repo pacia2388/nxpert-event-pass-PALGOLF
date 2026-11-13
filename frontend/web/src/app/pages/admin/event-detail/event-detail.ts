@@ -81,6 +81,8 @@ export class EventDetailComponent implements OnInit {
 
   id = 0;
   loading = signal(true);
+  // The open tab. reload() re-renders the page, so keep it here to stay on the same tab.
+  selectedTab = signal(0);
   event = signal<EventDto | null>(null);
   contacts = signal<ContactDto[]>([]);
   attendees = signal<AttendeeDto[]>([]);
