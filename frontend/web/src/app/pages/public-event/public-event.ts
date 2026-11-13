@@ -177,6 +177,7 @@ export class PublicEventComponent implements OnInit {
     this.api.getPublicEvent(this.slug).subscribe({
       next: (e) => {
         this.event.set(e);
+        if (e.category && this.auth.isLoggedIn()) this.loadMyBirthdate();
         this.loading.set(false);
       },
       error: (err) => {
@@ -235,17 +236,22 @@ export class PublicEventComponent implements OnInit {
     });
   }
 
+  private myBirthdate?: Promise<string | null>;
+
+  // Started when a categorised event loads, so Register doesn't wait on it.
+  // Profile unavailable → null: the warning is advisory, so it never blocks registration.
+  private loadMyBirthdate(): Promise<string | null> {
+    return (this.myBirthdate ??= firstValueFrom(this.api.getMyProfile()).then(
+      (p) => p.birthdate,
+      () => null,
+    ));
+  }
+
   // Senior (65+) / Regular events: warn a player whose age doesn't match before registering.
   // Resolves true to go ahead. No category or no birthdate on file → no warning.
   private async confirmCategoryAge(category: EventDto['category']): Promise<boolean> {
     if (!category) return true;
-    let birthdate: string | null = null;
-    try {
-      birthdate = (await firstValueFrom(this.api.getMyProfile())).birthdate;
-    } catch {
-      return true; // profile unavailable: the warning is advisory, so don't block registration
-    }
-    const message = categoryAgeWarning(category, birthdate);
+    const message = categoryAgeWarning(category, await this.loadMyBirthdate());
     if (!message) return true;
     return this.confirmer.confirm({
       title: category === 'Senior' ? 'This event is for seniors' : 'This event is for regular players',
