@@ -70,7 +70,7 @@ export default defineConfig({
       command: `npx ng serve --port ${WEB_PORT}`,
       url: WEB_URL,
       timeout: 180_000,
-      // Never reuse: something on 4300 may be another worktree's build (web-alt uses 4300 too).
+      // Never reuse: something on 4300 may be another worktree's e2e run.
       reuseExistingServer: false,
       stdout: 'ignore',
       stderr: 'pipe',
