@@ -1,4 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
+import { MobileChannelService } from '../../core/mobile-channel.service';
+import { PhoneCountryService } from '../../core/phone-country.service';
+import { PhoneFieldComponent } from '../../shared/phone-field/phone-field';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -32,11 +35,15 @@ import { BIRTHDATE_MIN, birthdateMax, fromIsoDate, isValidBirthdate, toIsoDate }
     MatIconModule,
     MatProgressBarModule,
     MatDividerModule,
+    PhoneFieldComponent,
   ],
   templateUrl: './account.html',
+  styleUrl: './account.scss',
 })
 export class AccountComponent implements OnInit {
   private api = inject(ApiService);
+  protected mobile = inject(MobileChannelService);
+  protected countries = inject(PhoneCountryService);
   private auth = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
@@ -53,7 +60,12 @@ export class AccountComponent implements OnInit {
   level = '';
   email = '';
   organization = '';
-  phone = '';
+  // "+<code><number>" from the phone field; storedPhone is the saved value (warning).
+  phone: string | null = null;
+  private storedPhone: string | null = null;
+
+  /** The saved number's country is no longer in the Phone country table. */
+  phoneUnsupported = () => !!this.storedPhone && !this.countries.supports(this.storedPhone);
   notificationChannel: NotificationChannel = 'Email';
   birthdate: Date | null = null;
   readonly birthdateMin = BIRTHDATE_MIN;
@@ -90,7 +102,8 @@ export class AccountComponent implements OnInit {
         this.level = p.level ?? '';
         this.email = p.email;
         this.organization = p.organization ?? '';
-        this.phone = p.phone ?? '';
+        this.storedPhone = p.phone ?? null;
+        this.phone = this.storedPhone;
         this.notificationChannel = p.notificationChannel ?? 'Email';
         this.birthdate = fromIsoDate(p.birthdate);
         this.existingPhoto.set(p.photoUrl);
@@ -186,7 +199,7 @@ export class AccountComponent implements OnInit {
   get valid(): boolean {
     const names = !!this.firstName.trim() && !!this.lastName.trim();
     const pwOk = !this.newPassword || (this.newPassword.length >= 8 && !!this.currentPassword);
-    const phoneOk = !this.phoneRequired() || !!this.phone.trim();
+    const phoneOk = this.phone ? this.countries.isValid(this.phone) : !this.phoneRequired();
     return names && pwOk && phoneOk && isValidBirthdate(this.birthdate);
   }
 
@@ -201,7 +214,7 @@ export class AccountComponent implements OnInit {
       senateNo: this.senateNo.trim() || null,
       level: this.level || null,
       organization: this.organization.trim() || null,
-      phone: this.phone.trim() || null,
+      phone: this.phone,
       photo: this.photoPayload(),
       currentPassword: this.newPassword ? this.currentPassword : null,
       newPassword: this.newPassword || null,

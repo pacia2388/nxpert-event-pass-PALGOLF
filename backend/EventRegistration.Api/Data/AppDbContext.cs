@@ -11,6 +11,8 @@ public class AppDbContext : DbContext
     public DbSet<Event> Events => Set<Event>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<InvitationEmail> InvitationEmails => Set<InvitationEmail>();
+    public DbSet<EmailRetry> EmailRetries => Set<EmailRetry>();
+    public DbSet<PhoneCountry> PhoneCountries => Set<PhoneCountry>();
     public DbSet<Registration> Registrations => Set<Registration>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<Session> Sessions => Set<Session>();
@@ -99,6 +101,11 @@ public class AppDbContext : DbContext
 
         b.Entity<Invitation>().HasIndex(i => i.Token).IsUnique();
         b.Entity<InvitationEmail>().HasIndex(i => new { i.Status, i.NextAttemptAt });
+        b.Entity<EmailRetry>().HasIndex(r => new { r.Status, r.NextAttemptAt });
+        b.Entity<EmailRetry>().HasIndex(r => new { r.RegistrationId, r.Kind });
+
+        b.Entity<PhoneCountry>().HasIndex(c => c.CountryCode).IsUnique();
+        b.Entity<PhoneCountry>().HasData(new PhoneCountry { Id = 1, CountryCode = "63", Viber = true, Sms = true });
         b.Entity<InvitationEmail>().HasIndex(i => new { i.EventId, i.CreatedAt });
         b.Entity<InvitationEmail>().HasOne(i => i.Event).WithMany()
             .HasForeignKey(i => i.EventId).OnDelete(DeleteBehavior.Cascade);

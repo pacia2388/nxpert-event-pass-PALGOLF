@@ -2,15 +2,38 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "backend/EventRegistration.Api",
+        "--launch-profile",
+        "http"
+      ],
+      "port": 5088
+    },
+    {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "frontend/web"],
+      "runtimeArgs": [
+        "start",
+        "--prefix",
+        "frontend/web"
+      ],
       "port": 4200
     },
     {
       "name": "web-alt",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "frontend/web", "--", "--port", "4300"],
+      "runtimeArgs": [
+        "start",
+        "--prefix",
+        "frontend/web",
+        "--",
+        "--port",
+        "4300"
+      ],
       "port": 4300
     }
   ]

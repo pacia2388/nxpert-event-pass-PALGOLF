@@ -25,6 +25,8 @@ The facerog-engine has no database. It reads registrant photos from the API
 | `MealRedemptions` | Per-day meal redemption for events without sub-events: one row per registrant per day. |
 | `Invitations` | Per-email invitation to an event, with its magic-link token. |
 | `InvitationEmails` | Invitation email messages (recipients, content, schedule, delivery status and retries). |
+| `EmailRetries` | Failed emails retried 5× every 5 min: registrant messages (rebuilt each try) and any email sent through `EmailSender` (kept whole). |
+| `PhoneCountries` | Country codes each mobile channel (Viber / SMS) may send to; admin-managed in Settings. |
 | `MailPlans` | Mail planner plans: kind, channel, audience, CC. |
 | `MailPlanSends` | One target day of a mail plan, with its own subject, body and delivery status. |
 | `MailPlanDeliveries` | One receiver of one sent day, plus that receiver's personal reminder (My Reminders). |
@@ -246,6 +248,21 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | LastError | nvarchar(1000) | ✓ | |
 | Version | rowversion | | Optimistic concurrency |
 
+### EmailRetries
+
+| Column | Type | Null | Notes / enumerated values |
+|---|---|---|---|
+| Id | int | | PK |
+| RegistrationId | int | ✓ | No FK (the registration may be deleted). Indexed with Kind |
+| Kind | nvarchar(20) | | **`Pass` · `KitClaimed` · `EditLink` · `MeetingUpdate` · `MeetingCancel` · `Message`** |
+| Status | nvarchar(20) | | **`Queued` (default) · `Sending` · `Sent` · `Failed`**. Indexed with NextAttemptAt |
+| Attempts | int | | Retries made (max 5) |
+| NextAttemptAt | datetimeoffset | | Scheduler pick-up time |
+| LastAttemptAt / SentAt | datetimeoffset | ✓ | |
+| LastError | nvarchar(500) | ✓ | |
+| CreatedAt | datetimeoffset | | |
+| SnapshotJson | max | ✓ | MeetingCancel: calendar entry, name, reason (no QR). Message: the whole email (to, cc, subject, HTML, attachments, inline images) |
+
 ### MailPlans
 
 | Column | Type | Null | Notes / enumerated values |
@@ -295,7 +312,8 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | UserId | int | ✓ | |
 | Phone | nvarchar(40) | ✓ | |
 | IsCc | bit | | CC receivers get email only, never Viber |
-| EmailSentAt / ViberSentAt | datetimeoffset | ✓ | Per-channel progress (no double send on retry) |
+| EmailSentAt / ViberSentAt | datetimeoffset | ✓ | Per-channel progress (no double send on retry); set only on a real send |
+| MobileAttemptedAt | datetimeoffset | ✓ | The one Viber/SMS try; plan retries never re-send mobile |
 | RemindAt | datetimeoffset | ✓ | Receiver's own reminder |
 | Snoozed | bit | | |
 | ReminderSentAt | datetimeoffset | ✓ | |
@@ -364,6 +382,18 @@ checked in code (`TeamCategories.MaxMembers`), not by a DB constraint.
 | TicketNumber | nvarchar(30) | | **Unique** (all users). Stored trimmed + upper-cased; 4–30 letters, digits, dashes |
 | CreatedAt | datetime2 | | UTC |
 
+### PhoneCountries
+
+| Column | Type | Null | Notes / enumerated values |
+|---|---|---|---|
+| Id | int | | PK, identity |
+| CountryCode | nvarchar(4) | | Digits, no `+` (e.g. `63`). Unique with Channel |
+| Channel | nvarchar(10) | | **`Viber` · `Sms`** |
+
+Seeded: `63`/Viber, `63`/Sms. The distinct codes are the choices in the user phone control; a
+user phone (stored `+<code><number>`) whose code has no row for the active channel skips mobile
+delivery and gets email.
+
 ### AppSettings
 
 | Column | Type | Null | Notes / enumerated values |
@@ -388,6 +418,8 @@ checked in code (`TeamCategories.MaxMembers`), not by a DB constraint.
 | `MailPlanKinds` | Reminder, Announcement, Follow-up | MailPlans.Kind |
 | `MailPlanChannels` | Email, Viber, Both | MailPlans.Channel |
 | `MailSendStatus` | Scheduled, Sending, Sent, Queued, Failed | MailPlanSends.Status |
+| `EmailRetryKinds` | Pass, KitClaimed, EditLink, MeetingUpdate, MeetingCancel, Message | EmailRetries.Kind |
+| `EmailRetryStatus` | Queued, Sending, Sent, Failed | EmailRetries.Status |
 | `MobileProviders` | Viber, Sms | AppSettings `Notifications:MobileProvider` |
 | `SettingKeys` | Email:Cc, Notifications:MobileProvider | AppSettings.Key |
 | `FormFieldDef.Type` | text, textarea, number, date, time, select, multiselect, radio, checkbox, image | Events.FormSchema (JSON) |

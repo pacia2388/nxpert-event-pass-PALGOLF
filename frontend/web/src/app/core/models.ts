@@ -584,6 +584,10 @@ export interface ConfirmResult {
   emailed: number;
   alreadyConfirmed: number;
   noEmail: number;
+  // Of the sent passes, how many went by a backup channel; email retrying; every channel failed.
+  fellBack?: number;
+  retrying?: number;
+  notSent?: number;
 }
 
 export interface ManualCheckInResult {
@@ -848,6 +852,21 @@ export interface InboxMailDto {
 }
 
 export type MobileProvider = 'Viber' | 'Sms';
+
+/** A country code users may save phones with, and the mobile channels that may send to it. */
+export interface PhoneCountry {
+  id: number;
+  /** Digits only, no "+", e.g. "63". */
+  countryCode: string;
+  viber: boolean;
+  sms: boolean;
+}
+
+/** One entry of public/country-codes.json: a country code (digits, no "+") and where it is used. */
+export interface CountryCodeInfo {
+  code: string;
+  country: string;
+}
 
 export interface AppSettingsDto {
   ccEmails: string[];

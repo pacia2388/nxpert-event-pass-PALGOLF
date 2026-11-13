@@ -36,6 +36,58 @@ namespace EventRegistration.Api.Migrations
                     b.ToTable("AppSettings");
                 });
 
+            modelBuilder.Entity("EventRegistration.Api.Models.EmailRetry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset?>("LastAttemptAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset>("NextAttemptAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("RegistrationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SnapshotJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegistrationId", "Kind");
+
+                    b.HasIndex("Status", "NextAttemptAt");
+
+                    b.ToTable("EmailRetries");
+                });
+
             modelBuilder.Entity("EventRegistration.Api.Models.Event", b =>
                 {
                     b.Property<int>("Id")
@@ -362,6 +414,9 @@ namespace EventRegistration.Api.Migrations
                     b.Property<bool>("IsCc")
                         .HasColumnType("bit");
 
+                    b.Property<DateTimeOffset?>("MobileAttemptedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
@@ -667,6 +722,42 @@ namespace EventRegistration.Api.Migrations
                     b.HasIndex("RegistrationId");
 
                     b.ToTable("MealStubs");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.PhoneCountry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<bool>("Sms")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Viber")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryCode")
+                        .IsUnique();
+
+                    b.ToTable("PhoneCountries");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CountryCode = "63",
+                            Sms = true,
+                            Viber = true
+                        });
                 });
 
             modelBuilder.Entity("EventRegistration.Api.Models.Registration", b =>

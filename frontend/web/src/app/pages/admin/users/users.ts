@@ -10,6 +10,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../../core/api.service';
 import { ToastService } from '../../../core/toast.service';
 import { ConfirmService } from '../../../core/confirm.service';
+import { PhoneCountryService } from '../../../core/phone-country.service';
 import { UserDto, UserImportResult } from '../../../core/models';
 import { UserFormPanelComponent } from './user-form-panel';
 import { UserImportDialogComponent } from './user-import-dialog';
@@ -38,6 +39,7 @@ export class UsersComponent implements OnInit {
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private confirmer = inject(ConfirmService);
+  protected countries = inject(PhoneCountryService);
 
   private readonly panel = viewChild.required(UserFormPanelComponent);
   private readonly formPane = viewChild<ElementRef<HTMLElement>>('formPane');

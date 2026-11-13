@@ -1,7 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { MatChipsModule, MatChipInputEvent } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,7 +11,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ApiService } from '../../../core/api.service';
 import { ToastService } from '../../../core/toast.service';
-import { MobileProvider } from '../../../core/models';
+import { MobileProvider, PhoneCountry } from '../../../core/models';
+import { PhoneCountryService } from '../../../core/phone-country.service';
+import { ConfirmService } from '../../../core/confirm.service';
 
 @Component({
   selector: 'app-settings',
@@ -17,11 +21,13 @@ import { MobileProvider } from '../../../core/models';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
+    MatCheckbox,
+    MatButtonToggleModule,
     MatChipsModule,
     MatIconModule,
     MatButtonModule,
     MatProgressBarModule,
-    MatButtonToggleModule,
   ],
   templateUrl: './settings.html',
   styles: [
@@ -32,12 +38,30 @@ import { MobileProvider } from '../../../core/models';
       .full-width { width: 100%; }
       .mobile-head { margin-top: 24px; }
       .mobile-note { margin-top: 12px; margin-bottom: 0; }
+      .pc-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+      .pc-table th, .pc-table td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+      .pc-actions { text-align: right; width: 48px; }
+      .pc-add { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+      .pc-code {
+        width: 260px;
+        /* Same height as the Add button (40px). */
+        --mat-form-field-container-height: 40px;
+        --mat-form-field-container-vertical-padding: 8px;
+      }
     `,
   ],
 })
 export class SettingsComponent implements OnInit {
   private api = inject(ApiService);
   private toast = inject(ToastService);
+  private confirmer = inject(ConfirmService);
+  protected countries = inject(PhoneCountryService);
+  newCode = signal('');
+  /** Codes from country-codes.json not yet in the table. */
+  codeChoices = computed(() => {
+    const taken = new Set(this.countries.rows().map((r) => r.countryCode));
+    return this.countries.catalog().filter((c) => !taken.has(c.code));
+  });
 
   loading = signal(true);
   saving = signal(false);
@@ -93,6 +117,46 @@ export class SettingsComponent implements OnInit {
         this.saving.set(false);
         this.toast.error(err?.error?.message ?? 'Could not save settings.');
       },
+    });
+  }
+
+  addCountry(): void {
+    const code = this.newCode();
+    if (!code) return;
+    this.api.addPhoneCountry(code).subscribe({
+      next: () => {
+        this.newCode.set('');
+        this.countries.reload();
+        this.toast.success(`+${code} added.`);
+      },
+      error: (err) => this.toast.error(err?.error?.message ?? 'Could not add the country code.'),
+    });
+  }
+
+  setChannels(r: PhoneCountry, viber: boolean, sms: boolean, box: MatCheckbox): void {
+    this.api.setPhoneCountryChannels(r.id, viber, sms).subscribe({
+      next: (saved) => this.countries.rows.update((rows) => rows.map((x) => (x.id === saved.id ? saved : x))),
+      error: (err) => {
+        box.checked = !box.checked;
+        this.toast.error(err?.error?.message ?? 'Could not save the channels.');
+      },
+    });
+  }
+
+  async removeCountry(r: PhoneCountry): Promise<void> {
+    const ok = await this.confirmer.confirm({
+      title: `Remove +${r.countryCode}?`,
+      message: `Users can no longer save new +${r.countryCode} numbers, and messages to existing ones go by email. Users keep their numbers.`,
+      confirmText: 'Remove',
+      tone: 'error',
+    });
+    if (!ok) return;
+    this.api.removePhoneCountry(r.id).subscribe({
+      next: () => {
+        this.countries.reload();
+        this.toast.success(`+${r.countryCode} removed.`);
+      },
+      error: (err) => this.toast.error(err?.error?.message ?? 'Could not remove the country code.'),
     });
   }
 }

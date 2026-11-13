@@ -15,13 +15,15 @@ public class InvitationsController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly EmailService _email;
+    private readonly EmailSender _sender;
     private readonly IConfiguration _config;
     private readonly InvitationEmailDispatcher _dispatcher;
 
-    public InvitationsController(AppDbContext db, EmailService email, IConfiguration config, InvitationEmailDispatcher dispatcher)
+    public InvitationsController(AppDbContext db, EmailService email, EmailSender sender, IConfiguration config, InvitationEmailDispatcher dispatcher)
     {
         _db = db;
         _email = email;
+        _sender = sender;
         _config = config;
         _dispatcher = dispatcher;
     }
@@ -201,7 +203,7 @@ public class InvitationsController : ControllerBase
             .Distinct()
             .ToList();
 
-        var sent = 0;
+        int sent = 0, failed = 0;
         ev.InviteSequence += 2;
         foreach (var email in emails)
         {
@@ -218,13 +220,15 @@ public class InvitationsController : ControllerBase
             // which the landing page uses to auto-login/auto-fill.
             var registerUrl = $"{frontendBase}/e/{ev.PublicSlug}?invite={invite.Token}";
             var html = EmailTemplates.Invitation(ev, registerUrl);
-            await _email.SendAsync(email, $"You're invited: {ev.Title}", html, attachments: new[] {
-                CalendarInvite.ForInvitation(ev, _email.FromName, _email.FromAddress, new[] { email }, Array.Empty<string>(), registerUrl) });
-            sent++;
+            // A failed email is retried in the background; only a turned-off email counts as failed.
+            var result = await _sender.SendAsync([email], $"You're invited: {ev.Title}", html, attachments: new[] {
+                CalendarInvite.ForInvitation(ev, _email.FromName, _email.FromAddress, new[] { email }, Array.Empty<string>(), registerUrl) },
+                includeDefaultCc: true);
+            if (result.Accepted) sent++; else failed++;
             await Task.Delay(200); // gentle throttle to stay under Gmail burst limits
         }
         await _db.SaveChangesAsync();
 
-        return Ok(new { sent });
+        return Ok(new { sent, failed });
     }
 }

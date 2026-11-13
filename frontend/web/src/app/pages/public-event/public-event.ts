@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MobileChannelService } from '../../core/mobile-channel.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -18,12 +19,14 @@ import { ToastService } from '../../core/toast.service';
 import { EventDto, MealDto } from '../../core/models';
 import { DynamicFieldsComponent } from '../../shared/dynamic-fields/dynamic-fields';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
-import { formatPhMobile, isCompletePhMobile } from '../../shared/ph-phone';
+import { PhoneCountryService } from '../../core/phone-country.service';
+import { PhoneFieldComponent } from '../../shared/phone-field/phone-field';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-public-event',
   imports: [
+    PhoneFieldComponent,
     DatePipe,
     DecimalPipe,
     FormsModule,
@@ -48,6 +51,7 @@ import { firstValueFrom } from 'rxjs';
 export class PublicEventComponent implements OnInit {
   protected auth = inject(AuthService);
   private api = inject(ApiService);
+  protected mobile = inject(MobileChannelService);
   protected offline = inject(OfflineService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -64,7 +68,8 @@ export class PublicEventComponent implements OnInit {
   fullName = '';
   senateNo = '';
   email = '';
-  phone = '';
+  phone: string | null = null; // "+<code><number>" from the phone field
+  protected countries = inject(PhoneCountryService);
   // Where the entry pass is sent once confirmed. The matching contact(s) become required.
   // "Both" sends via email AND Viber, requiring both an email and a mobile number.
   notificationChannel: 'Email' | 'Viber' | 'Both' = 'Email';
@@ -75,12 +80,6 @@ export class PublicEventComponent implements OnInit {
   capturedFace = signal<string | null>(null); // JSON 128-float descriptor
   capturedFacePhoto = signal<string | null>(null); // the captured still (jpeg data URL)
 
-  // Live-format the phone field to the PH mobile mask "+63 9XX XXX XXXX".
-  onPhoneInput(e: Event): void {
-    const input = e.target as HTMLInputElement;
-    this.phone = formatPhMobile(input.value);
-    input.value = this.phone;
-  }
 
   // Which channel(s) the pass is delivered on (Both = email + Viber). The chosen channel only
   // decides where the pass is sent — email and phone are always collected regardless.
@@ -90,7 +89,7 @@ export class PublicEventComponent implements OnInit {
   // Email and mobile number are both always required, independent of the delivery channel.
   guestContactValid(): boolean {
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
-    const phoneOk = isCompletePhMobile(this.phone);
+    const phoneOk = this.countries.isValid(this.phone);
     return emailOk && phoneOk;
   }
 
@@ -267,7 +266,7 @@ export class PublicEventComponent implements OnInit {
         fullName: this.fullName.trim(),
         senateNo: this.senateNo.trim() || null,
         email: this.email.trim() || null,
-        phone: this.phone.trim() || null,
+        phone: this.phone,
         notificationChannel: this.notificationChannel,
         sessionIds: ids,
         responses,
@@ -303,7 +302,7 @@ export class PublicEventComponent implements OnInit {
         fullName: this.fullName.trim(),
         senateNo: this.senateNo.trim() || null,
         email: this.email.trim() || null,
-        phone: this.phone.trim() || null,
+        phone: this.phone,
         notificationChannel: this.notificationChannel,
         sessionIds,
         responses,

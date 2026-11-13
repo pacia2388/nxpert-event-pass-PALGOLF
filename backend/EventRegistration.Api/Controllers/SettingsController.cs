@@ -22,6 +22,12 @@ public class SettingsController : ControllerBase
         return Ok(new AppSettingsDto(cc, provider));
     }
 
+    // Which service carries mobile messages ("Viber" or "Sms"), so forms can label the mobile
+    // channel. Public: the registration form and account page need it.
+    [HttpGet("mobile-channel"), AllowAnonymous]
+    public async Task<ActionResult<MobileChannelDto>> MobileChannel() =>
+        Ok(new MobileChannelDto(MobileProviders.Normalize(await _settings.GetAsync(SettingKeys.MobileProvider))));
+
     [HttpPut]
     public async Task<ActionResult<AppSettingsDto>> Update(UpdateSettingsRequest req)
     {

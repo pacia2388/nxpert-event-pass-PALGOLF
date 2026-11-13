@@ -422,9 +422,14 @@ export class EventDetailComponent implements OnInit {
         this.confirming.set(false);
         this.selectedAttendees.set(new Set());
         const parts = [`Confirmed ${res.confirmed}`];
-        if (res.emailed) parts.push(`emailed ${res.emailed} pass(es)`);
-        if (res.noEmail) parts.push(`${res.noEmail} had no email`);
-        this.toast.success(parts.join(' · ') + '.');
+        if (res.emailed) parts.push(`sent ${res.emailed} pass(es)`);
+        if (res.fellBack) parts.push(`${res.fellBack} sent another way`);
+        if (res.retrying) parts.push(`${res.retrying} email(s) retrying in 5 minutes`);
+        if (res.notSent) parts.push(`${res.notSent} could not be sent`);
+        if (res.noEmail) parts.push(`${res.noEmail} had no email or phone`);
+        const msg = parts.join(' · ') + '.';
+        if (res.notSent || res.retrying) this.toast.warning(msg);
+        else this.toast.success(msg);
         this.reload();
       },
       error: (err) => {

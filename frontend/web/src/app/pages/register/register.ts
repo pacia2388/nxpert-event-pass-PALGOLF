@@ -1,3 +1,5 @@
+import { PhoneCountryService } from '../../core/phone-country.service';
+import { PhoneFieldComponent } from '../../shared/phone-field/phone-field';
 import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -16,6 +18,7 @@ import { BIRTHDATE_MIN, birthdateMax, isValidBirthdate, toIsoDate } from '../../
 @Component({
   selector: 'app-register',
   imports: [
+    PhoneFieldComponent,
     FormsModule,
     RouterLink,
     MatCardModule,
@@ -49,7 +52,8 @@ export class RegisterComponent implements OnInit {
   level = '';
   email = '';
   password = '';
-  phone = '';
+  phone: string | null = null; // "+<code><number>" from the phone field (optional)
+  protected countries = inject(PhoneCountryService);
   organization = '';
   birthdate: Date | null = null;
   readonly birthdateMin = BIRTHDATE_MIN;

@@ -14,12 +14,25 @@ public class EmailSettings
     public string Password { get; set; } = "";
     public string FromName { get; set; } = "PAL GOLF";
     public string FromAddress { get; set; } = "";
+    // Tests only (ignored in Production): write messages to this folder instead of sending them.
+    public string TestSendDir { get; set; } = "";
+    // Tests only, with TestSendDir: every send fails, to exercise fallback.
+    public bool TestFail { get; set; }
 }
 
 // A file attached to an email (e.g. a calendar invite: "invite.ics", "text/calendar; method=REQUEST").
 public sealed record EmailAttachment(string FileName, byte[] Content, string ContentType);
 
-public enum EmailDeliveryStatus { Sent, Queued }
+// What happened to one message on one channel (email, Viber or SMS).
+// Disabled: the channel is off in Development; the message went to outbox/ and counts as sent.
+// NotConfigured: the channel is off outside Development; nothing was written, try the next channel.
+// Failed: the channel is on but the send failed or was rejected; the message went to outbox/.
+public enum DeliveryResult { Sent, Disabled, NotConfigured, Failed }
+
+public static class DeliveryResults
+{
+    public static bool Delivered(this DeliveryResult r) => r is DeliveryResult.Sent or DeliveryResult.Disabled;
+}
 
 public class EmailService
 {
@@ -27,6 +40,8 @@ public class EmailService
     private readonly ILogger<EmailService> _log;
     private readonly SettingsService _settings;
     private readonly string _outboxDir;
+    private readonly bool _dev;
+    private readonly string? _testDir;
 
     public EmailService(EmailSettings s, ILogger<EmailService> log, SettingsService settings, IWebHostEnvironment env)
     {
@@ -34,6 +49,8 @@ public class EmailService
         _log = log;
         _settings = settings;
         _outboxDir = Path.Combine(env.ContentRootPath, "outbox");
+        _dev = env.IsDevelopment();
+        _testDir = TestSendFolder.Resolve(s.TestSendDir, env);
     }
 
     // Sender identity — also used as the ORGANIZER of calendar invites.
@@ -43,14 +60,14 @@ public class EmailService
     /// <summary>
     /// Sends an HTML email. Optionally embeds a PNG as an inline (CID) image referenced
     /// in the HTML as &lt;img src="cid:qrcode"&gt;. When SMTP is disabled, writes the
-    /// message (and any QR) to an on-disk outbox so the demo still "works" offline.
+    /// message (and any QR) to an on-disk outbox in Development (see <see cref="DeliveryResult"/>).
     /// </summary>
-    public async Task SendAsync(string toEmail, string subject, string htmlBody,
+    public async Task<DeliveryResult> SendAsync(string toEmail, string subject, string htmlBody,
         byte[]? inlineQrPng = null, string cid = "qrcode",
         IReadOnlyDictionary<string, byte[]>? inlineImages = null,
         IReadOnlyList<EmailAttachment>? attachments = null)
     {
-        await SendMessageAsync(new[] { toEmail }, Array.Empty<string>(), subject, htmlBody,
+        return await SendMessageAsync(new[] { toEmail }, Array.Empty<string>(), subject, htmlBody,
             inlineQrPng, cid, inlineImages, attachments, includeDefaultCc: true);
     }
 
@@ -132,7 +149,7 @@ public class EmailService
         return msg;
     }
 
-    public virtual async Task<EmailDeliveryStatus> SendMessageAsync(IReadOnlyCollection<string> to,
+    public virtual async Task<DeliveryResult> SendMessageAsync(IReadOnlyCollection<string> to,
         IReadOnlyCollection<string> cc, string subject, string htmlBody,
         byte[]? inlineQrPng = null, string cid = "qrcode",
         IReadOnlyDictionary<string, byte[]>? inlineImages = null,
@@ -147,7 +164,7 @@ public class EmailService
     /// One message to many receivers, each hidden from the others (BCC). CC addresses appear in the
     /// Cc header; with deliverCc false they are shown but not sent a copy (already sent one).
     /// </summary>
-    public virtual async Task<EmailDeliveryStatus> SendBccAsync(IReadOnlyCollection<string> bcc, string subject,
+    public virtual async Task<DeliveryResult> SendBccAsync(IReadOnlyCollection<string> bcc, string subject,
         string htmlBody, IReadOnlyDictionary<string, byte[]>? inlineImages = null,
         IReadOnlyCollection<string>? cc = null, bool deliverCc = true)
     {
@@ -158,13 +175,26 @@ public class EmailService
     }
 
     // envelope: the addresses SMTP delivers to, when not everyone in the headers should get a copy.
-    private async Task<EmailDeliveryStatus> TransmitAsync(MimeMessage msg, string subject, string htmlBody,
+    private async Task<DeliveryResult> TransmitAsync(MimeMessage msg, string subject, string htmlBody,
         byte[]? inlineQrPng, IReadOnlyDictionary<string, byte[]>? inlineImages, IReadOnlyList<EmailAttachment>? attachments,
         IReadOnlyList<MailboxAddress>? envelope = null)
     {
         var toHeader = string.Join(", ", msg.To.Mailboxes.Select(m => m.Address)
             .Concat(msg.Bcc.Mailboxes.Select(m => "bcc:" + m.Address)));
         var ccHeader = msg.Cc.Mailboxes.Select(m => m.Address).ToList();
+        if (_testDir is not null)
+        {
+            if (_s.TestFail) return DeliveryResult.Failed;
+            Directory.CreateDirectory(_testDir);
+            // Whole MIME message (To/CC/BCC headers, attachments such as invite.ics, CID images).
+            await msg.WriteToAsync(Path.Combine(_testDir, TestSendFolder.FileName(toHeader, subject) + ".eml"));
+            return DeliveryResult.Sent;
+        }
+        if (!_s.Enabled && !_dev)
+        {
+            _log.LogWarning("Email is off; message '{Subject}' was not sent.", subject);
+            return DeliveryResult.NotConfigured;
+        }
         if (_s.Enabled)
         {
             try
@@ -178,7 +208,7 @@ public class EmailService
                 try { await client.DisconnectAsync(true); }
                 catch (Exception ex) { _log.LogWarning(ex, "SMTP disconnect failed after delivery was accepted."); }
                 _log.LogInformation("Sent email to {Count} recipient(s) ('{Subject}').", msg.To.Mailboxes.Count() + msg.Cc.Count + msg.Bcc.Count, subject);
-                return EmailDeliveryStatus.Sent;
+                return DeliveryResult.Sent;
             }
             catch (Exception ex)
             {
@@ -190,7 +220,7 @@ public class EmailService
         // for administrator inspection or later delivery when SMTP is unavailable.
         await msg.WriteToAsync(Path.Combine(_outboxDir, Guid.NewGuid().ToString("N") + ".eml"));
         _log.LogWarning("Saved queued email for {Count} recipient(s) to outbox.", msg.To.Mailboxes.Count() + msg.Cc.Count + msg.Bcc.Count);
-        return EmailDeliveryStatus.Queued;
+        return _s.Enabled ? DeliveryResult.Failed : DeliveryResult.Disabled;
     }
 
     private async Task WriteToOutboxAsync(string toEmail, List<string> cc, string subject, string htmlBody,

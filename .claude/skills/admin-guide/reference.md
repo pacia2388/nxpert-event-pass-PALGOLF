@@ -243,6 +243,15 @@ per custom question (image answers show as thumbnails).
 > Only **confirmed** passes can be checked in — an unconfirmed pass is refused at the scanner
 > ("Not confirmed").
 
+If the mobile message fails, the pass goes by email at once (unless email fallback is turned off
+in the server config). Viber and SMS never stand in for each other. If the registrant's phone
+country is not ticked for the mobile channel in **Settings → Phone countries**, mobile is skipped
+and the pass goes by email (add a code by picking its country from the list; a country missing
+from the list is added by a developer). Viber/SMS are tried once and never retried. A failed email
+is retried in the background 5 times, 5 minutes apart. The message tells you what happened, e.g.
+"Viber failed; pass sent by email.", "Email could not be sent; retrying in 5 minutes." or
+"Pass could not be sent by any channel."
+
 ### Tab: Kit Claiming
 
 Tracks who has collected their event kit.

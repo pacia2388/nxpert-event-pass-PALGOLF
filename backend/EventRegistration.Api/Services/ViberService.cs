@@ -19,6 +19,13 @@ public class ViberSettings
     // Used to build the QR image URL that Infobip fetches, so it must be publicly reachable.
     // When empty, a text-only message is sent (no inline QR).
     public string PublicApiBaseUrl { get; set; } = "";
+    // When a Viber message fails, send the email instead. Turn off when the provider already
+    // falls back on its side, so the registrant does not get the message twice.
+    public bool FallbackToEmail { get; set; } = true;
+    // Tests only (ignored in Production): write messages to this folder instead of sending them.
+    public string TestSendDir { get; set; } = "";
+    // Tests only, with TestSendDir: every send fails, to exercise fallback.
+    public bool TestFail { get; set; }
 }
 
 /// <summary>
@@ -33,15 +40,21 @@ public class ViberService : IMobileSender
     private readonly ViberSettings _s;
     private readonly ILogger<ViberService> _log;
     private readonly string _outboxDir;
+    private readonly bool _dev;
+    private readonly string? _testDir;
 
     public ViberService(ViberSettings s, ILogger<ViberService> log, IWebHostEnvironment env)
     {
         _s = s;
         _log = log;
         _outboxDir = Path.Combine(env.ContentRootPath, "outbox");
+        _dev = env.IsDevelopment();
+        _testDir = TestSendFolder.Resolve(s.TestSendDir, env);
     }
 
-    private bool Configured =>
+    public bool FallbackToEmail => _s.FallbackToEmail;
+
+    public bool Configured =>
         _s.Enabled && !string.IsNullOrWhiteSpace(_s.BaseUrl) &&
         !string.IsNullOrWhiteSpace(_s.ApiKey) && !string.IsNullOrWhiteSpace(_s.Sender);
 
@@ -50,7 +63,7 @@ public class ViberService : IMobileSender
     /// base URL is configured, the QR pass is delivered as an image message pointing at the
     /// public pass-QR endpoint; otherwise a text message is sent. Falls back to the outbox.
     /// </summary>
-    public async Task SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null)
     {
         var text =
@@ -62,12 +75,8 @@ public class ViberService : IMobileSender
 
         var to = NormalizePhone(phone);
 
-        if (!Configured)
-        {
-            await WriteToOutboxAsync(to, title, text, qrPng);
-            _log.LogWarning("Viber/Infobip not configured. Wrote pass for {Phone} ('{Title}') to outbox.", to, title);
-            return;
-        }
+        if (_testDir is not null) return await TestSendFolder.WriteAsync(_testDir, _s.TestFail, to, title, text, qrPng);
+        if (!Configured) return await OffAsync(to, title, text, qrPng);
 
         try
         {
@@ -105,11 +114,13 @@ public class ViberService : IMobileSender
 
             _log.LogInformation("Sent Viber pass to {Phone} ('{Title}') via Infobip ({Kind}).",
                 to, title, mediaUrl is null ? "text only" : "text + QR image");
+            return DeliveryResult.Sent;
         }
         catch (Exception ex)
         {
             _log.LogError(ex, "Failed to send Viber message to {Phone}. Falling back to outbox.", to);
             await WriteToOutboxAsync(to, title, text, qrPng);
+            return DeliveryResult.Failed;
         }
     }
 
@@ -118,16 +129,12 @@ public class ViberService : IMobileSender
     /// Falls back to the on-disk outbox when Infobip isn't configured or the send fails.
     /// <paramref name="subject"/> is only used to label the outbox entry.
     /// </summary>
-    public async Task SendTextAsync(string phone, string subject, string text)
+    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text)
     {
         var to = NormalizePhone(phone);
 
-        if (!Configured)
-        {
-            await WriteToOutboxAsync(to, subject, text, Array.Empty<byte>());
-            _log.LogWarning("Viber/Infobip not configured. Wrote message for {Phone} ('{Subject}') to outbox.", to, subject);
-            return;
-        }
+        if (_testDir is not null) return await TestSendFolder.WriteAsync(_testDir, _s.TestFail, to, subject, text);
+        if (!Configured) return await OffAsync(to, subject, text, Array.Empty<byte>());
 
         try
         {
@@ -152,11 +159,13 @@ public class ViberService : IMobileSender
                 throw new InvalidOperationException($"Infobip responded {(int)resp.StatusCode}: {body}");
 
             _log.LogInformation("Sent Viber message to {Phone} ('{Subject}') via Infobip.", to, subject);
+            return DeliveryResult.Sent;
         }
         catch (Exception ex)
         {
             _log.LogError(ex, "Failed to send Viber message to {Phone}. Falling back to outbox.", to);
             await WriteToOutboxAsync(to, subject, text, Array.Empty<byte>());
+            return DeliveryResult.Failed;
         }
     }
 
@@ -192,13 +201,16 @@ public class ViberService : IMobileSender
     /// Sends the registrant's meal stubs over Viber: an intro text plus one full stub image message
     /// per stub (when a public HTTPS base is configured). Falls back to a text summary / the outbox.
     /// </summary>
-    public async Task SendMealStubsAsync(string phone, string eventTitle,
+    public async Task<DeliveryResult> SendMealStubsAsync(string phone, string eventTitle,
         IReadOnlyList<(string Caption, Guid Control)> stubs)
     {
-        if (stubs.Count == 0) return;
+        if (stubs.Count == 0) return DeliveryResult.Sent;
         var to = NormalizePhone(phone);
         var intro = $"Your {stubs.Count} meal stub{(stubs.Count == 1 ? "" : "s")} for \"{eventTitle}\" — " +
                     "present each QR at the meal counter.";
+        if (_testDir is not null)
+            return await TestSendFolder.WriteAsync(_testDir, _s.TestFail, to, $"meal-stubs_{eventTitle}",
+                intro + "\n" + string.Join("\n", stubs.Select(s => s.Caption)));
 
         // Build image messages when we have a reachable public URL for each stub; else text lines.
         var messages = new List<object> { new { sender = _s.Sender, destinations = new[] { new { to } }, content = new { text = intro, type = "TEXT" } } };
@@ -213,9 +225,10 @@ public class ViberService : IMobileSender
         if (!Configured || !haveImages)
         {
             var summary = intro + "\n" + string.Join("\n", stubs.Select(s => $"• {s.Caption} (No. {s.Control.ToString()[..8].ToUpperInvariant()})"));
+            if (!Configured) return await OffAsync(to, $"meal-stubs_{eventTitle}", summary, Array.Empty<byte>());
             await WriteToOutboxAsync(to, $"meal-stubs_{eventTitle}", summary, Array.Empty<byte>());
-            _log.LogWarning("Viber meal stubs for {Phone}: wrote summary to outbox (configured={Cfg}, images={Img}).", to, Configured, haveImages);
-            return;
+            _log.LogWarning("Viber meal stubs for {Phone}: no public image address; wrote summary to outbox.", to);
+            return DeliveryResult.Failed;
         }
 
         try
@@ -232,13 +245,29 @@ public class ViberService : IMobileSender
             if (!resp.IsSuccessStatusCode || IsRejected(body))
                 throw new InvalidOperationException($"Infobip responded {(int)resp.StatusCode}: {body}");
             _log.LogInformation("Sent {Count} Viber meal stub image(s) to {Phone}.", stubs.Count, to);
+            return DeliveryResult.Sent;
         }
         catch (Exception ex)
         {
             _log.LogError(ex, "Failed to send Viber meal stubs to {Phone}. Falling back to outbox.", to);
             var summary = intro + "\n" + string.Join("\n", stubs.Select(s => $"• {s.Caption}"));
             await WriteToOutboxAsync(to, $"meal-stubs_{eventTitle}", summary, Array.Empty<byte>());
+            return DeliveryResult.Failed;
         }
+    }
+
+    // Viber is off: Development writes the message to outbox/ and counts it as sent; anywhere else
+    // nothing is written and the caller moves on to the next channel.
+    private async Task<DeliveryResult> OffAsync(string to, string title, string text, byte[] qr)
+    {
+        if (!_dev)
+        {
+            _log.LogWarning("Viber is off; message for {Phone} ('{Title}') was not sent.", to, title);
+            return DeliveryResult.NotConfigured;
+        }
+        await WriteToOutboxAsync(to, title, text, qr);
+        _log.LogWarning("Viber/Infobip not configured. Wrote message for {Phone} ('{Title}') to outbox.", to, title);
+        return DeliveryResult.Disabled;
     }
 
     // Infobip returns HTTP 200 with a per-message status; groupId 2/4/5 = UNDELIVERABLE/EXPIRED/REJECTED.

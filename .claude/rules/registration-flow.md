@@ -4,6 +4,14 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
 
 - New registrations are **Pending**; **no pass is sent** until an admin (or a user with **Can
   confirm registrations**) confirms.
+- A pass (and other registrant messages) goes Viber → email or SMS → email only (never Viber ↔
+  SMS); the email fallback follows `Viber:FallbackToEmail` / `Sms:FallbackToEmail`. A phone whose
+  country code is not in the Phone country table for the active channel skips mobile and always
+  gets email. Viber/SMS are tried once and never retried (mail plans included); failed registrant
+  emails retry 5× in the background. An email failure never falls back to Viber/SMS.
+- Every phone entry (user master, My Account, sign-up, guest registration and edit) is a
+  country-code dropdown + number (`app-phone-field`) and accepts only codes in the Phone country
+  table (server too); CSV import accepts any valid number. Unsupported numbers are flagged on the user list and My Account.
 - Confirmation sends the QR pass (and meal stubs, and for online/hybrid the meeting link +
   `invite.ics`) via the registrant's chosen channel (Email / Viber / Both; SMS is text-only).
 - **Only confirmed passes can be checked in**; the scanner returns "Not confirmed" otherwise.

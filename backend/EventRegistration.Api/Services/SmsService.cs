@@ -25,6 +25,12 @@ public class SmsSettings
     // Public base URL where THIS API is reachable (e.g. "https://nxpert-eventpass.n-pax.com:8000").
     // Used to build the clickable entry-pass link in the SMS. When empty, no pass link is included.
     public string PublicApiBaseUrl { get; set; } = "";
+    // When an SMS fails, send the email instead.
+    public bool FallbackToEmail { get; set; } = true;
+    // Tests only (ignored in Production): write messages to this folder instead of sending them.
+    public string TestSendDir { get; set; } = "";
+    // Tests only, with TestSendDir: every send fails, to exercise fallback.
+    public bool TestFail { get; set; }
 }
 
 /// <summary>
@@ -39,15 +45,21 @@ public class SmsService : IMobileSender
     private readonly SmsSettings _s;
     private readonly ILogger<SmsService> _log;
     private readonly string _outboxDir;
+    private readonly bool _dev;
+    private readonly string? _testDir;
 
     public SmsService(SmsSettings s, ILogger<SmsService> log, IWebHostEnvironment env)
     {
         _s = s;
         _log = log;
         _outboxDir = Path.Combine(env.ContentRootPath, "outbox");
+        _dev = env.IsDevelopment();
+        _testDir = TestSendFolder.Resolve(s.TestSendDir, env);
     }
 
-    private bool Configured =>
+    public bool FallbackToEmail => _s.FallbackToEmail;
+
+    public bool Configured =>
         _s.Enabled && !string.IsNullOrWhiteSpace(_s.BaseUrl) && !string.IsNullOrWhiteSpace(_s.ApiKey) &&
         // Movider needs api_secret (sender is optional); the others need a registered sender.
         (IsMovider ? !string.IsNullOrWhiteSpace(_s.ApiSecret) : !string.IsNullOrWhiteSpace(_s.Sender));
@@ -55,7 +67,7 @@ public class SmsService : IMobileSender
     /// <summary>
     /// Sends the entry-pass details to a phone over SMS (text only — no QR image). Falls back to the outbox.
     /// </summary>
-    public async Task SendPassAsync(string phone, string title, DateTime startsAt, string venue,
+    public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, string venue,
         string attendeeName, string passToken, byte[] qrPng, string? editUrl = null)
     {
         // Clickable link to the entry-pass page (opens in the recipient's browser and shows the QR).
@@ -69,7 +81,7 @@ public class SmsService : IMobileSender
                 : $"View your QR entry pass: {passUrl}") +
             (string.IsNullOrWhiteSpace(editUrl) ? "" : $"\nUpdate details: {editUrl}");
 
-        await SendAsync(NormalizePhone(phone), title, text);
+        return await SendAsync(NormalizePhone(phone), title, text);
     }
 
     // Absolute URL to the entry-pass view page, or null when no public base URL is configured.
@@ -81,20 +93,20 @@ public class SmsService : IMobileSender
     }
 
     /// <summary>Sends a plain text SMS. <paramref name="subject"/> only labels the outbox entry.</summary>
-    public async Task SendTextAsync(string phone, string subject, string text) =>
+    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text) =>
         await SendAsync(NormalizePhone(phone), subject, text);
 
     /// <summary>
     /// Sends a text summary of the registrant's meal stubs over SMS (no images). Falls back to the outbox.
     /// </summary>
-    public async Task SendMealStubsAsync(string phone, string eventTitle,
+    public async Task<DeliveryResult> SendMealStubsAsync(string phone, string eventTitle,
         IReadOnlyList<(string Caption, Guid Control)> stubs)
     {
-        if (stubs.Count == 0) return;
+        if (stubs.Count == 0) return DeliveryResult.Sent;
         var text = $"Your {stubs.Count} meal stub{(stubs.Count == 1 ? "" : "s")} for \"{eventTitle}\" — " +
                    "present each at the meal counter:\n" +
                    string.Join("\n", stubs.Select(s => $"• {s.Caption} (No. {s.Control.ToString()[..8].ToUpperInvariant()})"));
-        await SendAsync(NormalizePhone(phone), $"meal-stubs_{eventTitle}", text);
+        return await SendAsync(NormalizePhone(phone), $"meal-stubs_{eventTitle}", text);
     }
 
     private bool IsUniSms => string.Equals(_s.Provider, "UniSMS", StringComparison.OrdinalIgnoreCase);
@@ -102,14 +114,22 @@ public class SmsService : IMobileSender
     private string ProviderName => IsUniSms ? "UniSMS" : IsMovider ? "Movider" : "Infobip";
 
     // Core send: dispatch to the configured gateway, or fall back to the on-disk outbox.
-    private async Task SendAsync(string to, string subject, string text)
+    // When SMS is off, Development writes the message to outbox/ and counts it as sent; anywhere
+    // else nothing is written and the caller moves on to the next channel.
+    private async Task<DeliveryResult> SendAsync(string to, string subject, string text)
     {
+        if (_testDir is not null) return await TestSendFolder.WriteAsync(_testDir, _s.TestFail, to, subject, text);
         var provider = ProviderName;
         if (!Configured)
         {
+            if (!_dev)
+            {
+                _log.LogWarning("SMS is off; message for {Phone} ('{Subject}') was not sent.", to, subject);
+                return DeliveryResult.NotConfigured;
+            }
             await WriteToOutboxAsync(to, subject, text);
             _log.LogWarning("SMS/{Provider} not configured. Wrote message for {Phone} ('{Subject}') to outbox.", provider, to, subject);
-            return;
+            return DeliveryResult.Disabled;
         }
 
         try
@@ -122,11 +142,13 @@ public class SmsService : IMobileSender
                 throw new InvalidOperationException($"{provider} responded {status}: {body}");
 
             _log.LogInformation("Sent SMS to {Phone} ('{Subject}') via {Provider}.", to, subject, provider);
+            return DeliveryResult.Sent;
         }
         catch (Exception ex)
         {
             _log.LogError(ex, "Failed to send SMS to {Phone} via {Provider}. Falling back to outbox.", to, provider);
             await WriteToOutboxAsync(to, subject, text);
+            return DeliveryResult.Failed;
         }
     }
 

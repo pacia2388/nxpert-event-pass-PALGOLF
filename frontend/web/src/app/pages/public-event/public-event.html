@@ -105,10 +105,10 @@
               <p class="top-gap">
                 @if (deliveryChannel() === 'Both') {
                   <mat-icon class="inline-icon">forward_to_inbox</mat-icon>
-                  Once an organizer confirms it, we'll send your entry pass (QR code) to both your email and Viber.
+                  Once an organizer confirms it, we'll send your entry pass (QR code) to both your email and your phone ({{ mobile.name() }}).
                 } @else if (deliveryChannel() === 'Viber') {
                   <mat-icon class="inline-icon">chat</mat-icon>
-                  Once an organizer confirms it, we'll send your entry pass (QR code) to your Viber.
+                  Once an organizer confirms it, we'll send your entry pass (QR code) to your phone ({{ mobile.name() }}).
                 } @else if (hasEmail()) {
                   <mat-icon class="inline-icon">mark_email_read</mat-icon>
                   Once an organizer confirms it, we'll email your entry pass (QR code) to you.
@@ -248,8 +248,8 @@
             <mat-label>Send my pass via</mat-label>
             <mat-select name="notificationChannel" [(ngModel)]="notificationChannel">
               <mat-option value="Email">Email</mat-option>
-              <mat-option value="Viber">Viber</mat-option>
-              <mat-option value="Both">Both (Email &amp; Viber)</mat-option>
+              <mat-option value="Viber">{{ mobile.label() }}</mat-option>
+              <mat-option value="Both">Both (Email &amp; {{ mobile.name() }})</mat-option>
             </mat-select>
             <mat-icon matSuffix>{{ notificationChannel === 'Email' ? 'mail' : 'chat' }}</mat-icon>
           </mat-form-field>
@@ -269,18 +269,7 @@
               <mat-error>Enter a valid email address.</mat-error>
             }
           </mat-form-field>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Mobile number</mat-label>
-            <input matInput name="phone" [(ngModel)]="phone" #gPhone="ngModel"
-                   (input)="onPhoneInput($event)" inputmode="tel" maxlength="16"
-                   placeholder="+63 9XX XXX XXXX" pattern="\+63 9\d{2} \d{3} \d{4}" required />
-            <mat-icon matSuffix>call</mat-icon>
-            @if (gPhone.hasError('required')) {
-              <mat-error>A mobile number is required.</mat-error>
-            } @else if (gPhone.hasError('pattern')) {
-              <mat-error>Enter a valid PH mobile number: +63 9XX XXX XXXX.</mat-error>
-            }
-          </mat-form-field>
+          <app-phone-field [(value)]="phone" [required]="true" />
           </form>
 
           @if (hasSessions()) {

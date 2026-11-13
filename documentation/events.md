@@ -153,6 +153,42 @@ Pending ──confirm──► Confirmed ──check in──► Checked in
 
 The pass is a QR code with payload `REG:{token}`, shown at `/r/{token}` and attached to the email.
 Delivery channel: Email, Viber or Both (SMS when Settings → mobile channel = SMS; text only).
+Forms show the mobile option as "Mobile (Viber)" or "Mobile (SMS)" after the Settings choice.
+
+**Fallback.** Each channel is tried **once**; a failed channel moves on to the next at once:
+
+| Preferred | Order |
+|---|---|
+| Mobile | Active mobile service only (Viber **or** SMS, never both), then email when `Viber:FallbackToEmail` / `Sms:FallbackToEmail` is on (default on) |
+| Email | Email only — a failed email never falls back to Viber/SMS |
+| Both | Email and mobile each sent; neither falls back |
+
+- **Phone country table** (`PhoneCountries`, Settings → Phone countries): one row per country code
+  with a Viber and an SMS tick box. Users may save numbers with any listed code; a number whose
+  code is not ticked for the active channel is **skipped** on mobile and gets the email, whatever
+  the `FallbackToEmail` switch says. A turned-off service in Production is skipped the same way.
+  The admin picks codes from `frontend/web/public/country-codes.json` (code + country name, read
+  at runtime, no rebuild); to offer a new country, add `{ "code": "…", "country": "…" }` there.
+- Turn `FallbackToEmail` off when the provider falls back on its side (e.g. Infobip Viber → SMS),
+  so the registrant does not get the message twice.
+
+- **Viber/SMS are never retried**, mail plans included (`MailPlanDeliveries.MobileAttemptedAt`).
+  A mail-plan receiver whose mobile message fails gets the email instead, unless already emailed.
+- **Failed registrant emails** (pass, kit claimed, edit link, meeting update/cancel) are retried in
+  the background **5×, every 5 min** (`EmailRetries`). The email is rebuilt at each try; a meeting
+  cancel keeps a snapshot because its registration is already deleted.
+- **Other emails with retry** (`EmailSender`, same 5× / 5 min): team "Complete your registration"
+  notice, direct event invite, calendar update/cancel to invitees, mail-plan reminder. The whole
+  message is kept for the retry. Use `EmailSender.SendAsync` for any new email;
+  `EmailSender.SendNowAsync` sends once with no retry. Account verification has no retry (the user
+  can press "Resend").
+- **Turned-off channel:** Development writes the message to `outbox/` and counts it as sent;
+  any other environment skips it (nothing written) and uses the next channel.
+- `PassEmailSentAt` is stamped only when some channel delivered.
+- Admin messages: "Pass sent by email." · "Viber failed; pass sent by email." ·
+  "Pass sent (channels are disabled)." · "Email could not be sent; retrying in 5 minutes." ·
+  "Pass could not be sent by any channel."
+- A meeting cancel also reaches mobile-channel registrants by text.
 
 ## 8. Check-in
 

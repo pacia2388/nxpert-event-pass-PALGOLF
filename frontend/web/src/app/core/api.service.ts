@@ -7,6 +7,7 @@ import { CalendarEvent } from './calendar.util';
 import {
   AdminUserUpsert,
   AppSettingsDto,
+  PhoneCountry,
   MobileProvider,
   AuthResponse,
   AttendeeDto,
@@ -545,6 +546,24 @@ export class ApiService {
   }
   updateSettings(ccEmails: string[], mobileProvider: MobileProvider): Observable<AppSettingsDto> {
     return this.http.put<AppSettingsDto>(this.url('/api/settings'), { ccEmails, mobileProvider });
+  }
+  // Public: which service carries mobile messages, for channel labels.
+  getMobileChannel(): Observable<{ mobileProvider: MobileProvider }> {
+    return this.http.get<{ mobileProvider: MobileProvider }>(this.url('/api/settings/mobile-channel'));
+  }
+
+  // ---- Phone countries (list is public; add/remove admin) ----
+  getPhoneCountries(): Observable<PhoneCountry[]> {
+    return this.http.get<PhoneCountry[]>(this.url('/api/phone-countries'));
+  }
+  addPhoneCountry(countryCode: string): Observable<PhoneCountry> {
+    return this.http.post<PhoneCountry>(this.url('/api/phone-countries'), { countryCode });
+  }
+  setPhoneCountryChannels(id: number, viber: boolean, sms: boolean): Observable<PhoneCountry> {
+    return this.http.put<PhoneCountry>(this.url(`/api/phone-countries/${id}`), { viber, sms });
+  }
+  removePhoneCountry(id: number): Observable<void> {
+    return this.http.delete<void>(this.url(`/api/phone-countries/${id}`));
   }
 
   // ---- Check-in ----

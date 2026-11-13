@@ -96,14 +96,7 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Phone (optional)</mat-label>
-          <input matInput name="phone" [(ngModel)]="phone" #phoneCtrl="ngModel"
-                 pattern="^[0-9+()\-\s]{7,40}$" />
-          @if (phoneCtrl.hasError('pattern')) {
-            <mat-error>Enter a valid phone number (digits, spaces, + ( ) -).</mat-error>
-          }
-        </mat-form-field>
+        <app-phone-field [(value)]="phone" label="Phone (optional)" />
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>JCI Senate Chapter</mat-label>
@@ -139,7 +132,7 @@
           color="primary"
           class="full-width"
           type="submit"
-          [disabled]="loading() || f.invalid"
+          [disabled]="loading() || f.invalid || (!!phone && !countries.isValid(phone))"
         >
           {{ teamToken ? 'Complete registration' : 'Create account' }}
         </button>

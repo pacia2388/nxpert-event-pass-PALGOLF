@@ -284,11 +284,15 @@ public record EventAttendanceSummaryDto(int EventId, int CheckedIn, int Register
 
 // Admin app settings. CcEmails are addresses CC'd on every outgoing email.
 public record AppSettingsDto(List<string> CcEmails, string MobileProvider);
+public record MobileChannelDto(string MobileProvider);
 public record UpdateSettingsRequest(List<string>? CcEmails, string? MobileProvider);
 
 // Bulk confirmation: admin selects registrations and confirms them, which issues the pass.
 public record ConfirmRequest(List<int> RegistrationIds);
-public record ConfirmResult(int Confirmed, int Emailed, int AlreadyConfirmed, int NoEmail);
+// Emailed = passes delivered by any channel; FellBack = of those, sent by a backup channel;
+// Retrying = email failed and is retried in the background; NotSent = every channel failed.
+public record ConfirmResult(int Confirmed, int Emailed, int AlreadyConfirmed, int NoEmail,
+    int FellBack = 0, int Retrying = 0, int NotSent = 0);
 
 // Admin bulk cancel: only pending registrations (not confirmed, not checked in) are removed.
 public record CancelRegistrationsRequest(List<int> RegistrationIds);

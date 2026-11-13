@@ -1,0 +1,25 @@
+<div class="phone-field">
+  <mat-form-field appearance="outline" class="phone-code">
+    <mat-label>Code</mat-label>
+    <mat-select [(ngModel)]="code" (ngModelChange)="onCodeChange()" [ngModelOptions]="{ standalone: true }"
+                aria-label="Country code" panelWidth="">
+      <mat-select-trigger>+{{ code }}</mat-select-trigger>
+      @for (c of countries.codes(); track c) {
+        <mat-option [value]="c">+{{ c }} {{ countries.countryName(c) }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="phone-number">
+    <mat-label>{{ label() }}</mat-label>
+    <input matInput type="tel" inputmode="tel" maxlength="16" autocomplete="tel-national"
+           [value]="number" (input)="onNumberInput($event)" (blur)="touched.set(true)"
+           [required]="required()" [attr.aria-invalid]="!!problem()"
+           [placeholder]="code === '63' ? '9XX XXX XXXX' : 'Mobile number'" />
+    <mat-icon matSuffix>call</mat-icon>
+    @if (problem(); as p) {
+      <mat-hint class="phone-error" role="alert">{{ p }}</mat-hint>
+    } @else if (hint()) {
+      <mat-hint>{{ hint() }}</mat-hint>
+    }
+  </mat-form-field>
+</div>

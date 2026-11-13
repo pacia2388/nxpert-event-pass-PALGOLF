@@ -39,6 +39,12 @@
         Required: <strong>First Name</strong>, <strong>Last Name</strong>, <strong>Email</strong>,
         <strong>Birthdate</strong> (yyyy-MM-dd or M/d/yyyy). Columns marked "(optional)" may be left blank.
       </p>
+      <p class="cols">
+        <strong>Phone:</strong> write the full mobile number with <strong>+</strong> and the country
+        code, e.g. <strong>+639171234567</strong> or <strong>+14155550100</strong>. A number without
+        <strong>+</strong> is read as a Philippine number (09171234567). In Excel, set the Phone
+        column to <strong>Text</strong> before typing, or Excel drops the <strong>+</strong>.
+      </p>
       <button mat-button (click)="downloadTemplate()">
         <mat-icon>download</mat-icon> Download template
       </button>

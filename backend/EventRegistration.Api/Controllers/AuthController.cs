@@ -62,6 +62,9 @@ public class AuthController : ControllerBase
         if (middleInitial.Length > 0) nameParts.Add(middleInitial + ".");
         nameParts.Add(lastName);
 
+        var (signUpPhone, signUpPhoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
+        if (signUpPhoneError is not null) return BadRequest(new { message = signUpPhoneError });
+
         var user = new User
         {
             FirstName = firstName,
@@ -75,7 +78,7 @@ public class AuthController : ControllerBase
             Username = await UsernameHelper.UniqueAsync(_db, UsernameHelper.Base(firstName, lastName, null)),
             PasswordHash = PasswordHasher.Hash(req.Password),
             Role = Roles.Participant,
-            Phone = req.Phone,
+            Phone = signUpPhone,
             Organization = req.Organization,
             Birthdate = req.Birthdate,
             CompanyId = 1,
@@ -153,7 +156,12 @@ public class AuthController : ControllerBase
         u.SenateNo = req.SenateNo.Trim();
         u.Level = req.Level!.Trim();
         u.Birthdate = req.Birthdate;
-        u.Phone = string.IsNullOrWhiteSpace(req.Phone) ? u.Phone : req.Phone.Trim();
+        if (!string.IsNullOrWhiteSpace(req.Phone))
+        {
+            var (invitePhone, invitePhoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
+            if (invitePhoneError is not null) return BadRequest(new { message = invitePhoneError });
+            u.Phone = invitePhone;
+        }
         u.Organization = string.IsNullOrWhiteSpace(req.Organization) ? u.Organization : req.Organization.Trim();
         if (!string.IsNullOrEmpty(req.Photo)) u.PhotoUrl = req.Photo;
         u.PasswordHash = PasswordHasher.Hash(req.Password);
@@ -201,13 +209,14 @@ public class AuthController : ControllerBase
         }
 
         // Notification channel: Viber delivery uses the phone number, so it's required for Viber.
-        var phone = string.IsNullOrWhiteSpace(req.Phone) ? null : req.Phone.Trim();
+        var (phone, phoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
+        if (phoneError is not null) return BadRequest(new { message = phoneError });
         var channel = string.IsNullOrWhiteSpace(req.NotificationChannel)
             ? NotificationChannels.Email : req.NotificationChannel.Trim();
         if (!NotificationChannels.IsValid(channel))
             return BadRequest(new { message = "Notification channel must be Email or Viber." });
         if (channel == NotificationChannels.Viber && phone is null)
-            return BadRequest(new { message = "A phone number is required when notifications are sent via Viber." });
+            return BadRequest(new { message = "A phone number is required when notifications are sent by mobile." });
 
         // Optional password change — requires the correct current password.
         if (!string.IsNullOrWhiteSpace(req.NewPassword))

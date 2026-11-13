@@ -25,10 +25,10 @@ public class TeamsController : ControllerBase
     public const int RegistrationLinkDays = 7;
 
     private readonly AppDbContext _db;
-    private readonly EmailService _email;
+    private readonly EmailSender _email;
     private readonly IConfiguration _config;
 
-    public TeamsController(AppDbContext db, EmailService email, IConfiguration config)
+    public TeamsController(AppDbContext db, EmailSender email, IConfiguration config)
     {
         _db = db;
         _email = email;
@@ -278,13 +278,18 @@ public class TeamsController : ControllerBase
             var url = $"{frontendBase}/register?team={token}";
             try
             {
-                await _email.SendAsync(m.User!.Email, "Complete your registration",
+                // A failed email is retried in the background, so the link still counts as sent.
+                var result = await _email.SendAsync([m.User!.Email], "Complete your registration",
                     EmailTemplates.TeamRegistrationNotice(m.User.FullName, team.Description,
-                        team.TeamLead?.FullName ?? "Your captain", url, RegistrationLinkDays));
-                m.RegistrationToken = token;
-                m.RegistrationTokenExpiresAt = DateTime.UtcNow.AddDays(RegistrationLinkDays);
-                m.NotificationFlag = true;
-                sent++;
+                        team.TeamLead?.FullName ?? "Your captain", url, RegistrationLinkDays), includeDefaultCc: true);
+                if (result.Accepted)
+                {
+                    m.RegistrationToken = token;
+                    m.RegistrationTokenExpiresAt = DateTime.UtcNow.AddDays(RegistrationLinkDays);
+                    m.NotificationFlag = true;
+                    sent++;
+                }
+                else failed++; // keep the previous flag and link
             }
             catch (Exception)
             {

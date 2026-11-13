@@ -49,11 +49,7 @@
               <mat-label>Email</mat-label>
               <input matInput name="email" type="email" [(ngModel)]="email" required maxlength="256" />
             </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Mobile number</mat-label>
-              <input matInput name="phone" type="tel" [ngModel]="phone"
-                     (ngModelChange)="phone = formatPhone($event)" placeholder="+63 9XX XXX XXXX" required />
-            </mat-form-field>
+            <app-phone-field [(value)]="phone" [required]="true" />
           } @else {
             <p class="muted">Your name and contact details are managed in your account profile.</p>
           }

@@ -11,7 +11,8 @@ import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 import { PublicRegistrationForm } from '../../core/models';
 import { DynamicFieldsComponent } from '../../shared/dynamic-fields/dynamic-fields';
-import { formatPhMobile, isCompletePhMobile } from '../../shared/ph-phone';
+import { PhoneCountryService } from '../../core/phone-country.service';
+import { PhoneFieldComponent } from '../../shared/phone-field/phone-field';
 
 /**
  * Public, account-free page to update a guest's contact details and custom responses, reached by a
@@ -21,6 +22,7 @@ import { formatPhMobile, isCompletePhMobile } from '../../shared/ph-phone';
 @Component({
   selector: 'app-registration-edit',
   imports: [
+    PhoneFieldComponent,
     RouterLink,
     FormsModule,
     MatFormFieldModule,
@@ -48,12 +50,12 @@ export class RegistrationEditComponent implements OnInit {
   saved = signal(false);
   fullName = '';
   email = '';
-  phone = '';
-  formatPhone = formatPhMobile;
+  phone: string | null = null; // "+<code><number>" from the phone field
+  protected countries = inject(PhoneCountryService);
 
   identityValid(): boolean {
     return !this.form()?.canEditIdentity || (!!this.fullName.trim() &&
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim()) && isCompletePhMobile(this.phone));
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim()) && this.countries.isValid(this.phone));
   }
 
   ngOnInit(): void {
@@ -63,7 +65,7 @@ export class RegistrationEditComponent implements OnInit {
         this.form.set(f);
         this.fullName = f.attendeeName;
         this.email = f.email ?? '';
-        this.phone = formatPhMobile(f.phone);
+        this.phone = f.phone ?? null;
         this.loading.set(false);
       },
       error: (err) => {
@@ -82,7 +84,7 @@ export class RegistrationEditComponent implements OnInit {
     }
     this.saving.set(true);
     const identity = this.form()?.canEditIdentity
-      ? { fullName: this.fullName.trim(), email: this.email.trim(), phone: this.phone } : undefined;
+      ? { fullName: this.fullName.trim(), email: this.email.trim(), phone: this.phone ?? '' } : undefined;
     this.api.updatePublicResponses(this.token, this.dyn?.collect() ?? {}, identity).subscribe({
       next: () => {
         this.saving.set(false);

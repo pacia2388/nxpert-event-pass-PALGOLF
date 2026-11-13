@@ -58,7 +58,7 @@ public class UsersController : ControllerBase
         if (!NotificationChannels.IsValid(channel))
             return "Notification channel must be Email, Viber, or Both.";
         if (NotificationChannels.UsesViber(channel) && string.IsNullOrWhiteSpace(phone))
-            return "A phone number is required when notifications are sent via Viber.";
+            return "A phone number is required when notifications are sent by mobile.";
         return null;
     }
 
@@ -125,7 +125,8 @@ public class UsersController : ControllerBase
         var photoError = ValidatePhoto(req.Photo) ?? ValidateFace(req.Face);
         if (photoError is not null) return BadRequest(new { message = photoError });
 
-        var phone = string.IsNullOrWhiteSpace(req.Phone) ? null : req.Phone.Trim();
+        var (phone, phoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
+        if (phoneError is not null) return BadRequest(new { message = phoneError });
         var channelError = ResolveChannel(req.NotificationChannel, phone, out var channel);
         if (channelError is not null) return BadRequest(new { message = channelError });
 
@@ -244,7 +245,13 @@ public class UsersController : ControllerBase
                 continue;
             }
 
-            var phone = string.IsNullOrWhiteSpace(row.Phone) ? null : row.Phone.Trim();
+            var phone = PhoneNumber.Normalize(row.Phone); // CSV: any country allowed
+            if (phone is null && !string.IsNullOrWhiteSpace(row.Phone))
+            {
+                errors.Add(new UserImportError(line, label, PhoneNumber.InvalidMessage));
+                failed++;
+                continue;
+            }
             var channelError = ResolveChannel(row.NotificationChannel, phone, out var channel);
             if (channelError is not null)
             {
@@ -335,7 +342,8 @@ public class UsersController : ControllerBase
                 return Conflict(new { message = $"This face is already registered to {owner}." });
         }
 
-        var phone = string.IsNullOrWhiteSpace(req.Phone) ? null : req.Phone.Trim();
+        var (phone, phoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
+        if (phoneError is not null) return BadRequest(new { message = phoneError });
         var channelError = ResolveChannel(req.NotificationChannel, phone, out var channel);
         if (channelError is not null) return BadRequest(new { message = channelError });
 

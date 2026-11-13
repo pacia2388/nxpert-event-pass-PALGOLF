@@ -1,4 +1,5 @@
 import { Component, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
+import { MobileChannelService } from '../../../core/mobile-channel.service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,7 +13,8 @@ import { ApiService } from '../../../core/api.service';
 import { ToastService } from '../../../core/toast.service';
 import { AdminUserUpsert, NotificationChannel, UserDto } from '../../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../../shared/face-capture-dialog';
-import { formatPhMobile } from '../../../shared/ph-phone';
+import { PhoneFieldComponent } from '../../../shared/phone-field/phone-field';
+import { PhoneCountryService } from '../../../core/phone-country.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BIRTHDATE_MIN, birthdateMax, fromIsoDate, isValidBirthdate, toIsoDate } from '../../../shared/birthdate';
 
@@ -31,12 +33,15 @@ import { BIRTHDATE_MIN, birthdateMax, fromIsoDate, isValidBirthdate, toIsoDate }
     MatIconModule,
     MatCheckboxModule,
     MatTooltipModule,
+    PhoneFieldComponent,
   ],
   templateUrl: './user-form-panel.html',
   styleUrl: './user-form-panel.scss',
 })
 export class UserFormPanelComponent {
   private api = inject(ApiService);
+  protected mobile = inject(MobileChannelService);
+  protected countries = inject(PhoneCountryService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
 
@@ -56,7 +61,9 @@ export class UserFormPanelComponent {
   password = '';
   role: string = 'Participant';
   organization = '';
-  phone = '';
+  // "+<code><number>" from the phone field; storedPhone is the saved value (dirty check, warning).
+  phone: string | null = null;
+  private storedPhone: string | null = null;
   notificationChannel: NotificationChannel = 'Email';
   canConfirmRegistrations = false;
   birthdate: Date | null = null;
@@ -100,7 +107,7 @@ export class UserFormPanelComponent {
 
   /** True when the admin has changed anything since the record was loaded. */
   isDirty(): boolean {
-    return !!this.form()?.dirty || !!this.newPhoto() || this.clearPhoto() || !!this.newFace() || this.clearFace();
+    return !!this.form()?.dirty || this.phone !== this.storedPhone || !!this.newPhoto() || this.clearPhoto() || !!this.newFace() || this.clearFace();
   }
 
   private reset(u: UserDto | null): void {
@@ -114,7 +121,8 @@ export class UserFormPanelComponent {
     this.password = '';
     this.role = u?.role ?? 'Participant';
     this.organization = u?.organization ?? '';
-    this.phone = formatPhMobile(u?.phone);
+    this.storedPhone = u?.phone ?? null;
+    this.phone = this.storedPhone;
     this.notificationChannel = u?.notificationChannel ?? 'Email';
     this.canConfirmRegistrations = u?.canConfirmRegistrations ?? false;
     this.birthdate = fromIsoDate(u?.birthdate);
@@ -155,19 +163,12 @@ export class UserFormPanelComponent {
       password: '',
       role: this.role,
       notificationChannel: this.notificationChannel,
-      phone: this.phone,
       organization: this.organization,
       canConfirm: this.canConfirmRegistrations,
       birthdate: this.birthdate,
     };
   }
 
-  // Live-format the phone field to the PH mobile mask "+63 000 000 0000".
-  onPhoneInput(e: Event): void {
-    const el = e.target as HTMLInputElement;
-    this.phone = formatPhMobile(el.value);
-    el.value = this.phone;
-  }
 
   onPhotoSelected(event: Event): void {
     const el = event.target as HTMLInputElement;
@@ -247,10 +248,8 @@ export class UserFormPanelComponent {
     const hasNames = !!this.firstName.trim() && !!this.lastName.trim();
     const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
     const pwOk = this.isEdit ? !this.password || this.password.length >= 8 : this.password.length >= 8;
-    // A phone is optional unless Viber; when present it must be a complete PH mobile number.
-    const phone = this.phone.trim();
-    const phoneComplete = /^\+63 \d{3} \d{3} \d{4}$/.test(phone);
-    const phoneOk = phone ? phoneComplete : !this.phoneRequired();
+    // A phone is optional unless mobile; when present it needs a listed code and a full number.
+    const phoneOk = this.phone ? this.countries.isValid(this.phone) : !this.phoneRequired();
     return hasNames && hasEmail && pwOk && !!this.role && phoneOk && isValidBirthdate(this.birthdate);
   }
 
@@ -274,7 +273,7 @@ export class UserFormPanelComponent {
       password: this.password || null,
       role: this.role,
       organization: this.organization.trim() || null,
-      phone: this.phone.trim() || null,
+      phone: this.phone,
       canConfirmRegistrations: this.canConfirmRegistrations,
       photo: this.photoPayload(),
       face: this.facePayload(),

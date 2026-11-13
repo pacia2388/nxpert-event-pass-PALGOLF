@@ -74,6 +74,10 @@
                     @if (u.hasFace) {
                       <mat-icon class="inline-icon face-badge" matTooltip="Face registered">face</mat-icon>
                     }
+                    @if (!countries.supports(u.phone)) {
+                      <mat-icon class="inline-icon phone-badge" matTooltip="Mobile messages can't be sent to this number (country not listed)"
+                                aria-label="Phone country not supported">phonelink_erase</mat-icon>
+                    }
                   </span>
                 </td>
                 <td>{{ u.username }}</td>

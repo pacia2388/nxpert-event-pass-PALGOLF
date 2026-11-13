@@ -132,13 +132,14 @@ public class RegistrationsController : ControllerBase
         {
             name = req.FullName.Trim();
             email = req.Email?.Trim().ToLowerInvariant();
-            phone = NormalizePhMobile(req.Phone ?? "");
+            string? phoneError;
+            (phone, phoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
             if (name.Length < 2 || name.Length > 200)
                 return BadRequest(new { message = "Enter your name (2 to 200 characters)." });
             if (string.IsNullOrWhiteSpace(email) || email.Length > 256 || !IsValidEmail(email))
                 return BadRequest(new { message = "Please enter a valid email address." });
             if (phone is null)
-                return BadRequest(new { message = "Please enter a valid Philippine mobile number (+63 9XX XXX XXXX)." });
+                return BadRequest(new { message = phoneError ?? "A mobile number is required." });
         }
 
         var missing = FormJson.FirstMissingRequired(FormJson.ReadSchema(reg.Event!.FormSchema), req.Responses);
@@ -387,9 +388,9 @@ public class RegistrationsController : ControllerBase
 
         if (phoneRaw is null)
             return BadRequest(new { message = "A mobile number is required." });
-        var phone = NormalizePhMobile(phoneRaw);
+        var (phone, phoneError) = await PhoneNumber.ValidateAsync(_db, phoneRaw);
         if (phone is null)
-            return BadRequest(new { message = "Please enter a valid Philippine mobile number (+63 9XX XXX XXXX)." });
+            return BadRequest(new { message = phoneError ?? "A mobile number is required." });
 
         // Invite-only events: a guest must have been invited (matched by email).
         if (!ev.IsPublicLinkEnabled)
@@ -501,19 +502,12 @@ public class RegistrationsController : ControllerBase
             return BadRequest(new { message = "This registration hasn't been confirmed yet, so no pass has been issued." });
 
         var delivery = await _pass.SendConfirmationAsync(reg.Event!, reg);
-        if (delivery == PassDelivery.NotSent)
+        if (!delivery.Attempted)
             return BadRequest(new { message = "This registration has no email or phone on file to send the pass to." });
 
         await _db.SaveChangesAsync();
-        return Ok(new
-        {
-            message = delivery switch
-            {
-                PassDelivery.Both => "Pass sent via email and Viber.",
-                PassDelivery.Viber => "Pass sent via Viber.",
-                _ => "Pass email sent.",
-            },
-        });
+        if (!delivery.Sent && !delivery.EmailRetryQueued) return BadRequest(new { message = delivery.Message });
+        return Ok(new { message = delivery.Message });
     }
 
     // ---- Participant/Admin: cancel a registration ----
@@ -611,18 +605,7 @@ public class RegistrationsController : ControllerBase
     private static bool IsValidEmail(string email) =>
         System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$");
 
-    // Validates + normalizes a Philippine mobile number to canonical "+639XXXXXXXXX".
-    // Accepts 09XXXXXXXXX, +63/63 9XXXXXXXXX, or 9XXXXXXXXX (spaces/dashes ignored).
-    // Returns null when it isn't a valid PH mobile number (10 digits after +63, starting with 9).
-    private static string? NormalizePhMobile(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw)) return null;
-        var digits = new string(raw.Where(char.IsDigit).ToArray());
-        if (digits.StartsWith("63")) digits = digits[2..];
-        else if (digits.StartsWith("0")) digits = digits[1..];
-        if (digits.Length != 10 || digits[0] != '9') return null;
-        return "+63" + digits;
-    }
+    private static string? NormalizePhMobile(string? raw) => PhoneNumber.Normalize(raw);
 
     // Resolves which registrations to create: one per selected sub-event, or a single
     // event-level registration (null) when the event has no sub-events. Sets `error` when

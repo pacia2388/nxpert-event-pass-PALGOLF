@@ -52,7 +52,7 @@ public class InvitationEmailDispatcher(AppDbContext db, EmailService email, ICon
             await db.SaveChangesAsync();
             var delivery = await email.SendMessageAsync(message.To, message.Cc, message.Subject,
                 message.Html, inlineImages: message.Images, attachments: [calendar]);
-            if (delivery == EmailDeliveryStatus.Sent)
+            if (delivery == DeliveryResult.Sent)
             {
                 item.Status = InvitationEmailStatus.Sent;
                 item.SentAt = DateTimeOffset.UtcNow;

@@ -113,25 +113,23 @@
             <mat-label>Send my pass via</mat-label>
             <mat-select name="notificationChannel" [(ngModel)]="notificationChannel">
               <mat-option value="Email">Email</mat-option>
-              <mat-option value="Viber">Viber</mat-option>
+              <mat-option value="Viber">{{ mobile.label() }}</mat-option>
             </mat-select>
             <mat-icon matSuffix>{{ notificationChannel === 'Viber' ? 'chat' : 'mail' }}</mat-icon>
           </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Phone{{ phoneRequired() ? '' : ' (optional)' }}</mat-label>
-          <input matInput name="phone" [(ngModel)]="phone" #phoneModel="ngModel"
-                 maxlength="40" [required]="phoneRequired()" />
-          <mat-icon matSuffix>call</mat-icon>
-          @if (phoneRequired()) {
-            @if (phoneModel.hasError('required')) {
-              <mat-error>A phone number is required when your pass is sent via Viber.</mat-error>
-            } @else {
-              <mat-hint>Your Viber pass will be sent to this number.</mat-hint>
-            }
-          }
-        </mat-form-field>
+        @if (phoneUnsupported()) {
+          <p class="phone-warn" role="alert">
+            <mat-icon class="inline-icon">warning</mat-icon>
+            Mobile messages can't be sent to your saved number. Please pick a listed country code
+            and update it.
+          </p>
+        }
+        <app-phone-field [(value)]="phone" [required]="phoneRequired()"
+                         [label]="phoneRequired() ? 'Phone' : 'Phone (optional)'"
+                         requiredMessage="A phone number is required when your pass is sent by mobile."
+                         [hint]="phoneRequired() ? 'Your mobile pass will be sent to this number.' : null" />
 
         <mat-divider class="section-divider"></mat-divider>
         <h3 class="section-title">Change password</h3>

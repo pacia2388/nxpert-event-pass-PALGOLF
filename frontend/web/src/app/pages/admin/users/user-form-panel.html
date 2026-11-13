@@ -111,22 +111,13 @@
     <mat-label>Send pass via</mat-label>
     <mat-select name="notificationChannel" [(ngModel)]="notificationChannel">
       <mat-option value="Email">Email</mat-option>
-      <mat-option value="Viber">Viber</mat-option>
-      <mat-option value="Both">Both (Email &amp; Viber)</mat-option>
+      <mat-option value="Viber">{{ mobile.label() }}</mat-option>
+      <mat-option value="Both">Both (Email &amp; {{ mobile.name() }})</mat-option>
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field appearance="outline">
-    <mat-label>Phone</mat-label>
-    <input matInput name="phone" [(ngModel)]="phone" #phoneModel="ngModel"
-           (input)="onPhoneInput($event)" inputmode="tel" maxlength="16"
-           placeholder="+63 000 000 0000"
-           pattern="\+63 \d{3} \d{3} \d{4}" [required]="phoneRequired()" />
-    @if (phoneRequired() && !phone) { <mat-icon matSuffix class="req" matTooltip="Required for Viber">error</mat-icon> }
-    @if (phoneModel.hasError('pattern')) {
-      <mat-error>Use +63 000 000 0000.</mat-error>
-    }
-  </mat-form-field>
+  <app-phone-field [(value)]="phone" [required]="phoneRequired()" label="Phone"
+                   requiredMessage="A phone number is required for mobile." />
 
   <div class="uf-checks span-2">
     <mat-checkbox name="canConfirm" [(ngModel)]="canConfirmRegistrations">

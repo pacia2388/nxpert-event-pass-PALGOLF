@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Country code + number on one row.
+.phone-field {
+  display: flex;
+  gap: 8px;
+}
+
+.phone-code {
+  flex: 0 0 96px;
+}
+
+.phone-number {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.phone-error {
+  color: var(--mat-sys-error);
+}

@@ -8,7 +8,8 @@ import { UserImportResult, UserImportRow } from '../../../core/models';
 
 // The import file's header row is fixed to this list: same columns, same order (it is also the
 // downloadable template). Cells are read by position. "(optional)" columns may be left blank.
-const COLUMNS: { header: string; field: keyof UserImportRow }[] = [
+// alt: an older header still accepted, so files made from the previous template keep working.
+const COLUMNS: { header: string; field: keyof UserImportRow; alt?: string }[] = [
   { header: 'First Name', field: 'firstName' },
   { header: 'Middle Initial (optional)', field: 'middleInitial' },
   { header: 'Last Name', field: 'lastName' },
@@ -17,7 +18,7 @@ const COLUMNS: { header: string; field: keyof UserImportRow }[] = [
   { header: 'ID No (optional)', field: 'senateNo' },
   { header: 'Designation (optional)', field: 'level' },
   { header: 'Organization (optional)', field: 'organization' },
-  { header: 'Phone (optional)', field: 'phone' },
+  { header: 'Phone (optional; with country code e.g. +639171234567)', field: 'phone', alt: 'Phone (optional)' },
   { header: 'Role (optional)', field: 'role' },
   { header: 'Notification Channel (optional)', field: 'notificationChannel' },
   { header: 'Birthdate', field: 'birthdate' },
@@ -42,7 +43,8 @@ export function headerError(headerRow: string[]): string | null {
     const cell = (headerRow[i] ?? '').trim();
     if (want === undefined) return `Unexpected extra column "${cell}" (column ${i + 1}).`;
     if (i >= got.length) return `Missing column "${want}" (column ${i + 1}).`;
-    if (got[i] !== normalizeHeader(want))
+    const alt = COLUMNS[i].alt;
+    if (got[i] !== normalizeHeader(want) && !(alt && got[i] === normalizeHeader(alt)))
       return `Column ${i + 1} must be "${want}" but is "${cell || '(blank)'}".`;
   }
   return null;

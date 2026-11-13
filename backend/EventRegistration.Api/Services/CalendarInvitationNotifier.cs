@@ -7,7 +7,7 @@ namespace EventRegistration.Api.Services;
 
 // Updates the same event UID when its schedule changes; no calendar API credentials
 // or direct access to attendees' Microsoft/Google accounts are implied by email delivery.
-public class CalendarInvitationNotifier(AppDbContext db, EmailService email, IConfiguration config,
+public class CalendarInvitationNotifier(AppDbContext db, EmailService email, EmailSender sender, IConfiguration config,
     ILogger<CalendarInvitationNotifier> log)
 {
     public async Task<List<string>> RecipientsAsync(int eventId) => (await db.Invitations
@@ -40,8 +40,10 @@ public class CalendarInvitationNotifier(AppDbContext db, EmailService email, ICo
                     new[] { recipient }, Array.Empty<string>(), url, cancel);
                 var html = cancel ? $"<p>The event <strong>{WebUtility.HtmlEncode(ev.Title)}</strong> has been cancelled.</p>" :
                     "<p>The event details have changed. The attached calendar invitation updates your existing event.</p>" + EmailTemplates.Invitation(ev, WebUtility.HtmlEncode(url));
-                await email.SendMessageAsync(new[] { recipient }, Array.Empty<string>(),
-                    $"{(cancel ? "Cancelled" : "Updated")}: {ev.Title}", html, attachments: new[] { attachment });
+                // Retried in the background on failure; the calendar SEQUENCE keeps a late copy from
+                // overriding a newer update.
+                await sender.SendAsync([recipient], $"{(cancel ? "Cancelled" : "Updated")}: {ev.Title}", html,
+                    attachments: new[] { attachment });
             }
             catch (Exception ex) { log.LogError(ex, "Calendar notification failed for event {EventId}.", ev.Id); }
         }

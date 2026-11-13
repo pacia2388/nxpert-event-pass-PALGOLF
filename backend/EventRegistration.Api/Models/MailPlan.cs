@@ -93,6 +93,8 @@ public class MailPlanDelivery
     // Per-channel progress, so a retry never sends a receiver the same mail twice.
     public DateTimeOffset? EmailSentAt { get; set; }
     public DateTimeOffset? ViberSentAt { get; set; }
+    // Set on the one mobile try; a failed Viber/SMS message is never re-sent by plan retries.
+    public DateTimeOffset? MobileAttemptedAt { get; set; }
     public DateTimeOffset? RemindAt { get; set; }
     public bool Snoozed { get; set; }
     public DateTimeOffset? ReminderSentAt { get; set; }

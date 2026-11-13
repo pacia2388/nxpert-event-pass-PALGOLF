@@ -11,8 +11,8 @@ namespace EventRegistration.Api.Services;
 /// receiver list (one MailPlanDelivery each), which also puts the mail in their My Reminders inbox.
 /// Email goes out in BCC batches; per-receiver progress makes retries skip anyone already reached.
 /// </summary>
-public class MailPlanDispatcher(AppDbContext db, EmailService email, MobileMessenger mobile, MailPlanAudience audience,
-    ILogger<MailPlanDispatcher> log)
+public class MailPlanDispatcher(AppDbContext db, EmailService email, EmailSender sender, MobileMessenger mobile, NotificationDelivery delivery,
+    MailPlanAudience audience, ILogger<MailPlanDispatcher> log)
 {
     public const int MaxAttempts = 5;
     private const int BatchSize = 50;
@@ -60,20 +60,22 @@ public class MailPlanDispatcher(AppDbContext db, EmailService email, MobileMesse
             var (body, images) = InvitationMessageBuilder.RenderBody(send.BodyHtml);
             var html = Template(plan, body, email.FromName);
 
-            // Viber-only plans email the receivers who have no phone number. CC addresses are shown on
-            // every batch but get their single copy with the first batch that goes out.
+            // Viber-only plans email the receivers who have no phone number, and (on a retry) those
+            // whose one mobile try failed. CC addresses are shown on every batch but get their
+            // single copy with the first batch that goes out.
             var queued = false;
             var ccRows = deliveries.Where(d => d.IsCc).ToList();
             var ccList = ccRows.Select(d => d.Email).ToList();
             var byEmail = deliveries.Where(d => !d.IsCc && d.EmailSentAt is null &&
-                (plan.Channel != MailPlanChannels.Viber || d.Phone is null)).ToList();
+                (plan.Channel != MailPlanChannels.Viber || d.Phone is null ||
+                    (d.MobileAttemptedAt is not null && d.ViberSentAt is null))).ToList();
             var batches = byEmail.Chunk(BatchSize).ToList();
             if (batches.Count == 0 && ccRows.Any(d => d.EmailSentAt is null)) batches.Add([]);
             foreach (var batch in batches)
             {
                 var ccPending = ccRows.Where(d => d.EmailSentAt is null).ToList();
                 if (await email.SendBccAsync(batch.Select(d => d.Email).ToList(), send.Subject, html, images,
-                        ccList, deliverCc: ccPending.Count > 0) != EmailDeliveryStatus.Sent)
+                        ccList, deliverCc: ccPending.Count > 0) != DeliveryResult.Sent)
                 {
                     queued = true;
                     break;
@@ -82,40 +84,55 @@ public class MailPlanDispatcher(AppDbContext db, EmailService email, MobileMesse
                 await db.SaveChangesAsync();
             }
 
-            var viberFailed = 0;
+            // Viber/SMS: one try per receiver on the active provider only, never repeated by a plan
+            // retry. A receiver whose country code is not listed for the channel is skipped and gets
+            // the email; a failed send gets the email only when the provider's FallbackToEmail is on.
+            // Never when already emailed; a failed fallback email is retried with the plan.
+            var mobileFailed = 0;
             if (plan.Channel != MailPlanChannels.Email)
             {
                 var text = InvitationMessageBuilder.PlainText(send.BodyHtml);
-                foreach (var d in deliveries.Where(d => !d.IsCc && d.Phone is not null && d.ViberSentAt is null))
+                var route = await mobile.RouteAsync();
+                foreach (var d in deliveries.Where(d => !d.IsCc && d.Phone is not null && d.MobileAttemptedAt is null && d.ViberSentAt is null))
                 {
-                    try
+                    d.MobileAttemptedAt = DateTimeOffset.UtcNow;
+                    var supported = route.Supports(d.Phone);
+                    var result = supported
+                        ? await delivery.DeliverAsync([new ChannelAttempt(route.Name, () => route.Sender.SendTextAsync(d.Phone!, send.Subject, text))])
+                        : null;
+                    if (result?.Delivered == true)
                     {
-                        await mobile.SendTextAsync(d.Phone!, send.Subject, text);
                         d.ViberSentAt = DateTimeOffset.UtcNow;
+                        continue;
                     }
-                    catch (Exception ex)
-                    {
-                        viberFailed++;
-                        log.LogWarning(ex, "Mail plan send {Id}: Viber message to a receiver failed.", send.Id);
-                    }
+                    mobileFailed++;
+                    log.LogWarning("Mail plan send {Id}: mobile message to a receiver {Why}.", send.Id,
+                        supported ? "failed" : "skipped (country not listed)");
+                    // Off in Production (NotConfigured) counts as skipped, like an unlisted country.
+                    var failed = result?.Tried.Any(t => t.Result == DeliveryResult.Failed) == true;
+                    if (failed && !route.Sender.FallbackToEmail) continue;
+                    if (d.EmailSentAt is not null || string.IsNullOrWhiteSpace(d.Email)) continue;
+                    if (await email.SendMessageAsync([d.Email], [], send.Subject, html, inlineImages: images) == DeliveryResult.Sent)
+                        d.EmailSentAt = DateTimeOffset.UtcNow;
+                    else
+                        queued = true;
                 }
                 await db.SaveChangesAsync();
             }
 
-            if (!queued && viberFailed == 0)
+            if (!queued)
             {
                 send.Status = MailSendStatus.Sent;
                 send.SentAt = DateTimeOffset.UtcNow;
-                send.LastError = null;
+                send.LastError = mobileFailed == 0 ? null
+                    : $"{mobileFailed} mobile message{(mobileFailed == 1 ? "" : "s")} could not be sent; those receivers got the email instead where they have an address and email fallback is on.";
             }
             else
             {
                 var last = send.Attempts >= MaxAttempts;
                 send.Status = last ? MailSendStatus.Failed : MailSendStatus.Queued;
                 send.NextAttemptAt = DateTimeOffset.UtcNow.AddMinutes(5);
-                var problem = queued
-                    ? "SMTP delivery is unavailable; the email was saved to the server outbox."
-                    : $"{viberFailed} Viber message{(viberFailed == 1 ? "" : "s")} could not be sent.";
+                var problem = "Email delivery is unavailable.";
                 send.LastError = last
                     ? $"{problem} Gave up after five attempts. Retry to try again; receivers already reached are skipped."
                     : $"{problem} Retrying in five minutes; receivers already reached are skipped.";
@@ -165,7 +182,8 @@ public class MailPlanDispatcher(AppDbContext db, EmailService email, MobileMesse
                 var (body, images) = InvitationMessageBuilder.RenderBody(send.BodyHtml);
                 var intro = "<p style=\"margin:0 0 16px;padding:10px 14px;border-radius:8px;background:#e8f0fb;color:#0b4a94\">" +
                     "You asked to be reminded about this mail.</p>";
-                await email.SendMessageAsync([delivery.Email], [], subject, Template(plan, intro + body, email.FromName), inlineImages: images);
+                // Retried in the background on failure (ReminderSentAt is already stamped).
+                await sender.SendAsync([delivery.Email], subject, Template(plan, intro + body, email.FromName), inlineImages: images);
             }
         }
         catch (Exception ex) { log.LogError(ex, "Mail reminder {Id} could not be sent.", deliveryId); }

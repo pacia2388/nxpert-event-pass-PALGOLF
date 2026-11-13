@@ -99,9 +99,11 @@ public class AttendanceController : ControllerBase
         if (string.IsNullOrWhiteSpace(reg.DisplayEmail))
             return BadRequest(new { message = "This attendee has no registered email address." });
 
-        await _pass.SendConfirmationAsync(reg.Event!, reg, emailOnly: true);
+        var delivery = await _pass.SendConfirmationAsync(reg.Event!, reg, emailOnly: true);
         await _db.SaveChangesAsync();
-        return Ok(new { message = $"QR pass sent to {reg.DisplayEmail}." });
+        if (delivery.Sent && !delivery.ChannelsOff) return Ok(new { message = $"QR pass sent to {reg.DisplayEmail}." });
+        if (delivery.Sent || delivery.EmailRetryQueued) return Ok(new { message = delivery.Message });
+        return BadRequest(new { message = delivery.Message });
     }
 
     // ---- Manual check-in: admin marks selected registrations as attended ----
@@ -183,7 +185,7 @@ public class AttendanceController : ControllerBase
             foreach (var reg in toNotify)
             {
                 var delivery = await _pass.SendKitClaimedAsync(ev, reg, req.SelfClaimed ? null : claimer);
-                if (delivery != PassDelivery.NotSent) notified++;
+                if (delivery.Sent) notified++;
 
                 // Realtime: push an in-app notification to the registrant (account-based only).
                 if (reg.UserId is int uid)
@@ -593,7 +595,7 @@ public class AttendanceController : ControllerBase
             .Where(r => r.EventId == eventId && ids.Contains(r.Id))
             .ToListAsync();
 
-        int confirmed = 0, emailed = 0, already = 0, noEmail = 0;
+        int confirmed = 0, emailed = 0, already = 0, noEmail = 0, fellBack = 0, retrying = 0, notSent = 0;
         var approved = new List<(int UserId, RegistrationApprovedNotice Notice)>();
         foreach (var reg in regs)
         {
@@ -602,10 +604,13 @@ public class AttendanceController : ControllerBase
             reg.ConfirmedAt = DateTime.Now;
             confirmed++;
 
-            // Routes to the member's channel (Email or Viber); guests always email.
+            // Routes to the member's channel with fallback (mobile, then email).
             var delivery = await _pass.SendConfirmationAsync(ev, reg);
-            if (delivery == PassDelivery.NotSent) noEmail++;
-            else emailed++;
+            if (!delivery.Attempted) noEmail++;
+            else if (delivery.Sent) emailed++;
+            else if (delivery.EmailRetryQueued) retrying++;
+            else notSent++;
+            if (delivery.Sent && delivery.FellBackFrom is not null) fellBack++;
 
             // Realtime: notify the registrant (account-based only; guests have no live session).
             if (reg.UserId is int uid)
@@ -619,7 +624,7 @@ public class AttendanceController : ControllerBase
         foreach (var (uid, notice) in approved)
             await _notify.RegistrationApprovedAsync(uid, notice);
 
-        return Ok(new ConfirmResult(confirmed, emailed, already, noEmail));
+        return Ok(new ConfirmResult(confirmed, emailed, already, noEmail, fellBack, retrying, notSent));
     }
 
     // ---- Bulk cancel: remove selected PENDING registrations (the "reject" side of Confirm) ----
