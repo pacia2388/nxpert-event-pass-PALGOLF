@@ -397,9 +397,10 @@ public class EventsController : ControllerBase
     [HttpGet("browse"), Authorize]
     public async Task<ActionResult<IEnumerable<EventDto>>> Browse()
     {
-        // Only self-serve events: published and with the public registration link enabled.
+        // Only self-serve events: published or closed, with the public registration link enabled.
+        // Closed events are listed under their own tab; registration for them is refused.
         var events = await _db.Events.Include(e => e.Sessions).Include(e => e.Meals)
-            .Where(e => e.Status == EventStatus.Published && e.IsPublicLinkEnabled)
+            .Where(e => EventStatus.Listed.Contains(e.Status) && e.IsPublicLinkEnabled)
             .OrderByDescending(e => e.StartsAt)
             .ToListAsync();
         var (ev, ses) = await LoadCountsAsync();

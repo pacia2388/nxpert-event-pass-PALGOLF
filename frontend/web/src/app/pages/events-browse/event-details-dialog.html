@@ -99,8 +99,8 @@
     </button>
   } @else {
     <button mat-flat-button color="primary" (click)="register()">
-      <mat-icon>how_to_reg</mat-icon>
-      {{ isPast() ? 'View details' : (registered ? 'Add sub-event' : 'Register') }}
+      <mat-icon>{{ canRegister() ? 'how_to_reg' : 'visibility' }}</mat-icon>
+      {{ !canRegister() ? 'View details' : (registered ? 'Add sub-event' : 'Register') }}
     </button>
   }
 </mat-dialog-actions>

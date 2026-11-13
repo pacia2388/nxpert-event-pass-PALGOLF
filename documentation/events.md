@@ -53,9 +53,9 @@ Main code:
 |---|---|---|
 | **Published** | In *Browse Events*; anyone with the link can register | Invite-only: hidden from *Browse Events*; only invited emails can register |
 | **Draft** | Not in *Browse Events* | Not in *Browse Events* |
-| **Closed** | Not in *Browse Events*; registration refused | Same |
+| **Closed** | In *Browse Events* under the **Closed** tab; registration refused | Hidden from *Browse Events*; registration refused |
 
-- *Browse Events* shows only `Status = Published` **and** `IsPublicLinkEnabled = true`.
+- *Browse Events* shows only `Status = Published` or `Closed`, **and** `IsPublicLinkEnabled = true`.
 - **Gap:** the registration endpoints refuse only **Closed** events. A **Draft** event can still be
   registered for by anyone who has its `/e/{slug}` link.
 

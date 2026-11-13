@@ -54,6 +54,10 @@ public static class EventStatus
     public const string Draft = "Draft";
     public const string Published = "Published";
     public const string Closed = "Closed";
+
+    // Statuses a public-link event is listed under for self-serve participants (Browse Events,
+    // Calendar). Closed events are listed but refuse registration.
+    public static readonly string[] Listed = [Published, Closed];
 }
 
 public static class InvitationStatus

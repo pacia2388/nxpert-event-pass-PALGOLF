@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { EventDto } from '../../core/models';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
+import { canRegister } from './event-tab';
 
 export interface EventDetailsData {
   event: EventDto;
@@ -33,8 +34,8 @@ export class EventDetailsDialogComponent {
     openImageLightbox(this.dialog, src);
   }
 
-  isPast(): boolean {
-    return new Date(this.e.endsAt).getTime() < Date.now();
+  canRegister(): boolean {
+    return canRegister(this.e);
   }
 
   close(): void {
