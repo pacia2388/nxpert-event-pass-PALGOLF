@@ -139,8 +139,7 @@
   </section>
 
   <section class="ed-panel">
-  <mat-tab-group class="ed-tabs" mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="150ms"
-                 [selectedIndex]="selectedTab()" (selectedIndexChange)="selectedTab.set($event)">
+  <mat-tab-group class="ed-tabs" mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="150ms">
     <!-- Invites (admin only) -->
     @if (auth.isAdmin()) {
     <mat-tab label="Invite">

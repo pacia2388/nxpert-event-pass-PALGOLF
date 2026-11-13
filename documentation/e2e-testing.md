@@ -32,7 +32,7 @@ Run one file or one project with `npx playwright test anonymous/login` or
 | Server | Port | Notes |
 |---|---|---|
 | API | 5188 | `dotnet run`, environment `E2E`, database `EventPassE2E_<run id>` |
-| Web | 4300 | `ng serve`; reused if already running on your machine (not in CI) |
+| Web | 4300 | `ng serve`; never reused, so free port 4300 first (the `web-alt` preview uses it) |
 
 - Your dev servers (5088 / 4200) and dev database are not touched, so both can run at once.
 - The API seeds a fresh database on start (`admin@demo.com`, `alice@example.com` …), and the

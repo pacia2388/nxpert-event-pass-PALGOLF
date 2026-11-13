@@ -14,6 +14,8 @@ export const WEB_URL = `http://localhost:${WEB_PORT}`;
 // worker starts, so every worker sees the same value.
 process.env['E2E_RUN_ID'] ??= Date.now().toString();
 export const RUN_ID = process.env['E2E_RUN_ID'];
+// It ends up in a database name inside SQL (global-teardown.ts), so digits only.
+if (!/^\d+$/.test(RUN_ID)) throw new Error(`E2E_RUN_ID must be digits only, got "${RUN_ID}"`);
 
 // LocalDB by default; set EVENTPASS_E2E_SQLSERVER to use another SQL Server (Windows auth).
 export const SQL_SERVER = process.env['EVENTPASS_E2E_SQLSERVER'] ?? '(localdb)\\MSSQLLocalDB';
