@@ -94,7 +94,8 @@ public class EventsController : ControllerBase
             eventMeals,
             EventFormats.Normalize(e.Format),
             includeMeeting ? e.MeetingUrl : null,
-            e.VerifyOnly);
+            e.VerifyOnly,
+            e.Category);
     }
 
     private static MealDto ToMealDto(Meal m) =>
@@ -106,7 +107,7 @@ public class EventsController : ControllerBase
     private sealed record EvtLite(int Id, string Title, string Description, DateTime StartsAt,
         DateTime EndsAt, string Venue, bool IsPublicLinkEnabled, string PublicSlug, string Status,
         int? Capacity, string? FormSchema, string? WelcomeMessage, string? RegistrationFees,
-        string? ScheduleJson, bool NotifyOnKitClaim, List<SesLite> Sessions, string Format);
+        string? ScheduleJson, bool NotifyOnKitClaim, List<SesLite> Sessions, string Format, string? Category);
 
     private static EventDto BuildLite(EvtLite e,
         IReadOnlyDictionary<int, Counts> evCounts, IReadOnlyDictionary<int, Counts> sesCounts)
@@ -127,8 +128,11 @@ public class EventsController : ControllerBase
             e.Capacity.HasValue && ec.Total >= e.Capacity.Value,
             FormJson.ReadSchema(e.FormSchema), null, e.WelcomeMessage, sessions,
             e.RegistrationFees, FormJson.ReadSchedule(e.ScheduleJson), e.NotifyOnKitClaim,
-            new List<MealDto>(), EventFormats.Normalize(e.Format));
+            new List<MealDto>(), EventFormats.Normalize(e.Format), Category: e.Category);
     }
+
+    private static string? ValidateCategory(EventUpsertRequest req) =>
+        EventCategories.IsValid(req.Category) ? null : "Category must be Senior, Regular, or none.";
 
     // Meeting links must be http(s) URLs when given.
     private static string? ValidateMeetingLinks(EventUpsertRequest req)
@@ -321,7 +325,7 @@ public class EventsController : ControllerBase
                 e.Sessions.OrderBy(s => s.StartsAt)
                     .Select(s => new SesLite(s.Id, s.Title, s.Description, s.StartsAt, s.EndsAt, s.Venue, s.Capacity))
                     .ToList(),
-                e.Format))
+                e.Format, e.Category))
             .ToListAsync();
         var (ev, ses) = await LoadCountsAsync();
         return Ok(events.Select(e => BuildLite(e, ev, ses)));
@@ -437,7 +441,7 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<EventDto>> Create(EventUpsertRequest req)
     {
         var bannerError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
-            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req);
+            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
         if (bannerError is not null) return BadRequest(new { message = bannerError });
 
         var format = EventFormats.Normalize(req.Format);
@@ -449,6 +453,7 @@ public class EventsController : ControllerBase
             EndsAt = req.EndsAt,
             Venue = VenueFor(format, req.Venue),
             Format = format,
+            Category = EventCategories.Clean(req.Category),
             MeetingUrl = CleanUrl(req.MeetingUrl),
             IsPublicLinkEnabled = req.IsPublicLinkEnabled,
             Status = string.IsNullOrWhiteSpace(req.Status) ? EventStatus.Published : req.Status,
@@ -479,7 +484,7 @@ public class EventsController : ControllerBase
         if (e is null) return NotFound();
 
         var bannerError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
-            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req);
+            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
         if (bannerError is not null) return BadRequest(new { message = bannerError });
 
         // Snapshot what a calendar invite is built from, to detect changes worth re-inviting for.
@@ -492,6 +497,7 @@ public class EventsController : ControllerBase
         e.EndsAt = req.EndsAt;
         e.Venue = VenueFor(format, req.Venue);
         e.Format = format;
+        e.Category = EventCategories.Clean(req.Category);
         e.MeetingUrl = CleanUrl(req.MeetingUrl);
         e.IsPublicLinkEnabled = req.IsPublicLinkEnabled;
         e.Status = req.Status;
