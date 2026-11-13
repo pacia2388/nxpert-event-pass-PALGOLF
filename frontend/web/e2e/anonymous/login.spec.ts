@@ -3,7 +3,7 @@ import { ADMIN, PARTICIPANT } from '../env';
 import { signIn } from '../helpers/ui';
 
 test.describe('sign-in', () => {
-  test('an admin lands on Home with the admin menu', async ({ page }) => {
+  test('an admin lands on Home and can open admin pages', async ({ page }) => {
     await signIn(page, ADMIN);
     await expect(page).toHaveURL(/\/home$/);
     await page.goto('/admin/events');

@@ -43,7 +43,9 @@ test.describe('guest registration on the public event page', () => {
 
     await expect(page.getByRole('heading', { name: 'Registration received!' })).toBeVisible();
     await expect(page.getByText('Your registration is pending confirmation.')).toBeVisible();
-    // A pending registration gets no QR pass until an organizer confirms it.
+    // A pending registration gets no QR pass until an organizer confirms it. Mail may be written
+    // after the response, so give it time to land before checking it didn't.
+    await page.waitForTimeout(3000);
     expect(outboxFor(guest.email).filter((m) => m.hasPass)).toEqual([]);
   });
 });

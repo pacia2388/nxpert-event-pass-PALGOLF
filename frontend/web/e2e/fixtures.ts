@@ -1,4 +1,10 @@
-import { test as base, expect, type APIRequestContext, type Page } from '@playwright/test';
+import {
+  test as base,
+  expect,
+  type APIRequestContext,
+  type Page,
+  type PlaywrightWorkerArgs,
+} from '@playwright/test';
 import { ADMIN, API_URL } from './env';
 
 /** Points the app at the e2e API. appSettings.json is read at runtime, so no rebuild is needed. */
@@ -12,7 +18,7 @@ export async function useE2eApi(page: Page): Promise<void> {
 
 /** An API request context signed in through POST /api/auth/login. */
 export async function signedInApi(
-  playwright: { request: { newContext: (o: object) => Promise<APIRequestContext> } },
+  playwright: PlaywrightWorkerArgs['playwright'],
   creds: { email: string; password: string },
 ): Promise<APIRequestContext> {
   const anon = await playwright.request.newContext({ baseURL: API_URL });
