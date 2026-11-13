@@ -4,7 +4,7 @@ import { EVENT_CATEGORY_LABELS, EventCategory } from '../core/event-category';
 
 const ICONS: Record<EventCategory, string> = { Senior: 'elderly', Regular: 'person' };
 
-// The "Senior (65+)" / "Regular" pill shown beside an event's status pill on event cards.
+// The "Senior" / "Regular" pill shown beside an event's status pill on event cards.
 @Component({
   selector: 'app-category-pill',
   imports: [MatIconModule],

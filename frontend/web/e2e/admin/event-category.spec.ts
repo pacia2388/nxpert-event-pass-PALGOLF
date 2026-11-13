@@ -8,7 +8,8 @@ test('the events list shows a Senior event\'s category next to its status', asyn
   await page.getByLabel('Search events').fill(event.title);
   const card = page.getByRole('link').filter({ hasText: event.title });
 
-  await expect(card).toContainText(/Open.*Senior \(65\+\)/);
+  await expect(card).toContainText(/Open.*Senior/);
+  await expect(card).not.toContainText('65+');
 });
 
 test('an admin changes an event\'s category on the event form', async ({ page, adminApi }) => {
@@ -16,7 +17,7 @@ test('an admin changes an event\'s category on the event form', async ({ page, a
 
   await page.goto(`/admin/events/${event.id}/edit`);
   const category = page.getByRole('radiogroup', { name: 'Event category' });
-  await expect(category.getByRole('radio', { name: 'Senior (65+)' })).toBeChecked();
+  await expect(category.getByRole('radio', { name: 'Senior', exact: true })).toBeChecked();
 
   await category.getByRole('radio', { name: 'Regular' }).click();
   await page.getByRole('button', { name: 'Save changes' }).click();

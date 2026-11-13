@@ -4,7 +4,7 @@ export type EventCategory = 'Senior' | 'Regular';
 export const SENIOR_AGE = 65;
 
 export const EVENT_CATEGORY_LABELS: Record<EventCategory, string> = {
-  Senior: 'Senior (65+)',
+  Senior: 'Senior',
   Regular: 'Regular',
 };
 
