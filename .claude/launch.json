@@ -8,6 +8,12 @@
       "port": 5088
     },
     {
+      "name": "api-alt",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "backend/EventRegistration.Api", "--launch-profile", "http", "--", "--urls", "http://localhost:5090", "--Email:Enabled=false", "--Viber:Enabled=false", "--Sms:Enabled=false"],
+      "port": 5090
+    },
+    {
       "name": "web",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start", "--prefix", "frontend/web"],
@@ -16,8 +22,8 @@
     {
       "name": "web-alt",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "frontend/web", "--", "--port", "4300"],
-      "port": 4300
+      "runtimeArgs": ["start", "--prefix", "frontend/web", "--", "--port", "4400", "--configuration", "alt"],
+      "port": 4400
     },
     {
       "name": "face",

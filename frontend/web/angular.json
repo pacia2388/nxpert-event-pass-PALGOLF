@@ -80,6 +80,21 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "alt": {
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public",
+                  "ignore": [
+                    "appSettings.json"
+                  ]
+                },
+                {
+                  "glob": "appSettings.json",
+                  "input": "config/alt"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -92,6 +107,9 @@
             },
             "development": {
               "buildTarget": "web:build:development"
+            },
+            "alt": {
+              "buildTarget": "web:build:development,alt"
             }
           },
           "defaultConfiguration": "development"
