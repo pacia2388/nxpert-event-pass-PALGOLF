@@ -83,7 +83,7 @@ public class AuthController : ControllerBase
             EmailVerificationToken = RequireVerification ? Guid.NewGuid() : null,
         };
         _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        await UsernameHelper.SaveNewUserAsync(_db, user, UsernameHelper.Base(firstName, lastName, null));
 
         if (RequireVerification)
             await SendVerificationEmailAsync(user);

@@ -164,7 +164,10 @@ public class UsersController : ControllerBase
             EmailVerified = true, // admin-created accounts are pre-verified
         };
         _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        if (string.IsNullOrWhiteSpace(req.Username))
+            await UsernameHelper.SaveNewUserAsync(_db, user, UsernameHelper.Base(req.FirstName, req.LastName, null));
+        else
+            await _db.SaveChangesAsync();
         return Ok(ToDto(user, includePhoto: true));
     }
 
