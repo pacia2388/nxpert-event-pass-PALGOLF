@@ -7,6 +7,7 @@ using EventRegistration.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -222,6 +223,22 @@ public class NotificationFallbackApiTests(ApiFixture api)
 {
     private record EventBody(int Id, string PublicSlug);
     private record ConfirmBody(int Confirmed, int Emailed, int NoEmail, int NotSent);
+
+    [Fact]
+    public void Tests_use_their_own_database_and_folders_and_no_real_provider()
+    {
+        using var scope = api.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.StartsWith("EventPassTests_", db.Database.GetDbConnection().Database);
+        Assert.False(scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>().IsDevelopment()); // no dev outbox
+
+        var e = api.Services.GetRequiredService<EmailSettings>();
+        var v = api.Services.GetRequiredService<ViberSettings>();
+        var s = api.Services.GetRequiredService<SmsSettings>();
+        Assert.All(new[] { e.Host, e.Password, v.BaseUrl, v.ApiKey, s.BaseUrl, s.ApiKey, s.ApiSecret }, Assert.Empty);
+        Assert.All(new[] { e.TestSendDir, v.TestSendDir, s.TestSendDir },
+            d => Assert.StartsWith(ApiFixture.SentRoot, d));
+    }
 
     [Fact]
     public async Task With_every_channel_off_a_confirmed_pass_is_reported_not_sent()

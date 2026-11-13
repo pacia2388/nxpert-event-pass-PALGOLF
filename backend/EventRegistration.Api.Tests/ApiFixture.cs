@@ -44,6 +44,10 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Email:Enabled", "false");
         builder.UseSetting("Viber:Enabled", "false");
         builder.UseSetting("Sms:Enabled", "false");
+        // No real provider can be reached from a test, even if a test turns a channel on.
+        foreach (var key in new[] { "Email:Host", "Email:User", "Email:Password", "Viber:BaseUrl", "Viber:ApiKey",
+                     "Sms:BaseUrl", "Sms:ApiKey", "Sms:ApiSecret", "FaceEngine:ApiKey" })
+            builder.UseSetting(key, "");
         // Start each run with empty folders (files only: an open folder must not fail the run).
         if (Directory.Exists(SentRoot))
             foreach (var file in Directory.GetFiles(SentRoot, "*", SearchOption.AllDirectories)) File.Delete(file);
@@ -61,12 +65,14 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         });
     }
 
-    Task IAsyncLifetime.InitializeAsync() => Task.CompletedTask;
+    ValueTask IAsyncLifetime.InitializeAsync() => ValueTask.CompletedTask;
 
-    async Task IAsyncLifetime.DisposeAsync()
+    // Drop the test database before the host shuts down.
+    public override async ValueTask DisposeAsync()
     {
-        using var scope = Services.CreateScope();
-        await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureDeletedAsync();
+        using (var scope = Services.CreateScope())
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureDeletedAsync();
+        await base.DisposeAsync();
     }
 
     // ---- Helpers: everything goes through the public HTTP API ----

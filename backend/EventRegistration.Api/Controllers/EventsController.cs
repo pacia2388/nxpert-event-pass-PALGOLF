@@ -16,9 +16,13 @@ public class EventsController : ControllerBase
     private readonly PassService _pass;
     private readonly ILogger<EventsController> _log;
     private readonly CalendarInvitationNotifier _calendars;
+    private readonly EmailSender _email;
+    private readonly NotificationService _notify;
     public EventsController(AppDbContext db, ViberService viber, PassService pass, ILogger<EventsController> log,
-        CalendarInvitationNotifier calendars)
+        CalendarInvitationNotifier calendars, EmailSender email, NotificationService notify)
     {
+        _email = email;
+        _notify = notify;
         _db = db;
         _viber = viber;
         _pass = pass;
@@ -627,12 +631,14 @@ public class EventsController : ControllerBase
     public async Task<IActionResult> ViberRecipients(int id)
     {
         if (!await _db.Events.AnyAsync(e => e.Id == id)) return NotFound();
-        var phones = await LoadViberRecipientsAsync(id);
-        return Ok(new { count = phones.Count });
+        var recipients = await LoadViberRecipientsAsync(id);
+        return Ok(new { count = recipients.Count });
     }
 
     // Sends the organizer's typed message as a plain Viber text to every registered Viber number
     // (registrants whose channel is Viber or Both and who have a phone on file), de-duplicated.
+    // A number whose country code is not enabled for Viber (Phone country table) counts as failed.
+    // FallbackToEmail (dialog toggle): a failed number gets the message by email instead.
     [HttpPost("{id:int}/viber-broadcast"), Authorize(Policy = Permissions.ConfirmRegistrationsPolicy)]
     public async Task<IActionResult> ViberBroadcast(int id, [FromBody] ViberBroadcastRequest req)
     {
@@ -643,24 +649,46 @@ public class EventsController : ControllerBase
         if (message.Length == 0) return BadRequest(new { message = "Type a message to send." });
         if (message.Length > 1000) return BadRequest(new { message = "Message is too long (max 1000 characters)." });
 
-        var phones = await LoadViberRecipientsAsync(id);
-        if (phones.Count == 0)
+        var recipients = await LoadViberRecipientsAsync(id);
+        if (recipients.Count == 0)
             return BadRequest(new { message = "No registrations with a Viber number were found for this event." });
 
+        var viberCodes = await _db.PhoneCountries.AsNoTracking().Where(c => c.Viber).Select(c => c.CountryCode).ToListAsync();
         var subject = $"broadcast_{ev.Title}";
-        var sent = 0;
-        foreach (var phone in phones)
+        var html = EmailTemplates.Broadcast(ev.Title, message);
+        var emailed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        int sent = 0, failed = 0, done = 0;
+        var userId = this.UserId();
+        await _notify.ViberBroadcastProgressAsync(userId, new(req.BroadcastId, id, 0, recipients.Count, 0, 0, 0));
+        foreach (var (phone, email) in recipients)
         {
-            await _viber.SendTextAsync(phone, subject, message);
-            sent++;
+            // Failed / NotConfigured (provider error, Viber not set up) must not be reported as sent.
+            if (PhoneNumber.Supported(phone, viberCodes) && (await _viber.SendTextAsync(phone, subject, message)).Delivered())
+                sent++;
+            else if (req.FallbackToEmail && email is not null
+                     && (emailed.Contains(email) || (await _email.SendAsync([email], ev.Title, html)).Accepted))
+                emailed.Add(email);
+            else
+                failed++;
+            await _notify.ViberBroadcastProgressAsync(userId,
+                new(req.BroadcastId, id, ++done, recipients.Count, sent, emailed.Count, failed));
         }
 
-        return Ok(new { sent, message = $"Message sent to {sent} Viber number{(sent == 1 ? "" : "s")}." });
+        string Numbers(int n) => $"{n} Viber number{(n == 1 ? "" : "s")}";
+        var reached = sent + emailed.Count;
+        var parts = new List<string>();
+        if (sent >= 0) parts.Add($"sent to {Numbers(sent)}");
+        if (emailed.Count > 0) parts.Add($"emailed to {emailed.Count} registrant{(emailed.Count == 1 ? "" : "s")} instead");
+        var text = reached == 0
+            ? $"Message could not be sent to any of the {Numbers(failed)}. Check the Viber setup and try again or use the faillback to email."
+            : "Message " + string.Join(", ", parts) + (failed > 0 ? $"; {failed} could not be reached." : ".");
+        return Ok(new { sent, emailed = emailed.Count, failed, message = text });
     }
 
     // Distinct, normalized phone numbers of registrants who opted into Viber (Viber or Both) for
-    // this event. Account registrations use the linked User's phone/channel; guests use theirs.
-    private async Task<List<string>> LoadViberRecipientsAsync(int eventId)
+    // this event, each with an email for the fallback (first one on file for that number).
+    // Account registrations use the linked User's phone/channel/email; guests use theirs.
+    private async Task<List<(string Phone, string? Email)>> LoadViberRecipientsAsync(int eventId)
     {
         var rows = await _db.Registrations
             .Where(r => r.EventId == eventId)
@@ -668,16 +696,19 @@ public class EventsController : ControllerBase
             {
                 Phone = r.User != null ? r.User.Phone : r.GuestPhone,
                 Channel = r.User != null ? r.User.NotificationChannel : r.GuestNotificationChannel,
+                Email = r.User != null ? r.User.Email : r.GuestEmail,
             })
             .ToListAsync();
 
         return rows
             .Where(x => !string.IsNullOrWhiteSpace(x.Phone) && NotificationChannels.UsesViber(x.Channel))
-            .Select(x => ViberService.NormalizePhone(x.Phone!))
-            .Where(p => p.Length > 0)
-            .Distinct()
+            .Select(x => (Phone: ViberService.NormalizePhone(x.Phone!), Email: string.IsNullOrWhiteSpace(x.Email) ? null : x.Email.Trim()))
+            .Where(x => x.Phone.Length > 0)
+            .GroupBy(x => x.Phone)
+            .Select(g => (g.Key, g.Select(x => x.Email).FirstOrDefault(e => e is not null)))
             .ToList();
     }
 }
 
-public record ViberBroadcastRequest(string? Message);
+// BroadcastId: chosen by the dialog and echoed in progress pushes so parallel blasts (other tabs) don't mix.
+public record ViberBroadcastRequest(string? Message, bool FallbackToEmail = false, Guid? BroadcastId = null);

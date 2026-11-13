@@ -2,7 +2,7 @@
 
 Automated tests for every message the app sends by **email**, **Viber** and **SMS**, including
 fallback, failed, turned-off and retry cases. Code: `backend/EventRegistration.Api.Tests/NotificationMatrixTests.cs`
-(case ids below match the test names / data). Last run: 2026-11-13, **140 / 140 passed** (whole suite).
+(case ids below match the test names / data). Last run: 2026-11-13, **147 / 147 passed** (whole suite).
 
 ## How the tests send
 
@@ -89,6 +89,12 @@ Every P case also checks `PassEmailSentAt`: stamped when something was delivered
 | M25 | Reminder, email fails | same | Email **Fail** | `EmailRetry` row (Message) |
 | M26 | Account verification | `POST /api/auth/resend-verification` | Email Send | ✉ "Confirm your email" |
 | M27 | Verification, email fails | same | Email **Fail** | nothing; **no** retry row (user can press Resend) |
+| M28 | Organizer Viber broadcast | `POST /api/events/{id}/viber-broadcast` | Viber Send | V "broadcast"; sent 1 |
+| M29 | Broadcast, Viber fails, fallback toggle off | same | Viber **Fail** | nothing; failed 1, "could not be sent" message |
+| M30 | Broadcast, Viber off, toggle off | same | Viber **Off** | nothing; failed 1 |
+| M31 | Broadcast, Viber fails, **toggle on** | same | Viber **Fail** | ✉ (subject = event title); emailed 1 |
+| M32 | Broadcast, +63 not enabled for Viber, toggle off | same | unlisted for Viber | nothing (Viber not tried); failed 1 |
+| M33 | Broadcast, +63 not enabled for Viber, **toggle on** | same | unlisted for Viber | ✉; emailed 1 |
 
 ## R — Background email retry
 
@@ -107,18 +113,35 @@ Every P case also checks `PassEmailSentAt`: stamped when something was delivered
 | Outbox rule per channel: Dev off / Dev failed / Prod off / Prod failed / delivered | `OutboxRuleTests` |
 | Every channel off end to end, phone-country API, retry dispatcher edge cases | `NotificationFallbackApiTests` |
 
+## Test isolation
+
+Tests never touch business data or real providers (checked by
+`Tests_use_their_own_database_and_folders_and_no_real_provider`):
+
+| Resource | In tests |
+|---|---|
+| Database | Own LocalDB database `EventPassTests_<guid>` per run, dropped at the end |
+| Environment | `Testing` (not Development), so the dev `outbox/` folder is never written |
+| Email / Viber / SMS | Credentials and hosts blanked; messages go only to `test/sent/` |
+| Outbox rule tests | Own temp folder per test |
+| Background mail schedulers | Removed |
+
 ## Running the tests
 
-```bash
-dotnet test backend/EventRegistration.Api.Tests
-```
-
-If `dotnet test` stops with **"Access is denied"** (the test helper process is not allowed to watch
-its parent process on some locked-down machines), run the same tests in one process with the xunit
-console runner (package `xunit.runner.console` 2.9.3 in the NuGet cache):
+The project uses xUnit v3 on Microsoft Testing Platform: the tests build to their own program.
 
 ```bash
-cd backend/EventRegistration.Api.Tests/bin/Debug/net10.0 && dotnet exec --runtimeconfig EventRegistration.Api.Tests.runtimeconfig.json --depsfile EventRegistration.Api.Tests.deps.json ~/.nuget/packages/xunit.runner.console/2.9.3/tools/net6.0/xunit.console.dll EventRegistration.Api.Tests.dll
+dotnet build backend/EventRegistration.Api.Tests
 ```
 
-Build first (`dotnet build backend/EventRegistration.Api.Tests`). Add `-class EventRegistration.Api.Tests.NotificationMatrixTests` to run only this matrix.
+```bash
+cd backend/EventRegistration.Api.Tests/bin/Debug/net10.0 && dotnet exec EventRegistration.Api.Tests.dll
+```
+
+Add `--filter-class EventRegistration.Api.Tests.NotificationMatrixTests` to run only this matrix.
+In Visual Studio: set the test project as startup project and press F5 (profile **Run tests**).
+
+`dotnet test --project backend/EventRegistration.Api.Tests` and Test Explorer also work on most
+machines. On a locked-down machine they stop with **"Access is denied"**: Windows refuses the test
+`.exe` (or the old VSTest `testhost`) access to the process that started it. `dotnet exec` above
+runs everything in one process and avoids that.

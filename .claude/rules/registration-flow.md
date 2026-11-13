@@ -9,6 +9,7 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
   country code is not in the Phone country table for the active channel skips mobile and always
   gets email. Viber/SMS are tried once and never retried (mail plans included); failed registrant
   emails retry 5× in the background. An email failure never falls back to Viber/SMS.
+  Exception: the organizer **Viber broadcast** is Viber only (optional fallback); it reports failed numbers, never counts them as sent.
 - Every phone entry (user master, My Account, sign-up, guest registration and edit) is a
   country-code dropdown + number (`app-phone-field`) and accepts only codes in the Phone country
   table (server too); CSV import accepts any valid number. Unsupported numbers are flagged on the user list and My Account.

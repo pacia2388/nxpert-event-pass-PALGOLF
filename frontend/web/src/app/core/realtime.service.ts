@@ -15,6 +15,7 @@ import {
   FaceGalleryChangedNotice,
   KitClaimedNotice,
   VerifyOnlyChangedNotice,
+  ViberBroadcastProgressNotice,
   NewRegistrationNotice,
   RegistrationApprovedNotice,
 } from './models';
@@ -52,6 +53,10 @@ export class RealtimeService {
   private verifyOnlyChangedSubject = new Subject<VerifyOnlyChangedNotice>();
   /** An event's verify-only mode was switched (on another scanner). Admins only. */
   readonly verifyOnlyChanged$ = this.verifyOnlyChangedSubject.asObservable();
+
+  private viberBroadcastProgressSubject = new Subject<ViberBroadcastProgressNotice>();
+  /** Progress of a Viber broadcast this user started (sent after each recipient). */
+  readonly viberBroadcastProgress$ = this.viberBroadcastProgressSubject.asObservable();
 
   constructor() {
     // Connect/disconnect as the auth state changes.
@@ -109,6 +114,7 @@ export class RealtimeService {
     conn.on('attendeesChanged', (n: AttendeesChangedNotice) => this.attendeesChangedSubject.next(n));
     conn.on('faceGalleryChanged', (n: FaceGalleryChangedNotice) => this.faceGalleryChangedSubject.next(n));
     conn.on('verifyOnlyChanged', (n: VerifyOnlyChangedNotice) => this.verifyOnlyChangedSubject.next(n));
+    conn.on('viberBroadcastProgress', (n: ViberBroadcastProgressNotice) => this.viberBroadcastProgressSubject.next(n));
     conn.onreconnected(() => this.connected.set(true));
     conn.onreconnecting(() => this.connected.set(false));
     conn.onclose(() => this.connected.set(false));

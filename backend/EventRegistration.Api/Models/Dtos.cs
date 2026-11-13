@@ -88,6 +88,9 @@ public record AttendeesChangedNotice(int EventId, List<AttendeeDto> Attendees, L
 public record FaceGalleryChangedNotice(int EventId);
 // Sent to admins when an event's verify-only mode is switched, so open scanners / TVs follow it.
 public record VerifyOnlyChangedNotice(int EventId, bool Enabled);
+// Sent to the organizer running a Viber broadcast after each recipient, so the dialog shows progress.
+// BroadcastId echoes the id the dialog sent, so only that browser tab picks the updates up.
+public record ViberBroadcastProgressNotice(Guid? BroadcastId, int EventId, int Done, int Total, int Sent, int Emailed, int Failed);
 // Sent to a registrant when their registration is confirmed by an admin.
 public record RegistrationApprovedNotice(
     int RegistrationId, int EventId, string EventTitle, string? SessionTitle, DateTime At);

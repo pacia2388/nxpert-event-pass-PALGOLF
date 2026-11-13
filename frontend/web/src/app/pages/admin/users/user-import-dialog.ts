@@ -26,7 +26,7 @@ const COLUMNS: { header: string; field: keyof UserImportRow; alt?: string }[] = 
 
 const TEMPLATE_HEADERS = COLUMNS.map((c) => c.header).join(',');
 const TEMPLATE_SAMPLE =
-  'Juan,D,Dela Cruz,juan.delacruz@example.com,,12345,Senator,Acme Corp,+639171234567,Participant,Email,1990-01-31';
+  'Juan,D,Dela Cruz,juan.delacruz@example.com,,12345,Senator,Acme Corp,\'+639171234567,Participant,Email,1990-01-31';
 
 // Case and surrounding spaces don't count as a difference; trim() also drops an Excel BOM (U+FEFF).
 function normalizeHeader(h: string): string {

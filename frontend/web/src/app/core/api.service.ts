@@ -72,6 +72,14 @@ import {
   MailPlanSendDto,
 } from './models';
 
+
+/** Viber broadcast outcome: numbers reached by Viber, registrants emailed instead, numbers not reached. */
+export interface ViberBroadcastResult {
+  sent: number;
+  emailed: number;
+  failed: number;
+  message: string;
+}
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   constructor(private http: HttpClient) {}
@@ -143,10 +151,15 @@ export class ApiService {
   viberRecipientCount(eventId: number): Observable<{ count: number }> {
     return this.http.get<{ count: number }>(this.url(`/api/events/${eventId}/viber-recipients`));
   }
-  viberBroadcast(eventId: number, message: string): Observable<{ sent: number; message: string }> {
-    return this.http.post<{ sent: number; message: string }>(
+  viberBroadcast(
+    eventId: number,
+    message: string,
+    fallbackToEmail: boolean,
+    broadcastId: string,
+  ): Observable<ViberBroadcastResult> {
+    return this.http.post<ViberBroadcastResult>(
       this.url(`/api/events/${eventId}/viber-broadcast`),
-      { message },
+      { message, fallbackToEmail, broadcastId },
     );
   }
 

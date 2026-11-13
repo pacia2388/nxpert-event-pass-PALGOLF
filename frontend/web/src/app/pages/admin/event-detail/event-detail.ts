@@ -1179,7 +1179,10 @@ export class EventDetailComponent implements OnInit {
       })
       .afterClosed()
       .subscribe((res) => {
-        if (res) this.toast.success(res.message);
+        if (!res) return;
+        if (!res.failed) this.toast.success(res.message);
+        else if (res.sent || res.emailed) this.toast.warning(res.message);
+        else this.toast.error(res.message);
       });
   }
 

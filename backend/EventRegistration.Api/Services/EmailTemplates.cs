@@ -169,6 +169,12 @@ public static class EmailTemplates
            </p>
            <p style=""color:#888;font-size:13px"">If you didn't request this, you can ignore this email.</p>");
 
+    // Organizer broadcast sent by email when Viber could not reach the registrant.
+    public static string Broadcast(string eventTitle, string message) => Shell(
+        System.Net.WebUtility.HtmlEncode(eventTitle),
+        $@"<p>{MultilineText(message)}</p>
+           <p style=""color:#888;font-size:13px"">You are receiving this because you registered for this event.</p>");
+
     // Kit-claimed notice. When claimedBy is null the kit was self-claimed (generic wording);
     // otherwise it names the person who collected it on the registrant's behalf.
     public static string KitClaimed(string eventTitle, string attendeeName, string? claimedBy) => Shell(

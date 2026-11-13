@@ -209,6 +209,45 @@ public class NotificationMatrixTests(ApiFixture api)
         Assert.Equal(1, Count(V, reg.Phone, "Edit your registration"));
     }
 
+    private record BroadcastBody(int Sent, int Emailed, int Failed, string Message);
+
+    private const string NoViberSent = "Message could not be sent to any of the 1 Viber number. "
+        + "Check the Viber setup and try again or use the faillback to email.";
+
+    // M28–M33: organizer Viber broadcast. Counts only numbers Viber accepted; a number whose country
+    // is not enabled for Viber counts as failed; "Fallback to email" (dialog toggle) emails failed ones.
+    public static TheoryData<string, ChannelMode, bool, bool, int, int, int, string> BroadcastCases => new()
+    {
+        // id, viber, fallback toggle, +63 unlisted for Viber, sent, emailed, failed, message
+        { "M28", ChannelMode.Send, false, false, 1, 0, 0, "Message sent to 1 Viber number." },
+        { "M29", ChannelMode.Fail, false, false, 0, 0, 1, NoViberSent },
+        { "M30", ChannelMode.Off, false, false, 0, 0, 1, NoViberSent },
+        { "M31", ChannelMode.Fail, true, false, 0, 1, 0, "Message sent to 0 Viber numbers, emailed to 1 registrant instead." },
+        { "M32", ChannelMode.Send, false, true, 0, 0, 1, NoViberSent },
+        { "M33", ChannelMode.Send, true, true, 0, 1, 0, "Message sent to 0 Viber numbers, emailed to 1 registrant instead." },
+    };
+
+    [Theory]
+    [MemberData(nameof(BroadcastCases))]
+    public async Task Viber_broadcast(string id, ChannelMode viber, bool fallbackToEmail, bool unlisted,
+        int sent, int emailed, int failed, string message)
+    {
+        var admin = await api.AdminAsync();
+        var reg = await GuestAsync(admin, "Both");
+        await using var _ = await api.ChannelsAsync(viber: viber);
+        await using var country = unlisted ? await Unlisted("Viber") : new Undo(() => Task.CompletedTask);
+
+        var res = await admin.PostAsJsonAsync($"/api/events/{reg.EventId}/viber-broadcast",
+            new { message = "Tee time moved", fallbackToEmail });
+        res.EnsureSuccessStatusCode();
+        var body = (await res.Content.ReadFromJsonAsync<BroadcastBody>())!;
+
+        Assert.Equal((sent, emailed, failed), (body.Sent, body.Emailed, body.Failed));
+        Assert.Equal(message, body.Message);
+        Assert.Equal(sent, Count(V, reg.Phone, "broadcast"));
+        Assert.Equal(emailed, Count(E, reg.Email, reg.Title)); // broadcast email subject = event title
+    }
+
     [Fact] // M06
     public async Task Meeting_update_sends_the_calendar_update_and_a_mobile_text()
     {

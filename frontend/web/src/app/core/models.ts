@@ -442,6 +442,16 @@ export interface EventDto {
   verifyOnly: boolean; // scanners verify passes but record no check-ins
 }
 
+export interface ViberBroadcastProgressNotice {
+  broadcastId: string | null;
+  eventId: number;
+  done: number;
+  total: number;
+  sent: number;
+  emailed: number;
+  failed: number;
+}
+
 export interface VerifyOnlyChangedNotice {
   eventId: number;
   enabled: boolean;

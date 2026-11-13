@@ -89,6 +89,19 @@ public class NotificationService
         }
     }
 
+    // Tell the organizer running a Viber broadcast how far it got (their own connections only).
+    public async Task ViberBroadcastProgressAsync(int userId, ViberBroadcastProgressNotice notice)
+    {
+        try
+        {
+            await _hub.Clients.Group(NotificationHub.UserGroup(userId)).SendAsync("viberBroadcastProgress", notice);
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "Failed to push viberBroadcastProgress for event {EventId}.", notice.EventId);
+        }
+    }
+
     // A user's photo changed: every event they're registered for has a stale gallery entry.
     public async Task UserPhotoChangedAsync(int userId)
     {
