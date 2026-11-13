@@ -11,20 +11,37 @@
     <p>No events are open for registration right now.</p>
   </div>
 } @else {
-  <mat-form-field appearance="outline" class="full-width search-field">
-    <mat-label>Search events</mat-label>
-    <mat-icon matPrefix>search</mat-icon>
-    <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)"
-           placeholder="Title, venue, or description" />
-    @if (search()) {
-      <button matIconSuffix mat-icon-button aria-label="Clear" (click)="search.set('')">
-        <mat-icon>close</mat-icon>
-      </button>
-    }
-  </mat-form-field>
+  <div class="browse-toolbar">
+    <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+      <mat-label>Search events</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)"
+             placeholder="Title, venue, or description" />
+      @if (search()) {
+        <button matIconSuffix mat-icon-button aria-label="Clear" (click)="search.set('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+
+    <div class="pill-tabs" role="group" aria-label="Filter events">
+      @for (t of tabs; track t) {
+        <button type="button" class="pill-tab" [class.active]="tab() === t"
+                [attr.aria-pressed]="tab() === t" (click)="selectTab(t)">{{ t }}</button>
+      }
+    </div>
+  </div>
+
+  @if (registrationsFailed()) {
+    <p class="muted">Couldn’t load your registrations, so the Registered tab may be incomplete.</p>
+  }
 
   @if (filtered().length === 0) {
-    <p class="muted">No events match “{{ search() }}”.</p>
+    @if (search()) {
+      <p class="muted">No events match “{{ search() }}”.</p>
+    } @else {
+      <p class="muted">No {{ tab().toLowerCase() }} events.</p>
+    }
   }
 
   <div class="ev-grid">
@@ -46,10 +63,12 @@
             @if (isRegistered(e)) {
               <span class="ev-tag brand"><mat-icon>check_circle</mat-icon> Registered</span>
             }
-            @if (e.isFull) {
-              <span class="ev-tag warn"><mat-icon>groups</mat-icon> Full</span>
-            } @else if (isPast(e)) {
+            @if (isPast(e)) {
               <span class="ev-tag"><mat-icon>history</mat-icon> Ended</span>
+            } @else if (isClosed(e)) {
+              <span class="ev-tag"><mat-icon>block</mat-icon> Closed</span>
+            } @else if (e.isFull) {
+              <span class="ev-tag warn"><mat-icon>groups</mat-icon> Full</span>
             } @else {
               <span class="ev-tag ok"><mat-icon>how_to_reg</mat-icon> Open</span>
             }
@@ -94,8 +113,8 @@
             </a>
           } @else {
             <a class="ev-btn solid" [routerLink]="['/e', e.publicSlug]">
-              <mat-icon>{{ isPast(e) ? 'visibility' : 'how_to_reg' }}</mat-icon>
-              {{ isPast(e) ? 'View' : (isRegistered(e) ? 'Add sub-event' : 'Register') }}
+              <mat-icon>{{ canRegister(e) ? 'how_to_reg' : 'visibility' }}</mat-icon>
+              {{ !canRegister(e) ? 'View' : (isRegistered(e) ? 'Add sub-event' : 'Register') }}
             </a>
           }
         </div>

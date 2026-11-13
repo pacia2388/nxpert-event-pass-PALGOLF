@@ -1,7 +1,9 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, forkJoin, of } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,6 +16,10 @@ import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
 import { CategoryPillComponent } from '../../shared/category-pill';
+import { EVENT_TABS, EventTab, canRegister, eventTab, isClosed, isEnded } from './event-tab';
+
+type TabFilter = 'All' | EventTab;
+const TAB_FILTERS: TabFilter[] = ['All', ...EVENT_TABS];
 
 @Component({
   selector: 'app-events-browse',
@@ -34,6 +40,9 @@ import { CategoryPillComponent } from '../../shared/category-pill';
 export class EventsBrowseComponent implements OnInit {
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   openDetails(e: EventDto): void {
     this.dialog.open(EventDetailsDialogComponent, {
@@ -53,9 +62,19 @@ export class EventsBrowseComponent implements OnInit {
   // Event IDs the signed-in user already has a registration for.
   registeredEventIds = signal<Set<number>>(new Set());
 
+  readonly tabs = TAB_FILTERS;
+  // The chosen tab lives in ?tab= so a reload or Back keeps it.
+  tab = signal<TabFilter>('All');
+  // Ticks every minute so events move to Ended while the page stays open.
+  now = signal(Date.now());
+  registrationsFailed = signal(false);
+
   filtered = computed(() => {
     const q = this.search().trim().toLowerCase();
-    const list = this.events();
+    const tab = this.tab();
+    const ids = this.registeredEventIds();
+    const now = this.now();
+    const list = tab === 'All' ? this.events() : this.events().filter((e) => eventTab(e, ids.has(e.id), now) === tab);
     if (!q) return list;
     return list.filter(
       (e) =>
@@ -66,22 +85,45 @@ export class EventsBrowseComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.api.browseEvents().subscribe({
-      next: (e) => {
-        this.events.set(e);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
+    // Follow ?tab= — on first load and when a link changes it while the page is open.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => this.tab.set(TAB_FILTERS.find((f) => f === params.get('tab')) ?? 'All'));
+    const clock = setInterval(() => this.now.set(Date.now()), 60_000);
+    this.destroyRef.onDestroy(() => clearInterval(clock));
+    // Wait for both lists: the tabs need the user's registrations to sort events.
+    forkJoin({
+      events: this.api.browseEvents().pipe(catchError(() => of([] as EventDto[]))),
+      regs: this.api.myRegistrations().pipe(catchError(() => of(null))),
+    }).subscribe(({ events, regs }) => {
+      this.events.set(events);
+      // Which events the user is already registered for (to badge + block re-registration).
+      this.registeredEventIds.set(new Set((regs ?? []).map((r) => r.eventId)));
+      this.registrationsFailed.set(regs === null);
+      this.loading.set(false);
     });
-    // Which events the user is already registered for (to badge + block re-registration).
-    this.api.myRegistrations().subscribe({
-      next: (regs) => this.registeredEventIds.set(new Set(regs.map((r) => r.eventId))),
-      error: () => {},
+  }
+
+  selectTab(t: TabFilter): void {
+    this.tab.set(t);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: t === 'All' ? null : t },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
     });
   }
 
   isPast(e: EventDto): boolean {
-    return new Date(e.endsAt).getTime() < Date.now();
+    return isEnded(e, this.now());
+  }
+
+  isClosed(e: EventDto): boolean {
+    return isClosed(e);
+  }
+
+  canRegister(e: EventDto): boolean {
+    return canRegister(e, this.now());
   }
 
   isRegistered(e: EventDto): boolean {

@@ -45,10 +45,14 @@ has **Edit account**, **Install app** and **Sign out**.
 
 ## 2. Browsing events (account holders)
 
-**Browse Events** shows every event open for registration as a card: the banner, date, a status
-tag (**Open**, **Full**, **Ended**, **Registered**), an **Online** / **Hybrid** tag when the
+**Browse Events** shows public events as cards: the banner, date, a status
+tag (**Open**, **Full**, **Closed**, **Ended**, **Registered**), an **Online** / **Hybrid** tag when the
 event is held online, the time and venue, and the start of the description.
 
+- Use the tabs to narrow the list: **All**, **Open** (upcoming events you haven't registered for),
+  **Registered** (upcoming events you registered for), **Closed** (upcoming events no longer
+  taking registrations) and **Ended** (past events). The chosen tab stays in the address, so
+  Back and reload keep it.
 - Use the **search** box to find an event by title, venue or description.
 - **Details** opens the full information: banner, description, registration fees, schedule of
   activities, sub-events and meal stubs.

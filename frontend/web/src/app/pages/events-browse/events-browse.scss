@@ -1,4 +1,18 @@
 // Card look lives in the shared .ev-* styles (styles.scss).
+// Search on the left, filter tabs to its right; the tabs wrap below on narrow screens.
+.browse-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 26px;
+
+  .pill-tabs {
+    margin-bottom: 0;
+  }
+}
+
 .search-field {
+  flex: 1 1 280px;
   max-width: 520px;
 }
