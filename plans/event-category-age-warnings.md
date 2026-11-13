@@ -11,7 +11,7 @@ not match the category gets a warning before registering.
 | Item | Decision |
 |------|----------|
 | DB column | `Events.Category` — `nvarchar(10)`, **NULL** = no category |
-| Values | `Senior` \| `Regular` \| null; anything else is a 400 (`errors.Category`) |
+| Values | `Senior` \| `Regular` \| null; anything else is a 400 with a `message` |
 | Senior age | 65 or older on the day of registering (`today`, local time) |
 | Mismatch | Senior event + age < 65, or Regular event + age ≥ 65 |
 | Warning | Confirm dialog on **Register** (account flow); safe option **Cancel** pre-selected; "Register anyway" continues. Not enforced on the server |
