@@ -81,8 +81,6 @@ export class EventDetailComponent implements OnInit {
 
   id = 0;
   loading = signal(true);
-  // The open tab. reload() re-renders the page, so keep it here to stay on the same tab.
-  selectedTab = signal(0);
   event = signal<EventDto | null>(null);
   contacts = signal<ContactDto[]>([]);
   attendees = signal<AttendeeDto[]>([]);
@@ -330,7 +328,9 @@ export class EventDetailComponent implements OnInit {
   }
 
   reload(): void {
-    this.loading.set(true);
+    // Spinner on first load only: later reloads refresh in place, so the page (and its open
+    // tab) stays mounted after confirming, checking in or cancelling.
+    if (!this.event()) this.loading.set(true);
     this.api.getEvent(this.id).subscribe({
       next: (e) => {
         this.event.set(e);
