@@ -68,6 +68,13 @@ describe('Browse Events tabs', () => {
     expect(filterButton('All').getAttribute('aria-pressed')).toBe('true');
   });
 
+  it('puts the search field above the filter tabs', async () => {
+    await setup();
+    const search = root().querySelector('.search-field')!;
+    const tabs = root().querySelector('.pill-tabs')!;
+    expect(search.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('filters events by the chosen tab', async () => {
     await setup();
     clickTab('Open');

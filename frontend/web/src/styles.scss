@@ -2662,7 +2662,8 @@ mat-card-actions {
 
 // ---- Pill tabs (Home categories, Browse Events filters): white pill strip, gradient active tab ----
 .pill-tabs {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   flex-wrap: wrap;
   gap: 4px;
   padding: 6px;
