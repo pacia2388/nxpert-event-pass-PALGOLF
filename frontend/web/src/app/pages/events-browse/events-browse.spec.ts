@@ -5,9 +5,9 @@ import { ApiService } from '../../core/api.service';
 import { EventDto } from '../../core/models';
 import { EventsBrowseComponent } from './events-browse';
 
-function event(id: number, title: string, endsAt: string): EventDto {
+function event(id: number, title: string, endsAt: string, status = 'Published'): EventDto {
   return {
-    id, title, endsAt, startsAt: endsAt, description: '', venue: 'Clubhouse', publicSlug: `ev-${id}`,
+    id, title, endsAt, status, startsAt: endsAt, description: '', venue: 'Clubhouse', publicSlug: `ev-${id}`,
     isFull: false, sessions: [], format: 'Onsite', bannerImage: null,
   } as unknown as EventDto;
 }
@@ -29,7 +29,12 @@ describe('Browse Events tabs', () => {
           provide: ApiService,
           useValue: {
             browseEvents: () =>
-              of([event(1, 'Open Cup', future), event(2, 'My Classic', future), event(3, 'Old Open', past)]),
+              of([
+                event(1, 'Open Cup', future),
+                event(2, 'My Classic', future),
+                event(3, 'Old Open', past),
+                event(4, 'Shut Cup', future, 'Closed'),
+              ]),
             myRegistrations: () => opts.registrations ?? of([{ eventId: 2 }]),
           },
         },
@@ -59,7 +64,7 @@ describe('Browse Events tabs', () => {
 
   it('shows every event under All by default', async () => {
     await setup();
-    expect(titles()).toEqual(['Open Cup', 'My Classic', 'Old Open']);
+    expect(titles()).toEqual(['Open Cup', 'My Classic', 'Old Open', 'Shut Cup']);
     expect(filterButton('All').getAttribute('aria-pressed')).toBe('true');
   });
 
@@ -72,6 +77,17 @@ describe('Browse Events tabs', () => {
     expect(titles()).toEqual(['My Classic']);
     clickTab('Ended');
     expect(titles()).toEqual(['Old Open']);
+    clickTab('Closed');
+    expect(titles()).toEqual(['Shut Cup']);
+  });
+
+  it('marks a closed event as Closed and offers View instead of Register', async () => {
+    await setup();
+    clickTab('Closed');
+    const card = root().querySelector('.ev-card')!;
+    expect(card.querySelector('.ev-tags')?.textContent).toContain('Closed');
+    expect(card.querySelector('.ev-tags')?.textContent).not.toContain('Open');
+    expect(card.querySelector('.ev-btn.solid')?.textContent).toContain('View');
   });
 
   it('searches only within the chosen tab', async () => {

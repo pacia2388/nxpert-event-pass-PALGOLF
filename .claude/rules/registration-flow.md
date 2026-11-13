@@ -14,7 +14,8 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
 - **Online** events: no QR pass, no meal stubs. **Hybrid**: pass + link. The meeting link is never
   shown on public pages — confirmed registrants only. Meeting changes/cancellations must update or
   remove calendar entries automatically.
-- Visible in *Browse Events* only when **Published** and public link **on**.
+- Visible in *Browse Events* only when **Published** or **Closed**, and public link **on**. Closed
+  events sit under the **Closed** tab and refuse registration.
 - Check-in scanner is admin-only and opens only between event start and end.
 - Meal stubs: redeemable once, on valid dates only; Merchant role sees only the Meal Stub Scanner.
 - Roles: Admin (all) · Participant · Participant + Can confirm (Attendance actions only) ·
