@@ -120,19 +120,6 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  addCountry(): void {
-    const code = this.newCode();
-    if (!code) return;
-    this.api.addPhoneCountry(code).subscribe({
-      next: () => {
-        this.newCode.set('');
-        this.countries.reload();
-        this.toast.success(`+${code} added.`);
-      },
-      error: (err) => this.toast.error(err?.error?.message ?? 'Could not add the country code.'),
-    });
-  }
-
   setChannels(r: PhoneCountry, viber: boolean, sms: boolean, box: MatCheckbox): void {
     this.api.setPhoneCountryChannels(r.id, viber, sms).subscribe({
       next: (saved) => this.countries.rows.update((rows) => rows.map((x) => (x.id === saved.id ? saved : x))),
@@ -140,6 +127,19 @@ export class SettingsComponent implements OnInit {
         box.checked = !box.checked;
         this.toast.error(err?.error?.message ?? 'Could not save the channels.');
       },
+    });
+  }
+
+   addCountry(): void {
+    const code = this.newCode();
+    if (!code) return;
+    this.api.addPhoneCountry(code).subscribe({
+      next: () => {
+        this.newCode.set('');
+        this.countries.reload();
+        this.toast.success(`(+${code}) ${this.countries.countryName(code)} added.`);
+      },
+      error: (err) => this.toast.error(err?.error?.message ?? 'Could not add the country code.'),
     });
   }
 
@@ -154,7 +154,7 @@ export class SettingsComponent implements OnInit {
     this.api.removePhoneCountry(r.id).subscribe({
       next: () => {
         this.countries.reload();
-        this.toast.success(`+${r.countryCode} removed.`);
+        this.toast.success(`(+${r.countryCode}) ${this.countries.countryName(r.countryCode)} removed.`);
       },
       error: (err) => this.toast.error(err?.error?.message ?? 'Could not remove the country code.'),
     });

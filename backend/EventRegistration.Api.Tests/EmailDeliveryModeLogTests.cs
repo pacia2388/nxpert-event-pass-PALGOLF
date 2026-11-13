@@ -26,12 +26,6 @@ public class EmailDeliveryModeLogTests
             base.ConfigureWebHost(builder);
             builder.ConfigureLogging(logging => logging.AddProvider(Logs));
         }
-
-        public override async ValueTask DisposeAsync()
-        {
-            await ((IAsyncLifetime)this).DisposeAsync();
-            await base.DisposeAsync();
-        }
     }
 }
 
