@@ -1,4 +1,5 @@
 using EventRegistration.Api.Data;
+using EventRegistration.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventRegistration.Api.Services;
@@ -36,4 +37,26 @@ public static class UsernameHelper
             name = baseName + ++n;
         return name;
     }
+
+    // Saves a newly added user whose username was generated from `baseName`. UniqueAsync checks
+    // before the insert, so a concurrent request can take the same name first; on that unique-index
+    // clash, pick the next free name and save again.
+    public static async Task SaveNewUserAsync(AppDbContext db, User user, string baseName)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await db.SaveChangesAsync();
+                return;
+            }
+            catch (DbUpdateException e) when (attempt < 10 && IsUsernameClash(e))
+            {
+                user.Username = await UniqueAsync(db, baseName);
+            }
+        }
+    }
+
+    private static bool IsUsernameClash(DbUpdateException e) =>
+        e.InnerException?.Message.Contains("IX_Users_Username", StringComparison.Ordinal) == true;
 }

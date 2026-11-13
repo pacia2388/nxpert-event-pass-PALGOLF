@@ -79,18 +79,39 @@ public class MailInboxController(AppDbContext db) : ControllerBase
     {
         var rows = await query.AsNoTracking().Where(d => d.Send!.DispatchedAt != null)
             .OrderByDescending(d => d.Send!.DispatchedAt).Take(200)
-            .Select(d => new {
-                d.Id, d.Send!.Subject, d.Send.PreviewText, d.Send.ImageCount, ReceivedAt = d.Send.DispatchedAt,
-                d.Send.Plan!.Kind, d.Send.Plan.EventName, d.Send.Plan.CreatedByUserId,
+            .Select(d => new
+            {
+                d.Id,
+                d.Send!.Subject,
+                d.Send.PreviewText,
+                d.Send.ImageCount,
+                ReceivedAt = d.Send.DispatchedAt,
+                d.Send.Plan!.Kind,
+                d.Send.Plan.EventName,
+                d.Send.Plan.CreatedByUserId,
                 EventAt = d.Send.Plan.Event != null ? (DateTime?)d.Send.Plan.Event.StartsAt : null,
                 Venue = d.Send.Plan.Event != null ? d.Send.Plan.Event.Venue : null,
-                d.RemindAt, d.Snoozed, d.DoneAt,
+                d.RemindAt,
+                d.Snoozed,
+                d.DoneAt,
             }).ToListAsync();
         var senderIds = rows.Select(r => r.CreatedByUserId).Distinct().ToList();
         var senders = await db.Users.AsNoTracking().Where(u => senderIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.FullName);
-        return rows.Select(r => (object)new {
-            r.Id, from = senders.GetValueOrDefault(r.CreatedByUserId) ?? "Event organizer", r.Subject, r.PreviewText, r.ImageCount,
-            r.ReceivedAt, r.Kind, @event = r.EventName, r.EventAt, r.Venue, r.RemindAt, r.Snoozed, done = r.DoneAt != null,
+        return rows.Select(r => (object)new
+        {
+            r.Id,
+            from = senders.GetValueOrDefault(r.CreatedByUserId) ?? "Event organizer",
+            r.Subject,
+            r.PreviewText,
+            r.ImageCount,
+            r.ReceivedAt,
+            r.Kind,
+            @event = r.EventName,
+            r.EventAt,
+            r.Venue,
+            r.RemindAt,
+            r.Snoozed,
+            done = r.DoneAt != null,
         }).ToList();
     }
 }

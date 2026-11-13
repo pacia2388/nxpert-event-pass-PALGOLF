@@ -69,6 +69,11 @@ The folder decides the project, and so the signed-in user.
   `data-testid`.
 - Mat icons are hidden from the accessibility tree, so a button "<icon> Confirm" is named
   `Confirm`.
+- Text matchers still see icon text: a pill rendering `<mat-icon>elderly</mat-icon> Senior` has
+  text `elderlySenior`, so `getByText('Senior', { exact: true })` misses it. Match with a regex or
+  `toContainText`.
+- A `mat-button-toggle-group` is a `radiogroup` and each toggle a `radio`:
+  `getByRole('radiogroup', { name: 'Event category' }).getByRole('radio', { name: 'Senior', exact: true })`.
 - Before trusting a new spec, break its key assertion once and check that it fails.
 
 ## CI

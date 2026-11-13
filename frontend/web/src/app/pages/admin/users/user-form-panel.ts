@@ -54,7 +54,7 @@ export class UserFormPanelComponent {
   email = '';
   username = '';
   password = '';
-  role: string = 'Participant';
+  role = 'Participant';
   organization = '';
   phone = '';
   notificationChannel: NotificationChannel = 'Email';

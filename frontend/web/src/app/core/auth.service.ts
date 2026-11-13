@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, firstValueFrom, tap } from 'rxjs';
 import { API_BASE } from './config';
@@ -22,6 +22,7 @@ export interface RegisterBody {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private http = inject(HttpClient);
   private readonly _auth = signal<AuthResponse | null>(this.load());
 
   readonly auth = this._auth.asReadonly();
@@ -55,8 +56,6 @@ export class AuthService {
     const a = this._auth();
     return !!a && a.verificationRequired && !a.emailVerified;
   });
-
-  constructor(private http: HttpClient) {}
 
   get token(): string | null {
     return this._auth()?.token ?? null;

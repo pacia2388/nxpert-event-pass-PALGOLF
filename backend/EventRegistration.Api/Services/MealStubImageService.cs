@@ -46,7 +46,10 @@ public class MealStubImageService
         // Dashed cut guide around the information panel and detachable tab.
         using (var guide = new SKPaint
         {
-            Color = color, IsAntialias = true, StrokeWidth = 2, Style = SKPaintStyle.Stroke,
+            Color = color,
+            IsAntialias = true,
+            StrokeWidth = 2,
+            Style = SKPaintStyle.Stroke,
             PathEffect = SKPathEffect.CreateDash(new[] { 9f, 7f }, 0),
         })
         {
@@ -54,7 +57,10 @@ public class MealStubImageService
         }
         using (var tabGuide = new SKPaint
         {
-            Color = white, IsAntialias = true, StrokeWidth = 2, Style = SKPaintStyle.Stroke,
+            Color = white,
+            IsAntialias = true,
+            StrokeWidth = 2,
+            Style = SKPaintStyle.Stroke,
             PathEffect = SKPathEffect.CreateDash(new[] { 9f, 7f }, 0),
         })
         {
@@ -102,7 +108,10 @@ public class MealStubImageService
         // Perforation separating the claim tab from the body.
         using (var dash = new SKPaint
         {
-            Color = white, IsAntialias = true, StrokeWidth = 2, Style = SKPaintStyle.Stroke,
+            Color = white,
+            IsAntialias = true,
+            StrokeWidth = 2,
+            Style = SKPaintStyle.Stroke,
             PathEffect = SKPathEffect.CreateDash(new[] { 10f, 8f }, 0),
         })
         {

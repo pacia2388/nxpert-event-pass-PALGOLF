@@ -56,8 +56,13 @@ public class TeamsController : ControllerBase
             .OrderBy(t => t.Description)
             .Select(t => new
             {
-                t.Id, t.Description, t.Category, t.TeamLeadUserId,
-                LeadName = t.TeamLead!.FullName, Count = t.Members.Count, t.CreatedAt,
+                t.Id,
+                t.Description,
+                t.Category,
+                t.TeamLeadUserId,
+                LeadName = t.TeamLead!.FullName,
+                Count = t.Members.Count,
+                t.CreatedAt,
             })
             .ToListAsync();
         return Ok(rows.Select(r => new TeamDto(

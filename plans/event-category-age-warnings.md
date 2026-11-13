@@ -30,10 +30,10 @@ not match the category gets a warning before registering.
 | Backend | `Controllers/EventsController.cs` | Validate + save on create/update; map in DTO projections |
 | Frontend | `core/models.ts` | `category?: EventCategory \| null` |
 | Frontend | `core/event-category.ts` | `categoryAgeWarning(category, birthdate, today)` + label |
-| Frontend | `pages/admin/event-form` | Category select |
+| Frontend | `pages/admin/event-form` | Category toggle |
 | Frontend | `pages/admin/events-list`, `pages/events-browse` | Category pill |
 | Frontend | `pages/public-event` | Confirm dialog before account registration |
-| Docs | `documentation/database-table.md` | Category column (`.claude/` guides not committed in this repo) |
+| Docs | `documentation/database-table.md`, `.claude/` guides and rules | Category column; admin and participant guides; validation and registration-flow rules |
 
 ## Test seams
 
@@ -45,7 +45,7 @@ not match the category gets a warning before registering.
 
 - [x] Backend: field, migration, DTOs, validation (API test first)
 - [x] Frontend: age-check function (unit test first)
-- [x] Frontend: event form select + card pills
+- [x] Frontend: event form toggle + card pills
 - [x] Frontend: confirm dialog on register
 - [x] Playwright e2e
 - [x] Docs
@@ -58,3 +58,4 @@ not match the category gets a warning before registering.
 | 2026-11-13 | Plan created |
 | 2026-11-13 | Implemented: category column, form toggle, card pills, register warning; 7 API, 7 unit, 4 e2e tests |
 | 2026-11-13 | Label shortened from "Senior (65+)" to "Senior" on the pill and form toggle |
+| 2026-11-13 | Plan corrected: form uses a toggle; `.claude/` guides and rules were updated |

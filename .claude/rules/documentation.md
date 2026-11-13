@@ -10,3 +10,7 @@
   Use `🚧 In progress` while a section is partly done. Add a change-log row for each update.
 - Keep docs in Markdown (`.md`) unless the user asks for another format.
 - When code changes what a doc describes (tables, roles, endpoints), update the doc in the same change.
+- Feature behaviour is described in `.claude/skills/admin-guide/reference.md`,
+  `.claude/skills/participant-guide/reference.md`, `.claude/rules/validation.md` and
+  `.claude/rules/registration-flow.md`. A change to what admins or players see or can do updates
+  these in the same change (they are tracked; commit them).

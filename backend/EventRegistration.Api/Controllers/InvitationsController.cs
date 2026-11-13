@@ -41,7 +41,8 @@ public class InvitationsController : ControllerBase
         var ev = await _db.Events.FindAsync(eventId);
         if (ev is null) return NotFound(new { message = "This event no longer exists. Reload the event list before sending invitations." });
         InvitationMessage message;
-        try {
+        try
+        {
             ValidateSchedule(req.ScheduledAt);
             await EnsureNoScheduleConflict(eventId, req.ScheduledAt, exceptId: 0);
             message = await new InvitationMessageBuilder(_db, _config).BuildAsync(ev, req);
@@ -66,13 +67,42 @@ public class InvitationsController : ControllerBase
         // Keep large editor bodies (including inline images) out of the history list.
         var items = await _db.InvitationEmails.AsNoTracking().Where(m => m.EventId == eventId)
             .OrderByDescending(m => m.CreatedAt).ThenByDescending(m => m.Id)
-            .Select(m => new { m.Id, m.EventId, m.ToJson, m.CcJson, m.Subject, m.Status,
-                m.CreatedAt, m.UpdatedAt, m.ScheduledAt, m.SentAt, m.LastAttemptAt, m.NextAttemptAt,
-                m.Attempts, m.LastError, m.Version }).ToListAsync();
-        return Ok(items.Select(m => new { m.Id, m.EventId,
-            to = JsonSerializer.Deserialize<List<string>>(m.ToJson), cc = JsonSerializer.Deserialize<List<string>>(m.CcJson),
-            m.Subject, m.Status, m.CreatedAt, m.UpdatedAt, m.ScheduledAt, m.SentAt, m.LastAttemptAt,
-            m.NextAttemptAt, m.Attempts, m.LastError, m.Version }));
+            .Select(m => new
+            {
+                m.Id,
+                m.EventId,
+                m.ToJson,
+                m.CcJson,
+                m.Subject,
+                m.Status,
+                m.CreatedAt,
+                m.UpdatedAt,
+                m.ScheduledAt,
+                m.SentAt,
+                m.LastAttemptAt,
+                m.NextAttemptAt,
+                m.Attempts,
+                m.LastError,
+                m.Version
+            }).ToListAsync();
+        return Ok(items.Select(m => new
+        {
+            m.Id,
+            m.EventId,
+            to = JsonSerializer.Deserialize<List<string>>(m.ToJson),
+            cc = JsonSerializer.Deserialize<List<string>>(m.CcJson),
+            m.Subject,
+            m.Status,
+            m.CreatedAt,
+            m.UpdatedAt,
+            m.ScheduledAt,
+            m.SentAt,
+            m.LastAttemptAt,
+            m.NextAttemptAt,
+            m.Attempts,
+            m.LastError,
+            m.Version
+        }));
     }
 
     [HttpGet("emails/{id:int}")]
@@ -167,24 +197,45 @@ public class InvitationsController : ControllerBase
         item.UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    private static object EmailDetails(InvitationEmail m) => new {
-        m.Id, m.EventId, to = JsonSerializer.Deserialize<List<string>>(m.ToJson),
-        cc = JsonSerializer.Deserialize<List<string>>(m.CcJson), m.Subject, m.BodyHtml,
-        m.Status, m.CreatedAt, m.UpdatedAt, m.ScheduledAt, m.SentAt, m.LastAttemptAt,
-        m.NextAttemptAt, m.Attempts, m.LastError, m.Version,
+    private static object EmailDetails(InvitationEmail m) => new
+    {
+        m.Id,
+        m.EventId,
+        to = JsonSerializer.Deserialize<List<string>>(m.ToJson),
+        cc = JsonSerializer.Deserialize<List<string>>(m.CcJson),
+        m.Subject,
+        m.BodyHtml,
+        m.Status,
+        m.CreatedAt,
+        m.UpdatedAt,
+        m.ScheduledAt,
+        m.SentAt,
+        m.LastAttemptAt,
+        m.NextAttemptAt,
+        m.Attempts,
+        m.LastError,
+        m.Version,
     };
 
     private static object DeliveryResult(InvitationEmail m, string registerUrl)
     {
         var count = JsonSerializer.Deserialize<List<string>>(m.ToJson)!.Count + JsonSerializer.Deserialize<List<string>>(m.CcJson)!.Count;
-        return new { id = m.Id, status = m.Status, sent = m.Status == InvitationEmailStatus.Sent ? count : 0,
-            queued = m.Status == InvitationEmailStatus.Queued ? count : 0, recipientCount = count, registerUrl,
-            message = m.Status switch {
+        return new
+        {
+            id = m.Id,
+            status = m.Status,
+            sent = m.Status == InvitationEmailStatus.Sent ? count : 0,
+            queued = m.Status == InvitationEmailStatus.Queued ? count : 0,
+            recipientCount = count,
+            registerUrl,
+            message = m.Status switch
+            {
                 InvitationEmailStatus.Sent => $"Invitation sent to {count} recipient(s).",
                 InvitationEmailStatus.Scheduled when m.ScheduledAt != null => $"Invitation scheduled for {count} recipient(s).",
                 InvitationEmailStatus.Queued or InvitationEmailStatus.Failed => m.LastError,
                 _ => "Invitation saved and waiting for delivery.",
-            } };
+            }
+        };
     }
 
     [HttpPost]

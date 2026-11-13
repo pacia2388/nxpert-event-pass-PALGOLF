@@ -21,8 +21,13 @@ public class AttendanceSummaryService
     // registration ID. Soft-deleted rows are excluded by the global query filter.
     public IQueryable<AttendanceSummaryTotals> Query(int eventId) => _db.Registrations
         .Where(r => r.EventId == eventId)
-        .Select(r => new { r.Id, r.UserId, r.CheckedInAt,
-            MemberId = r.User != null ? r.User.SenateNo : r.GuestSenateNo })
+        .Select(r => new
+        {
+            r.Id,
+            r.UserId,
+            r.CheckedInAt,
+            MemberId = r.User != null ? r.User.SenateNo : r.GuestSenateNo
+        })
         .GroupBy(r => r.MemberId != null && r.MemberId.Trim() != ""
             ? "member:" + r.MemberId.Trim().ToUpper()
             : r.UserId != null ? "user:" + r.UserId.Value.ToString() : "registration:" + r.Id.ToString())

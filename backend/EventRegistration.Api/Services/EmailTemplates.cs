@@ -52,11 +52,11 @@ public static class EmailTemplates
            <h2 style=""margin:8px 0;color:{Accent}"">{System.Net.WebUtility.HtmlEncode(ev.Title)}</h2>
            {WhenLines(ev.StartsAt, ev.EndsAt)}
            <p style=""margin:4px 0""><strong>Where:</strong> {ev.Format switch
-           {
-               EventFormats.Online => "Online meeting — the join link is sent once your registration is confirmed",
-               EventFormats.Hybrid => $"{System.Net.WebUtility.HtmlEncode(ev.Venue)} · also online (join link sent once confirmed)",
-               _ => System.Net.WebUtility.HtmlEncode(ev.Venue),
-           }}</p>
+        {
+            EventFormats.Online => "Online meeting — the join link is sent once your registration is confirmed",
+            EventFormats.Hybrid => $"{System.Net.WebUtility.HtmlEncode(ev.Venue)} · also online (join link sent once confirmed)",
+            _ => System.Net.WebUtility.HtmlEncode(ev.Venue),
+        }}</p>
            {(string.IsNullOrWhiteSpace(ev.Description) ? "" : $@"
            <div style=""margin:18px 0 8px;padding:14px 16px;background:#f5f8fc;border-left:3px solid {Accent};
                 border-radius:6px;line-height:1.6;color:#333"">{MultilineText(ev.Description)}</div>")}
@@ -148,12 +148,12 @@ public static class EmailTemplates
         },
         $@"<p>Hi {E(attendeeName)},</p>
            <p>{reason switch
-              {
-                  MeetingCancelReason.EventCancelled => $"<strong>{E(title)}</strong> has been cancelled.",
-                  MeetingCancelReason.NowInPerson =>
-                      $"<strong>{E(title)}</strong> will now be held <strong>in person only</strong> — your registration still stands.",
-                  _ => $"Your registration for <strong>{E(title)}</strong> has been cancelled.",
-              }}
+        {
+            MeetingCancelReason.EventCancelled => $"<strong>{E(title)}</strong> has been cancelled.",
+            MeetingCancelReason.NowInPerson =>
+                $"<strong>{E(title)}</strong> will now be held <strong>in person only</strong> — your registration still stands.",
+            _ => $"Your registration for <strong>{E(title)}</strong> has been cancelled.",
+        }}
               The online meeting below has been removed; the attached update takes it off your calendar.</p>
            {WhenLines(startsAt, endsAt)}
            <p style=""color:#888;font-size:13px"">If you think this is a mistake, please contact the event organizer.</p>");

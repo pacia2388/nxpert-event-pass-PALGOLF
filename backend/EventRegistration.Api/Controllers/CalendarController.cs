@@ -26,8 +26,17 @@ public class CalendarController(AppDbContext db) : ControllerBase
             (e.IsPublicLinkEnabled && EventStatus.Listed.Contains(e.Status)) ||
             db.Registrations.Any(r => r.EventId == e.Id && r.UserId == uid) ||
             (e.Status != EventStatus.Draft && db.Invitations.Any(i => i.EventId == e.Id && i.Email.ToLower() == email)));
-        var rows = await events.OrderBy(e => e.StartsAt).Select(e => new {
-            e.Id, e.Title, e.Description, e.StartsAt, e.EndsAt, e.Venue, e.PublicSlug, e.Status, e.Format,
+        var rows = await events.OrderBy(e => e.StartsAt).Select(e => new
+        {
+            e.Id,
+            e.Title,
+            e.Description,
+            e.StartsAt,
+            e.EndsAt,
+            e.Venue,
+            e.PublicSlug,
+            e.Status,
+            e.Format,
             IsRegistered = db.Registrations.Any(r => r.EventId == e.Id && r.UserId == uid),
             IsInvited = db.Invitations.Any(i => i.EventId == e.Id && i.Email.ToLower() == email),
             CanManage = manage,

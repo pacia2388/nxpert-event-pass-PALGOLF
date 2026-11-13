@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,7 +14,7 @@ import { ScheduleComponent } from '../../shared/schedule';
 export class PassDialogComponent implements OnInit {
   qrDataUrl = signal<string | null>(null);
 
-  constructor(@Inject(MAT_DIALOG_DATA) public reg: RegistrationDto) {}
+  reg = inject<RegistrationDto>(MAT_DIALOG_DATA);
 
   async ngOnInit(): Promise<void> {
     this.qrDataUrl.set(await passQrDataUrl(this.reg.token));

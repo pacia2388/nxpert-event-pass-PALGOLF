@@ -63,7 +63,7 @@ export class BeepService {
   private ensureContext(): AudioContext | null {
     try {
       if (!this.ctx) {
-        const Ctor = window.AudioContext ?? (window as any).webkitAudioContext;
+        const Ctor = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (!Ctor) return null;
         this.ctx = new Ctor();
       }
