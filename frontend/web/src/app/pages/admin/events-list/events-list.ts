@@ -16,7 +16,7 @@ import { ApiService } from '../../../core/api.service';
 import { AuthService } from '../../../core/auth.service';
 import { EventDto } from '../../../core/models';
 import { ScheduleComponent } from '../../../shared/schedule';
-import { EVENT_CATEGORY_LABELS } from '../../../core/event-category';
+import { CategoryPillComponent } from '../../../shared/category-pill';
 
 type Phase = 'live' | 'upcoming' | 'past';
 type EventFilter = 'all' | Phase | 'draft' | 'closed';
@@ -36,7 +36,7 @@ function writePref(key: string, value: string): void {
 
 @Component({
   selector: 'app-events-list',
-  imports: [ScheduleComponent, 
+  imports: [CategoryPillComponent, ScheduleComponent, 
     DatePipe,
     NgTemplateOutlet,
     FormsModule,
@@ -55,7 +55,6 @@ function writePref(key: string, value: string): void {
   styleUrl: './events-list.scss',
 })
 export class EventsListComponent implements OnInit {
-  readonly categoryLabels: Record<string, string> = EVENT_CATEGORY_LABELS;
   private api = inject(ApiService);
   protected auth = inject(AuthService);
   private router = inject(Router);
