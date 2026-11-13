@@ -440,9 +440,9 @@ public class EventsController : ControllerBase
     [HttpPost, Authorize(Roles = Roles.Admin + "," + Roles.SuperAdmin)]
     public async Task<ActionResult<EventDto>> Create(EventUpsertRequest req)
     {
-        var bannerError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
+        var validationError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
             ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
-        if (bannerError is not null) return BadRequest(new { message = bannerError });
+        if (validationError is not null) return BadRequest(new { message = validationError });
 
         var format = EventFormats.Normalize(req.Format);
         var e = new Event
@@ -483,9 +483,9 @@ public class EventsController : ControllerBase
             .FirstOrDefaultAsync(x => x.Id == id);
         if (e is null) return NotFound();
 
-        var bannerError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
+        var validationError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
             ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
-        if (bannerError is not null) return BadRequest(new { message = bannerError });
+        if (validationError is not null) return BadRequest(new { message = validationError });
 
         // Snapshot what a calendar invite is built from, to detect changes worth re-inviting for.
         var before = InviteSnapshot.Of(e);
