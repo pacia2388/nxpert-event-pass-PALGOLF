@@ -1,4 +1,4 @@
-import { eventTab } from './event-tab';
+import { canRegister, eventTab } from './event-tab';
 
 describe('event tab', () => {
   const now = new Date('2026-11-13T12:00:00').getTime();
@@ -26,5 +26,11 @@ describe('event tab', () => {
 
   it('keeps an upcoming closed event the user registered for under Registered', () => {
     expect(eventTab(closed, true, now)).toBe('Registered');
+  });
+
+  it('takes registrations only for upcoming events that are not closed', () => {
+    expect(canRegister(upcoming, now)).toBe(true);
+    expect(canRegister(ended, now)).toBe(false);
+    expect(canRegister(closed, now)).toBe(false);
   });
 });

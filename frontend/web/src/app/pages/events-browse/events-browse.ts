@@ -14,7 +14,7 @@ import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
-import { EVENT_TABS, EventTab, eventTab, isEnded } from './event-tab';
+import { EVENT_TABS, EventTab, canRegister, eventTab, isClosed, isEnded } from './event-tab';
 
 type TabFilter = 'All' | EventTab;
 const TAB_FILTERS: TabFilter[] = ['All', ...EVENT_TABS];
@@ -118,12 +118,11 @@ export class EventsBrowseComponent implements OnInit {
   }
 
   isClosed(e: EventDto): boolean {
-    return e.status === 'Closed';
+    return isClosed(e);
   }
 
-  // Ended and closed events can be viewed but no longer take registrations.
   canRegister(e: EventDto): boolean {
-    return !this.isPast(e) && !this.isClosed(e);
+    return canRegister(e, this.now());
   }
 
   isRegistered(e: EventDto): boolean {
