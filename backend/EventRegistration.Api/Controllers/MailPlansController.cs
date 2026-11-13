@@ -28,14 +28,35 @@ public class MailPlansController(AppDbContext db, MailPlanAudience audience, Mai
     {
         var plans = await db.MailPlans.AsNoTracking()
             .OrderByDescending(p => p.UpdatedAt)
-            .Select(p => new MailPlan {
-                Id = p.Id, Kind = p.Kind, EventId = p.EventId, EventName = p.EventName, Channel = p.Channel, Draft = p.Draft,
-                GroupIdsJson = p.GroupIdsJson, EmailsJson = p.EmailsJson, CcJson = p.CcJson, CreatedByUserId = p.CreatedByUserId,
-                CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt, Version = p.Version,
-                Sends = p.Sends.OrderBy(s => s.SendAt).Select(s => new MailPlanSend {
-                    Id = s.Id, PlanId = s.PlanId, SendAt = s.SendAt, Subject = s.Subject, PreviewText = s.PreviewText,
-                    ImageCount = s.ImageCount, Status = s.Status, SentAt = s.SentAt, RecipientCount = s.RecipientCount,
-                    LastError = s.LastError, Attempts = s.Attempts, NextAttemptAt = s.NextAttemptAt,
+            .Select(p => new MailPlan
+            {
+                Id = p.Id,
+                Kind = p.Kind,
+                EventId = p.EventId,
+                EventName = p.EventName,
+                Channel = p.Channel,
+                Draft = p.Draft,
+                GroupIdsJson = p.GroupIdsJson,
+                EmailsJson = p.EmailsJson,
+                CcJson = p.CcJson,
+                CreatedByUserId = p.CreatedByUserId,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                Version = p.Version,
+                Sends = p.Sends.OrderBy(s => s.SendAt).Select(s => new MailPlanSend
+                {
+                    Id = s.Id,
+                    PlanId = s.PlanId,
+                    SendAt = s.SendAt,
+                    Subject = s.Subject,
+                    PreviewText = s.PreviewText,
+                    ImageCount = s.ImageCount,
+                    Status = s.Status,
+                    SentAt = s.SentAt,
+                    RecipientCount = s.RecipientCount,
+                    LastError = s.LastError,
+                    Attempts = s.Attempts,
+                    NextAttemptAt = s.NextAttemptAt,
                 }).ToList(),
             }).ToListAsync();
         return Ok(plans.Select(p => PlanDto(p, withBodies: false)));
@@ -66,7 +87,8 @@ public class MailPlansController(AppDbContext db, MailPlanAudience audience, Mai
         var saved = await db.MailPlanEventNames.AsNoTracking().Select(n => n.Name).ToListAsync();
         var used = await db.MailPlans.AsNoTracking().Where(p => p.EventName != null).Select(p => p.EventName!).Distinct().ToListAsync();
         var known = events.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        return Ok(new {
+        return Ok(new
+        {
             events = events.Distinct(StringComparer.OrdinalIgnoreCase),
             savedEvents = saved.Concat(used).Where(known.Add).Order(StringComparer.OrdinalIgnoreCase),
             groups = await audience.GroupsAsync(),
@@ -324,17 +346,36 @@ public class MailPlansController(AppDbContext db, MailPlanAudience audience, Mai
         return name.Length is 0 or > 200 || name.Any(char.IsControl) ? null : name;
     }
 
-    private static object PlanDto(MailPlan p, bool withBodies) => new {
-        p.Id, p.Kind, p.EventId, p.EventName, p.Channel, p.Draft,
+    private static object PlanDto(MailPlan p, bool withBodies) => new
+    {
+        p.Id,
+        p.Kind,
+        p.EventId,
+        p.EventName,
+        p.Channel,
+        p.Draft,
         groupIds = JsonSerializer.Deserialize<List<string>>(p.GroupIdsJson),
         emails = JsonSerializer.Deserialize<List<string>>(p.EmailsJson),
         cc = JsonSerializer.Deserialize<List<string>>(p.CcJson),
-        p.CreatedAt, p.UpdatedAt, p.Version,
+        p.CreatedAt,
+        p.UpdatedAt,
+        p.Version,
         sends = p.Sends.OrderBy(s => s.SendAt).Select(s => SendDto(s, withBodies)),
     };
 
-    private static object SendDto(MailPlanSend s, bool withBody) => new {
-        s.Id, s.SendAt, s.Subject, s.PreviewText, s.ImageCount, bodyHtml = withBody ? s.BodyHtml : null,
-        s.Status, s.SentAt, s.RecipientCount, s.LastError, s.Attempts, s.NextAttemptAt,
+    private static object SendDto(MailPlanSend s, bool withBody) => new
+    {
+        s.Id,
+        s.SendAt,
+        s.Subject,
+        s.PreviewText,
+        s.ImageCount,
+        bodyHtml = withBody ? s.BodyHtml : null,
+        s.Status,
+        s.SentAt,
+        s.RecipientCount,
+        s.LastError,
+        s.Attempts,
+        s.NextAttemptAt,
     };
 }

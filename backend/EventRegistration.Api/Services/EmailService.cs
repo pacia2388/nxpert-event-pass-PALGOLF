@@ -100,7 +100,8 @@ public class EmailService
             var type = ContentType.Parse(attachment.ContentType);
             if (type.MimeType.Equals("text/calendar", StringComparison.OrdinalIgnoreCase))
             {
-                calendarParts.Add(new MimePart(type) {
+                calendarParts.Add(new MimePart(type)
+                {
                     Content = new MimeContent(new MemoryStream(attachment.Content)),
                     ContentTransferEncoding = ContentEncoding.Base64,
                     ContentDisposition = new ContentDisposition(ContentDisposition.Inline) { FileName = attachment.FileName },
