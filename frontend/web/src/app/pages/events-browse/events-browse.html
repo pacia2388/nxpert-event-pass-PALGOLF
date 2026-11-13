@@ -11,6 +11,15 @@
     <p>No events are open for registration right now.</p>
   </div>
 } @else {
+  <div class="module-tabs" role="tablist" aria-label="Filter events">
+    <button type="button" role="tab" class="module-tab" [class.active]="tab() === 'All'"
+            [attr.aria-selected]="tab() === 'All'" (click)="tab.set('All')">All</button>
+    @for (t of tabs; track t) {
+      <button type="button" role="tab" class="module-tab" [class.active]="tab() === t"
+              [attr.aria-selected]="tab() === t" (click)="tab.set(t)">{{ t }}</button>
+    }
+  </div>
+
   <mat-form-field appearance="outline" class="full-width search-field">
     <mat-label>Search events</mat-label>
     <mat-icon matPrefix>search</mat-icon>
@@ -24,7 +33,11 @@
   </mat-form-field>
 
   @if (filtered().length === 0) {
-    <p class="muted">No events match “{{ search() }}”.</p>
+    @if (search()) {
+      <p class="muted">No events match “{{ search() }}”.</p>
+    } @else {
+      <p class="muted">No {{ tab().toLowerCase() }} events.</p>
+    }
   }
 
   <div class="ev-grid">

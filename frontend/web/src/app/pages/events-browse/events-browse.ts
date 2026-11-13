@@ -13,6 +13,7 @@ import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
+import { EVENT_TABS, EventTab, eventTab } from './event-tab';
 
 @Component({
   selector: 'app-events-browse',
@@ -52,9 +53,15 @@ export class EventsBrowseComponent implements OnInit {
   // Event IDs the signed-in user already has a registration for.
   registeredEventIds = signal<Set<number>>(new Set());
 
+  readonly tabs = EVENT_TABS;
+  tab = signal<'All' | EventTab>('All');
+
   filtered = computed(() => {
     const q = this.search().trim().toLowerCase();
-    const list = this.events();
+    const tab = this.tab();
+    const ids = this.registeredEventIds();
+    const now = Date.now();
+    const list = tab === 'All' ? this.events() : this.events().filter((e) => eventTab(e, ids.has(e.id), now) === tab);
     if (!q) return list;
     return list.filter(
       (e) =>
