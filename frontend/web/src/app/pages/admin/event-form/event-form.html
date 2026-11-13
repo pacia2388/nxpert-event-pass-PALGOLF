@@ -86,6 +86,17 @@
         </mat-button-toggle-group>
       </div>
 
+      <!-- ===== Category: who the event is for ===== -->
+      <div class="format-block">
+        <span class="format-label">Category</span>
+        <mat-button-toggle-group name="category" [(ngModel)]="category" class="format-toggle"
+                                 aria-label="Event category">
+          @for (c of categories; track c.value) {
+            <mat-button-toggle [value]="c.value">{{ c.label }}</mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+      </div>
+
       @if (hasVenue) {
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Venue</mat-label>

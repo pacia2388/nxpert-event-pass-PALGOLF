@@ -13,6 +13,7 @@ import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
+import { EVENT_CATEGORY_LABELS } from '../../core/event-category';
 
 @Component({
   selector: 'app-events-browse',
@@ -31,6 +32,7 @@ import { ScheduleComponent } from '../../shared/schedule';
   styleUrl: './events-browse.scss',
 })
 export class EventsBrowseComponent implements OnInit {
+  readonly categoryLabels: Record<string, string> = EVENT_CATEGORY_LABELS;
   private api = inject(ApiService);
   private dialog = inject(MatDialog);
 

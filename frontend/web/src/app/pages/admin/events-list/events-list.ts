@@ -16,6 +16,7 @@ import { ApiService } from '../../../core/api.service';
 import { AuthService } from '../../../core/auth.service';
 import { EventDto } from '../../../core/models';
 import { ScheduleComponent } from '../../../shared/schedule';
+import { EVENT_CATEGORY_LABELS } from '../../../core/event-category';
 
 type Phase = 'live' | 'upcoming' | 'past';
 type EventFilter = 'all' | Phase | 'draft' | 'closed';
@@ -54,6 +55,7 @@ function writePref(key: string, value: string): void {
   styleUrl: './events-list.scss',
 })
 export class EventsListComponent implements OnInit {
+  readonly categoryLabels: Record<string, string> = EVENT_CATEGORY_LABELS;
   private api = inject(ApiService);
   protected auth = inject(AuthService);
   private router = inject(Router);
