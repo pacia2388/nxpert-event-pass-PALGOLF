@@ -2660,8 +2660,8 @@ mat-card-actions {
   }
 }
 
-// ---- Filter tabs (Home categories, Browse Events): white pill strip, gradient active tab ----
-.module-tabs {
+// ---- Pill tabs (Home categories, Browse Events filters): white pill strip, gradient active tab ----
+.pill-tabs {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 4px;
@@ -2673,7 +2673,7 @@ mat-card-actions {
   max-width: 100%;
 }
 
-.module-tab {
+.pill-tab {
   border: none;
   background: transparent;
   padding: 10px 28px;
@@ -2703,13 +2703,13 @@ mat-card-actions {
 }
 
 @media (max-width: 600px) {
-  .module-tabs {
+  .pill-tabs {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
   }
-  .module-tab {
+  .pill-tab {
     flex: 0 0 auto;
     padding: 9px 18px;
     font-size: 14px;

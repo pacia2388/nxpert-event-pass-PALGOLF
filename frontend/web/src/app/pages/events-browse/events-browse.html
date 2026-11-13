@@ -11,14 +11,16 @@
     <p>No events are open for registration right now.</p>
   </div>
 } @else {
-  <div class="module-tabs" role="tablist" aria-label="Filter events">
-    <button type="button" role="tab" class="module-tab" [class.active]="tab() === 'All'"
-            [attr.aria-selected]="tab() === 'All'" (click)="tab.set('All')">All</button>
+  <div class="pill-tabs" role="group" aria-label="Filter events">
     @for (t of tabs; track t) {
-      <button type="button" role="tab" class="module-tab" [class.active]="tab() === t"
-              [attr.aria-selected]="tab() === t" (click)="tab.set(t)">{{ t }}</button>
+      <button type="button" class="pill-tab" [class.active]="tab() === t"
+              [attr.aria-pressed]="tab() === t" (click)="selectTab(t)">{{ t }}</button>
     }
   </div>
+
+  @if (registrationsFailed()) {
+    <p class="muted">Couldn’t load your registrations, so the Registered tab may be incomplete.</p>
+  }
 
   <mat-form-field appearance="outline" class="full-width search-field">
     <mat-label>Search events</mat-label>
@@ -59,10 +61,10 @@
             @if (isRegistered(e)) {
               <span class="ev-tag brand"><mat-icon>check_circle</mat-icon> Registered</span>
             }
-            @if (e.isFull) {
-              <span class="ev-tag warn"><mat-icon>groups</mat-icon> Full</span>
-            } @else if (isPast(e)) {
+            @if (isPast(e)) {
               <span class="ev-tag"><mat-icon>history</mat-icon> Ended</span>
+            } @else if (e.isFull) {
+              <span class="ev-tag warn"><mat-icon>groups</mat-icon> Full</span>
             } @else {
               <span class="ev-tag ok"><mat-icon>how_to_reg</mat-icon> Open</span>
             }
