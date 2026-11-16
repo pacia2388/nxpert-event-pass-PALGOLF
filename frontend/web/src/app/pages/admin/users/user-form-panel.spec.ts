@@ -73,10 +73,37 @@ describe('User form panel', () => {
     expect(field('firstName').classList).toContain('mat-form-field-invalid');
   });
 
-  it('marks a password shorter than 8 characters', () => {
-    enter('password', 'abc12');
+  // The checklist under the password field, each rule with whether it is met.
+  const checklist = () =>
+    [...root().querySelectorAll('app-password-requirements li')].map(
+      (li) =>
+        `${li.classList.contains('met') ? '✓' : '·'} ${li.textContent!.replace(/^\s*\S+\s+/, '').trim()}`,
+    );
 
-    expect(marker('password')).toBe('At least 8 characters');
+  it('marks a password that misses a rule and shows which one under the field', () => {
+    enter('password', 'Passw0rd1');
+
+    expect(marker('password')).toBe("Doesn't meet the requirements below");
+    expect(checklist()).toEqual([
+      '✓ 8 to 128 characters',
+      '✓ A letter',
+      '✓ A number',
+      '· A symbol, like ! @ # or ?',
+    ]);
+  });
+
+  it('marks a password that is the user email', () => {
+    enter('email', 'bob1@example.com');
+    enter('password', 'bob1@example.com');
+
+    expect(marker('password')).toBe("Doesn't meet the requirements below");
+    expect(checklist().at(-1)).toBe('· Not your email');
+  });
+
+  it('accepts a password that meets every rule', () => {
+    enter('password', 'Passw0rd!');
+
+    expect(marker('password')).toBeNull();
   });
 
   it('marks an email that is not a valid address', () => {

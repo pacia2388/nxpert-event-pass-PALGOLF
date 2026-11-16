@@ -63,11 +63,11 @@ public class GuestRegistrationAccountEmailTests(ApiFixture api)
             senateNo = "ID-777",
             level = "Member",
             email,
-            password = "NewPass123",
+            password = "NewPass123!",
             birthdate = "1990-05-01",
         });
         Assert.Equal(HttpStatusCode.OK, done.StatusCode);
-        var client = await api.SignInAsync(email, "NewPass123");
+        var client = await api.SignInAsync(email, "NewPass123!");
         Assert.Empty((await client.GetFromJsonAsync<List<MineBody>>("/api/registrations/mine"))!
             .Where(r => r.EventId == ev.Id));
         (await client.PostAsJsonAsync("/api/registrations", new { eventId = ev.Id })).EnsureSuccessStatusCode();

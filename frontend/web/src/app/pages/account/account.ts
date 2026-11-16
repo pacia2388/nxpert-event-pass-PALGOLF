@@ -19,6 +19,9 @@ import { AuthService } from '../../core/auth.service';
 import { NotificationChannel, ProfileUpdate } from '../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { isValidPassword } from '../../shared/password';
+import { PasswordRuleDirective } from '../../shared/password-rule.directive';
+import { PasswordRequirementsComponent } from '../../shared/password-requirements/password-requirements';
 import {
   BIRTHDATE_MIN,
   birthdateMax,
@@ -30,6 +33,8 @@ import {
 @Component({
   selector: 'app-account',
   imports: [
+    PasswordRequirementsComponent,
+    PasswordRuleDirective,
     FormsModule,
     RouterLink,
     MatCardModule,
@@ -204,7 +209,9 @@ export class AccountComponent implements OnInit {
 
   get valid(): boolean {
     const names = !!this.firstName.trim() && !!this.lastName.trim();
-    const pwOk = !this.newPassword || (this.newPassword.length >= 8 && !!this.currentPassword);
+    const pwOk =
+      !this.newPassword ||
+      (isValidPassword(this.newPassword, this.email) && !!this.currentPassword);
     const phoneOk = this.phone ? this.countries.isValid(this.phone) : !this.phoneRequired();
     return names && pwOk && phoneOk && isValidBirthdate(this.birthdate);
   }

@@ -135,6 +135,21 @@ public class EventsController : ControllerBase
             new List<MealDto>(), EventFormats.Normalize(e.Format), Category: e.Category);
     }
 
+    // Title 3–300 characters once trimmed; the event must end after it starts. When editing, a
+    // title or schedule left as it was is not re-checked, so events saved before these rules can
+    // still be edited.
+    private static string? ValidateTitleAndSchedule(EventUpsertRequest req, Event? existing = null)
+    {
+        var title = (req.Title ?? "").Trim();
+        if (title != existing?.Title && (title.Length < 3 || title.Length > 300))
+            return "Title must be 3 to 300 characters.";
+        var scheduleKept = existing is not null
+            && req.StartsAt == existing.StartsAt && req.EndsAt == existing.EndsAt;
+        if (!scheduleKept && req.EndsAt <= req.StartsAt)
+            return "The event must end after it starts.";
+        return null;
+    }
+
     private static string? ValidateCategory(EventUpsertRequest req) =>
         EventCategories.IsValid(req.Category) ? null : "Category must be Senior, Regular, or none.";
 
@@ -445,7 +460,8 @@ public class EventsController : ControllerBase
     [HttpPost, Authorize(Roles = Roles.Admin + "," + Roles.SuperAdmin)]
     public async Task<ActionResult<EventDto>> Create(EventUpsertRequest req)
     {
-        var validationError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
+        var validationError = ValidateTitleAndSchedule(req)
+            ?? ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
             ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
         if (validationError is not null) return BadRequest(new { message = validationError });
 
@@ -488,7 +504,8 @@ public class EventsController : ControllerBase
             .FirstOrDefaultAsync(x => x.Id == id);
         if (e is null) return NotFound();
 
-        var validationError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
+        var validationError = ValidateTitleAndSchedule(req, e)
+            ?? ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
             ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
         if (validationError is not null) return BadRequest(new { message = validationError });
 

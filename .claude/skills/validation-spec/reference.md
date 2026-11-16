@@ -52,7 +52,7 @@ Define once; reuse everywhere. Lengths align with the EF `[MaxLength]` columns.
 |-----|------|
 | **Name** | Required. Trimmed. 2–200 chars. Not only whitespace. |
 | **Email** | Required (where noted). Trimmed, lower-cased. Valid RFC 5322 format. ≤ 256 chars. |
-| **Password** | Required. 8–128 chars. Must contain at least one letter and one digit. Not equal to email. |
+| **Password** | Required. 8–128 chars. Must contain at least one letter, one digit and one symbol (not a letter, digit or space). Not equal to email. Checked and hashed in Unicode NFC, so "ñ" typed as one character or as "n" + combining tilde is the same letter and the same password; hashes saved before still verify. |
 | **Phone** | Optional. 7–40 chars. Pattern `^[0-9+()\-\s]+$`. Digits count ≥ 7. |
 | **Organization** | Optional. ≤ 200 chars. |
 | **Event title** | Required. Trimmed. 3–300 chars. |
@@ -85,7 +85,7 @@ never use `[innerHTML]` with user data).
 |-------|-------|--------|
 | Full name | Name rule | ⚠️ required only |
 | Email | Email rule; show "already registered" on 409 | ⚠️ required only; format ❌ |
-| Password | Password rule (8+, letter+digit); show strength/why | ❌ (only non-empty) |
+| Password | Password rule (8+, letter+digit+symbol); show strength/why | ✅ (8–128, letter+digit+symbol; server too) |
 | Phone | Phone rule (optional) | ❌ |
 | Organization | ≤ 200 (optional) | ❌ |
 
@@ -101,10 +101,10 @@ never use `[innerHTML]` with user data).
 ### 3.4 Event create / edit (`/admin/events/new`, `/:id/edit`)
 | Field | Rules | Status |
 |-------|-------|--------|
-| Title | Title rule | ⚠️ required only |
+| Title | Title rule | ✅ (3+ chars; server checks 3–300) |
 | Description | ≤ 4000 | ❌ |
 | Start date + time | Required | ✅ required |
-| End date + time | Required; **after start** | ⚠️ required; end>start ❌ |
+| End date + time | Required; **after start** | ✅ (server too) |
 | Venue | Required; ≤ 300 | ⚠️ required only |
 | Status | Enum | ✅ (select) |
 | Max participants | Integer ≥ 1 or blank; **not below current registrations** on edit | ⚠️ min=1 only |
@@ -149,7 +149,7 @@ Annotate every request DTO and let `[ApiController]` auto-return `400 ProblemDet
 | DTO | Rules to enforce |
 |-----|------------------|
 | `LoginRequest` | Email required+format; Password required. |
-| `RegisterRequest` | Name (2–200); Email required+format+≤256; Password (8–128, letter+digit); Phone pattern; Org ≤200. |
+| `RegisterRequest` | Name (2–200); Email required+format+≤256; Password (8–128, letter+digit+symbol); Phone pattern; Org ≤200. |
 | `GuestRegisterRequest` | Name required (2–200); Email format if present; Phone pattern if present; **email or phone required**. |
 | `EventUpsertRequest` | Title (3–300); Description ≤4000; Venue (≤300); Start/End required; **End>Start** (class-level `IValidatableObject`); Status ∈ enum; Capacity null or ≥1. |
 | `InviteRequest` | Non-empty list; each a valid email; ≤200 items; de-dupe server-side. |
@@ -167,7 +167,9 @@ Annotate every request DTO and let `[ApiController]` auto-return `400 ProblemDet
 | Rule | Current | Notes |
 |------|---------|-------|
 | Login: wrong credentials → 401, no user-enumeration | ✅ | Keep generic message. |
-| Register: duplicate email → 409 | ✅ | Also enforce format/strength (L2). |
+| Register: duplicate email → 409 | ✅ | Also enforce email format (L2). |
+| Password rule (8–128, letter+digit+symbol, not the email) on sign-up, team link, My Account and the admin user master | ✅ | `PasswordRules`; the web forms show a checklist (`app-password-requirements`). |
+| Event title 3–300 and **End > Start** on create/edit | ✅ | `EventsController.ValidateTitleAndSchedule`. Sub-event dates not yet checked. |
 | Event registration blocked when **Closed** | ✅ | |
 | Event registration blocked when **Full** (capacity) | ✅ | ⚠️ **race condition**: two concurrent registrations can both pass the count check and exceed capacity. Add a transaction + re-check, or a DB-level guard. |
 | **Invite-only** event: only invited email may register | ✅ | |
@@ -176,7 +178,7 @@ Annotate every request DTO and let `[ApiController]` auto-return `400 ProblemDet
 | Email verification gate (when enabled) | ✅ | ⚠️ tokens **never expire / not single-use** — add expiry (e.g. 24h) + invalidate on use. |
 | Invite magic-link auto-login | ✅ | ⚠️ passwordless by link possession — **make tokens single-use + expiring** before production. |
 | Resend pass / cancel: **ownership** check (owner or admin) | ✅ | |
-| Cancel blocked after check-in | ⚠️ | Enforced in UI; **add server check** too. |
+| Cancel blocked after check-in | ✅ | UI and server (`RegistrationsController.Cancel`). |
 | Feedback only by a **registered** attendee; one per user/event | ✅ | |
 | CSV export / attendance / dashboard: **admin-only** | ✅ | Role attributes present. |
 | Slug uniqueness, registration token uniqueness | ✅ | DB unique indexes. |
@@ -188,7 +190,7 @@ Annotate every request DTO and let `[ApiController]` auto-return `400 ProblemDet
 1. **Guest reachability:** require **email OR phone** on guest registration? (Recommended: yes —
    otherwise an attendee has no pass delivery and no dedupe key.) Currently name-only is allowed.
 2. **Past-dated events:** block creating events in the past, or warn only? (Recommended: warn.)
-3. **Password policy strength:** 8 + letter + digit (recommended baseline) vs. stricter.
+3. **Password policy strength:** decided: 8 + letter + digit + symbol.
 4. **Invitation cap per send:** hard limit (recommended ≤ 200 to respect Gmail limits).
 5. **Email verification default:** currently off; production likely **on**.
 

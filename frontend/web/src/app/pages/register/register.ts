@@ -14,10 +14,14 @@ import { AuthService, RegisterBody } from '../../core/auth.service';
 import { ApiService } from '../../core/api.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BIRTHDATE_MIN, birthdateMax, isValidBirthdate, toIsoDate } from '../../shared/birthdate';
+import { PasswordRuleDirective } from '../../shared/password-rule.directive';
+import { PasswordRequirementsComponent } from '../../shared/password-requirements/password-requirements';
 
 @Component({
   selector: 'app-register',
   imports: [
+    PasswordRequirementsComponent,
+    PasswordRuleDirective,
     PhoneFieldComponent,
     FormsModule,
     RouterLink,

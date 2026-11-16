@@ -177,19 +177,26 @@
               autocomplete="current-password"
             />
           </mat-form-field>
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>New password</mat-label>
             <input
               matInput
               type="password"
               name="newPassword"
               [(ngModel)]="newPassword"
-              minlength="8"
+              #newPwdCtrl="ngModel"
+              maxlength="128"
+              [appPasswordRule]="email"
               autocomplete="new-password"
             />
-            <mat-hint>At least 8 characters.</mat-hint>
+            @if (newPwdCtrl.invalid) {
+              <mat-error>Password doesn't meet the requirements below.</mat-error>
+            }
           </mat-form-field>
         </div>
+        @if (newPassword) {
+          <app-password-requirements [password]="newPassword" [email]="email" />
+        }
 
         <div class="form-actions">
           <a mat-button routerLink="/my-events">Cancel</a>

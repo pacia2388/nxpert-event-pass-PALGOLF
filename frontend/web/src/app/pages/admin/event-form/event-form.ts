@@ -117,6 +117,10 @@ export class EventFormComponent implements OnInit {
   loading = signal(false);
 
   title = '';
+  // The title as saved; an older event whose title predates the 3-character rule keeps it.
+  private savedTitle: string | null = null;
+  // At least 3 characters once trimmed (Angular anchors it with ^…$).
+  protected readonly titlePattern = '\\s*\\S.+\\S\\s*';
   description = '';
   startDate: Date | null = null;
   startTime = '';
@@ -466,10 +470,16 @@ export class EventFormComponent implements OnInit {
     return sessions.length === 0 || sessions.some((s) => !s.meetingUrl.trim());
   }
 
+  // Under 3 characters once trimmed, unless it is the title the event was already saved with.
+  get titleTooShort(): boolean {
+    const title = this.title.trim();
+    return title.length < 3 && title !== this.savedTitle;
+  }
+
   get isValid(): boolean {
     return (
       !!(
-        this.title &&
+        !this.titleTooShort &&
         (this.venue.trim() || !this.hasVenue) &&
         this.startDate &&
         this.startTime &&
@@ -492,6 +502,7 @@ export class EventFormComponent implements OnInit {
       this.api.getEvent(this.id).subscribe({
         next: (e) => {
           this.title = e.title;
+          this.savedTitle = e.title;
           this.description = e.description;
           const s = splitDateTime(e.startsAt);
           const en = splitDateTime(e.endsAt);

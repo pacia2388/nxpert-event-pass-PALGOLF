@@ -155,8 +155,8 @@ registrations* confirms it (see `.claude/rules/registration-flow.md`).
 | Issue | Where | Rule broken |
 |---|---|---|
 | Seeder runs in every environment, so a new Production DB gets the demo admin and demo users | `Program.cs` calls `DbSeeder.SeedAsync` without an environment check | Seed demo admin in Development only |
-| All CSV-imported users share one short, numeric default password with no forced change | `UsersController.DefaultImportPassword` | Password policy (min 8, letter + digit) |
-| Accounts a Captain creates share one short default password with no forced change | `TeamsController.DefaultMemberPassword` | Password policy (min 8, letter + digit) |
+| All CSV-imported users share one short, numeric default password with no forced change | `UsersController.DefaultImportPassword` | Password policy (min 8, letter + digit + symbol) |
+| Accounts a Captain creates share one short default password with no forced change | `TeamsController.DefaultMemberPassword` | Password policy (min 8, letter + digit + symbol) |
 | A Captain is limited to the Team page in the SPA only; participant API endpoints still accept a Captain token | `core/guards.ts` vs. controllers | Server is authoritative |
 | Self-registration returns 409 "account already exists" | `AuthController.Register` | Register must not reveal existing emails |
 | Invite link signs the invitee in from the link alone; token not single-use or time-limited | `AuthController.ResolveInvite` | Invite tokens single-use, time-limited; no auth from link alone |

@@ -136,7 +136,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
             <mat-label>Password</mat-label>
             <input
               matInput
@@ -145,22 +145,17 @@
               [(ngModel)]="password"
               #pwdCtrl="ngModel"
               required
-              minlength="8"
               maxlength="128"
-              pattern="^(?=.*[A-Za-z])(?=.*\d).+$"
+              [appPasswordRule]="email"
               autocomplete="new-password"
             />
-            <mat-hint>At least 8 characters, with a letter and a number.</mat-hint>
             @if (pwdCtrl.hasError('required')) {
               <mat-error>Password is required.</mat-error>
-            }
-            @if (pwdCtrl.hasError('minlength')) {
-              <mat-error>Password must be at least 8 characters.</mat-error>
-            }
-            @if (!pwdCtrl.hasError('minlength') && pwdCtrl.hasError('pattern')) {
-              <mat-error>Include at least one letter and one number.</mat-error>
+            } @else if (pwdCtrl.invalid) {
+              <mat-error>Password doesn't meet the requirements below.</mat-error>
             }
           </mat-form-field>
+          <app-password-requirements [password]="password" [email]="email" />
 
           <app-phone-field [(value)]="phone" label="Phone (optional)" />
 

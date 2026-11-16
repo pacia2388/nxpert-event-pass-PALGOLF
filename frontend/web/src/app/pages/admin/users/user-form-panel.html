@@ -136,19 +136,18 @@
       [(ngModel)]="password"
       #passwordModel="ngModel"
       [required]="!isEdit"
-      minlength="8"
+      maxlength="128"
+      [appPasswordRule]="email"
       autocomplete="new-password"
-      [placeholder]="isEdit ? 'Leave blank to keep' : 'At least 8 characters'"
+      [placeholder]="isEdit ? 'Leave blank to keep' : ''"
     />
-    @if (passwordModel.invalid && passwordModel.touched) {
-      <mat-icon
-        matSuffix
-        class="req"
-        [matTooltip]="passwordModel.hasError('minlength') ? 'At least 8 characters' : 'Required'"
-        >error</mat-icon
-      >
+    @if (passwordModel.touched && passwordProblem) {
+      <mat-icon matSuffix class="req" [matTooltip]="passwordProblem">error</mat-icon>
     }
   </mat-form-field>
+  @if (!isEdit || password) {
+    <app-password-requirements class="span-2" [password]="password" [email]="email" />
+  }
 
   <mat-form-field appearance="outline">
     <mat-label>Role</mat-label>

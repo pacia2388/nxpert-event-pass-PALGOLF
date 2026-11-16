@@ -53,13 +53,12 @@
           [(ngModel)]="title"
           #titleCtrl="ngModel"
           required
-          minlength="3"
           maxlength="300"
+          [pattern]="titleTooShort ? titlePattern : '.*'"
         />
         @if (titleCtrl.hasError('required')) {
           <mat-error>Title is required.</mat-error>
-        }
-        @if (titleCtrl.hasError('minlength')) {
+        } @else if (titleCtrl.hasError('pattern')) {
           <mat-error>Title must be at least 3 characters.</mat-error>
         }
       </mat-form-field>

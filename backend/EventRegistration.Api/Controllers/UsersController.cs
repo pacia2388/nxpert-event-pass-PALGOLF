@@ -115,8 +115,8 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "First and last name are required." });
         if (string.IsNullOrWhiteSpace(email))
             return BadRequest(new { message = "Email is required." });
-        if (string.IsNullOrWhiteSpace(req.Password) || req.Password.Length < 8)
-            return BadRequest(new { message = "A password of at least 8 characters is required." });
+        if (PasswordRules.Validate(req.Password, email) is { } createPasswordError)
+            return BadRequest(new { message = createPasswordError });
         if (!AssignableRoles.Contains(req.Role))
             return BadRequest(new { message = "Invalid role." });
         if (BirthdateRules.Validate(req.Birthdate) is { } createBirthdateError)
@@ -362,8 +362,8 @@ public class UsersController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(req.Password))
         {
-            if (req.Password.Length < 8)
-                return BadRequest(new { message = "A password of at least 8 characters is required." });
+            if (PasswordRules.Validate(req.Password, email) is { } updatePasswordError)
+                return BadRequest(new { message = updatePasswordError });
             user.PasswordHash = PasswordHasher.Hash(req.Password);
         }
 
