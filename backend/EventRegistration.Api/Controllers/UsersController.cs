@@ -362,7 +362,7 @@ public class UsersController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(req.Password))
         {
-            if (PasswordRules.Validate(req.Password, req.Email.Trim()) is { } updatePasswordError)
+            if (PasswordRules.Validate(req.Password, email) is { } updatePasswordError)
                 return BadRequest(new { message = updatePasswordError });
             user.PasswordHash = PasswordHasher.Hash(req.Password);
         }

@@ -526,7 +526,7 @@ public class RegistrationsController : ControllerBase
             return BadRequest(new { message = "This registration has been checked in and can't be cancelled." });
         // Admins cancelling someone else's registration: pending ones only (see the bulk
         // AttendanceController.Cancel) — a confirmed registration may already have a pass out.
-        if (!own && (reg.ConfirmedAt is not null || reg.CheckedInAt is not null))
+        if (!own && reg.ConfirmedAt is not null)
             return BadRequest(new { message = "Only pending registrations can be cancelled." });
 
         _db.Registrations.Remove(reg);
