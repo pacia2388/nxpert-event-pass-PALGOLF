@@ -10,19 +10,19 @@ public class AuthTests(ApiFixture api)
 {
     private static object SignUp(string email, string senateNo = "ID-1001", string? birthdate = "1990-05-01",
         string password = "Passw0rd!") => new
-    {
-        firstName = "Mia",
-        middleInitial = (string?)null,
-        lastName = "Santos",
-        senateNo,
-        email,
-        password,
-        phone = (string?)null,
-        organization = (string?)null,
-        level = "Member",
-        photo = (string?)null,
-        birthdate,
-    };
+        {
+            firstName = "Mia",
+            middleInitial = (string?)null,
+            lastName = "Santos",
+            senateNo,
+            email,
+            password,
+            phone = (string?)null,
+            organization = (string?)null,
+            level = "Member",
+            photo = (string?)null,
+            birthdate,
+        };
 
     private static async Task<string> MessageAsync(HttpResponseMessage res) =>
         (await res.Content.ReadFromJsonAsync<ErrorBody>())!.Message;
