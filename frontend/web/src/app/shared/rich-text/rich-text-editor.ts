@@ -1,4 +1,14 @@
-import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, ViewChild, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,7 +16,16 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
-import { IMAGE_TYPES, imageBudget, insertAtSelection, newImage, pasteMessage, readPaste, richNodes, toPng } from './rich-text';
+import {
+  IMAGE_TYPES,
+  imageBudget,
+  insertAtSelection,
+  newImage,
+  pasteMessage,
+  readPaste,
+  richNodes,
+  toPng,
+} from './rich-text';
 
 /**
  * Message editor with a formatting toolbar and inline images. The value is the editor's HTML;
@@ -57,7 +76,11 @@ export class RichTextEditorComponent implements OnChanges {
   rememberSelection(): void {
     const selection = window.getSelection();
     const editor = this.editor.nativeElement;
-    if (selection?.rangeCount && editor.contains(selection.anchorNode) && editor.contains(selection.focusNode))
+    if (
+      selection?.rangeCount &&
+      editor.contains(selection.anchorNode) &&
+      editor.contains(selection.focusNode)
+    )
       this.selection = selection.getRangeAt(0).cloneRange();
   }
 
@@ -66,7 +89,10 @@ export class RichTextEditorComponent implements OnChanges {
     editor.focus();
     const selection = window.getSelection();
     if (!selection) return;
-    const saved = this.selection && editor.contains(this.selection.commonAncestorContainer) ? this.selection : null;
+    const saved =
+      this.selection && editor.contains(this.selection.commonAncestorContainer)
+        ? this.selection
+        : null;
     const range = saved ?? document.createRange();
     if (!saved) {
       range.selectNodeContents(editor);
@@ -144,7 +170,11 @@ export class RichTextEditorComponent implements OnChanges {
     this.rememberSelection();
     this.processing.set(true);
     try {
-      const result = await readPaste(event.clipboardData, imageBudget(this.editor.nativeElement), (url) => firstValueFrom(this.api.pastedImage(url)).catch(() => undefined));
+      const result = await readPaste(
+        event.clipboardData,
+        imageBudget(this.editor.nativeElement),
+        (url) => firstValueFrom(this.api.pastedImage(url)).catch(() => undefined),
+      );
       if (result.nodes.length) this.insert(result.nodes);
       if (result.skipped || result.overLimit) this.toast.warning(pasteMessage(result), 8000);
     } finally {

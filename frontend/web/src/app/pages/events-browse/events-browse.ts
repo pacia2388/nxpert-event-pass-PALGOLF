@@ -11,7 +11,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../core/api.service';
-import { CATEGORY_CONFIRMED_STATE, CategoryWarningService } from '../../core/category-warning.service';
+import {
+  CATEGORY_CONFIRMED_STATE,
+  CategoryWarningService,
+} from '../../core/category-warning.service';
 import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
@@ -24,7 +27,9 @@ const TAB_FILTERS: TabFilter[] = ['All', ...EVENT_TABS];
 
 @Component({
   selector: 'app-events-browse',
-  imports: [CategoryPillComponent, ScheduleComponent, 
+  imports: [
+    CategoryPillComponent,
+    ScheduleComponent,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -57,7 +62,9 @@ export class EventsBrowseComponent implements OnInit {
   }
 
   eventHref(e: EventDto): string {
-    return this.location.prepareExternalUrl(this.router.serializeUrl(this.router.createUrlTree(['/e', e.publicSlug])));
+    return this.location.prepareExternalUrl(
+      this.router.serializeUrl(this.router.createUrlTree(['/e', e.publicSlug])),
+    );
   }
 
   openDetails(e: EventDto): void {
@@ -90,7 +97,10 @@ export class EventsBrowseComponent implements OnInit {
     const tab = this.tab();
     const ids = this.registeredEventIds();
     const now = this.now();
-    const list = tab === 'All' ? this.events() : this.events().filter((e) => eventTab(e, ids.has(e.id), now) === tab);
+    const list =
+      tab === 'All'
+        ? this.events()
+        : this.events().filter((e) => eventTab(e, ids.has(e.id), now) === tab);
     if (!q) return list;
     return list.filter(
       (e) =>
@@ -104,7 +114,9 @@ export class EventsBrowseComponent implements OnInit {
     // Follow ?tab= — on first load and when a link changes it while the page is open.
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => this.tab.set(TAB_FILTERS.find((f) => f === params.get('tab')) ?? 'All'));
+      .subscribe((params) =>
+        this.tab.set(TAB_FILTERS.find((f) => f === params.get('tab')) ?? 'All'),
+      );
     const clock = setInterval(() => this.now.set(Date.now()), 60_000);
     this.destroyRef.onDestroy(() => clearInterval(clock));
     // Wait for both lists: the tabs need the user's registrations to sort events.

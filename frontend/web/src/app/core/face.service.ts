@@ -54,7 +54,10 @@ export class FaceService {
     await this.ensureLoaded();
     const f = this.faceapi;
     const det = await f
-      .detectSingleFace(input, new f.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 }))
+      .detectSingleFace(
+        input,
+        new f.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 }),
+      )
       .withFaceLandmarks()
       .withFaceDescriptor();
     return det?.descriptor ?? null;
@@ -71,7 +74,10 @@ export class FaceService {
     await this.ensureLoaded();
     const f = this.faceapi;
     const det = await f
-      .detectSingleFace(input, new f.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 }))
+      .detectSingleFace(
+        input,
+        new f.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 }),
+      )
       .withFaceLandmarks()
       .withFaceDescriptor();
     if (!det) return null;

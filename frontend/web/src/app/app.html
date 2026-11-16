@@ -18,9 +18,16 @@
     <span class="spacer"></span>
 
     <!-- Realtime notifications -->
-    <button mat-icon-button class="notif-btn" [matMenuTriggerFor]="notifMenu" aria-label="Notifications"
-            [matBadge]="rt.unread()" [matBadgeHidden]="rt.unread() === 0"
-            matBadgeColor="warn" matBadgeSize="small">
+    <button
+      mat-icon-button
+      class="notif-btn"
+      [matMenuTriggerFor]="notifMenu"
+      aria-label="Notifications"
+      [matBadge]="rt.unread()"
+      [matBadgeHidden]="rt.unread() === 0"
+      matBadgeColor="warn"
+      matBadgeSize="small"
+    >
       <mat-icon>{{ rt.unread() > 0 ? 'notifications_active' : 'notifications' }}</mat-icon>
     </button>
     <mat-menu #notifMenu="matMenu" class="notif-menu">
@@ -28,8 +35,13 @@
         <span class="notif-heading">Notifications</span>
         <span class="spacer"></span>
         @if (rt.notifications().length) {
-          <button mat-button (click)="rt.markAllRead(); $event.stopPropagation()"
-                  [disabled]="rt.unread() === 0">Mark all read</button>
+          <button
+            mat-button
+            (click)="rt.markAllRead(); $event.stopPropagation()"
+            [disabled]="rt.unread() === 0"
+          >
+            Mark all read
+          </button>
           <button mat-button (click)="rt.clear(); $event.stopPropagation()">Clear</button>
         }
       </div>
@@ -41,8 +53,11 @@
       } @else {
         @for (n of rt.notifications(); track n.id) {
           <button mat-menu-item class="notif-item" [class.unread]="!n.read" (click)="openNotif(n)">
-            <mat-icon [class.approved]="n.kind === 'registrationApproved'"
-                      [class.kit]="n.kind === 'kitClaimed'">{{ n.icon }}</mat-icon>
+            <mat-icon
+              [class.approved]="n.kind === 'registrationApproved'"
+              [class.kit]="n.kind === 'kitClaimed'"
+              >{{ n.icon }}</mat-icon
+            >
             <span class="notif-text">
               <span class="notif-line">{{ n.body }}</span>
               <span class="notif-time">{{ n.at | date: 'MMM d, h:mm a' }}</span>
@@ -76,14 +91,12 @@
           <mat-icon>install_mobile</mat-icon> Install app
         </button>
       }
-      @if(auth.isAdmin()){
+      @if (auth.isAdmin()) {
         <a mat-menu-item routerLink="/admin/settings">
           <mat-icon>manage_accounts</mat-icon> Settings
         </a>
       }
-      <button mat-menu-item (click)="logout()">
-        <mat-icon>logout</mat-icon> Sign out
-      </button>
+      <button mat-menu-item (click)="logout()"><mat-icon>logout</mat-icon> Sign out</button>
     </mat-menu>
   </header>
 }
@@ -100,13 +113,16 @@
   <div class="install-banner">
     <mat-icon class="install-icon">install_mobile</mat-icon>
     @if (pwa.canInstall()) {
-      <span class="install-text">Install <strong>{{ appName }}</strong> for quick access and offline check-in.</span>
+      <span class="install-text"
+        >Install <strong>{{ appName }}</strong> for quick access and offline check-in.</span
+      >
       <span class="spacer"></span>
       <button mat-flat-button color="primary" (click)="pwa.install()">Install</button>
     } @else {
       <span class="install-text">
-        Install <strong>{{ appName }}</strong>: tap <mat-icon class="inline-share">ios_share</mat-icon>
-        <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
+        Install <strong>{{ appName }}</strong
+        >: tap <mat-icon class="inline-share">ios_share</mat-icon> <strong>Share</strong>, then
+        <strong>Add to Home Screen</strong>.
       </span>
       <span class="spacer"></span>
     }

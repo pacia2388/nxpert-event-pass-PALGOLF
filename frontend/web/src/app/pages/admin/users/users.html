@@ -17,7 +17,13 @@
       <button type="button" class="um-btn" (click)="importUsers()">
         <mat-icon>upload_file</mat-icon> Import
       </button>
-      <button type="button" class="um-icon-btn" (click)="refresh()" matTooltip="Refresh" aria-label="Refresh">
+      <button
+        type="button"
+        class="um-icon-btn"
+        (click)="refresh()"
+        matTooltip="Refresh"
+        aria-label="Refresh"
+      >
         <mat-icon [class.spin]="loading()">sync</mat-icon>
       </button>
     </div>
@@ -25,16 +31,28 @@
     <div class="um-search">
       <label class="um-search-box">
         <mat-icon>search</mat-icon>
-        <input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)"
-               placeholder="Search name, email, ID No., designation…" aria-label="Search users" />
+        <input
+          type="search"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          placeholder="Search name, email, ID No., designation…"
+          aria-label="Search users"
+        />
       </label>
-      <button type="button" class="um-filter" [class.on]="roleFilter() !== 'All'" [matMenuTriggerFor]="filterMenu">
+      <button
+        type="button"
+        class="um-filter"
+        [class.on]="roleFilter() !== 'All'"
+        [matMenuTriggerFor]="filterMenu"
+      >
         <mat-icon>filter_list</mat-icon> {{ roleFilter() === 'All' ? 'Role' : roleFilter() }}
       </button>
       <mat-menu #filterMenu="matMenu">
         @for (r of roleFilters; track r) {
           <button mat-menu-item (click)="roleFilter.set(r)">
-            <mat-icon>{{ roleFilter() === r ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+            <mat-icon>{{
+              roleFilter() === r ? 'radio_button_checked' : 'radio_button_unchecked'
+            }}</mat-icon>
             {{ r === 'All' ? 'All roles' : r }}
           </button>
         }
@@ -61,38 +79,65 @@
           </thead>
           <tbody>
             @if (loading() && !users().length) {
-              <tr class="um-empty"><td colspan="4"><mat-spinner diameter="32"></mat-spinner></td></tr>
+              <tr class="um-empty">
+                <td colspan="4"><mat-spinner diameter="32"></mat-spinner></td>
+              </tr>
             } @else if (!filtered().length) {
-              <tr class="um-empty"><td colspan="4">No users match your search.</td></tr>
+              <tr class="um-empty">
+                <td colspan="4">No users match your search.</td>
+              </tr>
             }
             @for (u of paged(); track u.id) {
-              <tr class="um-row" [class.selected]="selected()?.id === u.id" (click)="select(u)"
-                  tabindex="0" (keydown.enter)="select(u)" [attr.aria-selected]="selected()?.id === u.id">
+              <tr
+                class="um-row"
+                [class.selected]="selected()?.id === u.id"
+                (click)="select(u)"
+                tabindex="0"
+                (keydown.enter)="select(u)"
+                [attr.aria-selected]="selected()?.id === u.id"
+              >
                 <td>
                   <span class="u-name">
                     {{ u.fullName }}
                     @if (u.hasFace) {
-                      <mat-icon class="inline-icon face-badge" matTooltip="Face registered">face</mat-icon>
+                      <mat-icon class="inline-icon face-badge" matTooltip="Face registered"
+                        >face</mat-icon
+                      >
                     }
                     @if (!countries.supports(u.phone)) {
-                      <mat-icon class="inline-icon phone-badge" matTooltip="Mobile messages can't be sent to this number (country not listed)"
-                                aria-label="Phone country not supported">phonelink_erase</mat-icon>
+                      <mat-icon
+                        class="inline-icon phone-badge"
+                        matTooltip="Mobile messages can't be sent to this number (country not listed)"
+                        aria-label="Phone country not supported"
+                        >phonelink_erase</mat-icon
+                      >
                     }
                   </span>
                 </td>
                 <td>{{ u.username }}</td>
                 <td class="col-email">{{ u.email }}</td>
                 <td>
-                  <span class="role-pill" [class.admin]="u.role !== 'Participant' && u.role !== 'Captain'" [class.captain]="u.role === 'Captain'">{{ u.role }}</span>
-                  @if ((u.role === 'Participant' || u.role === 'Captain') && u.canConfirmRegistrations) {
-                    <mat-icon class="inline-icon grant" matTooltip="Can confirm registrations">how_to_reg</mat-icon>
+                  <span
+                    class="role-pill"
+                    [class.admin]="u.role !== 'Participant' && u.role !== 'Captain'"
+                    [class.captain]="u.role === 'Captain'"
+                    >{{ u.role }}</span
+                  >
+                  @if (
+                    (u.role === 'Participant' || u.role === 'Captain') && u.canConfirmRegistrations
+                  ) {
+                    <mat-icon class="inline-icon grant" matTooltip="Can confirm registrations"
+                      >how_to_reg</mat-icon
+                    >
                   }
                 </td>
               </tr>
             }
             @if (filtered().length) {
               @for (_ of fillerRows(); track $index) {
-                <tr class="um-filler"><td colspan="4"></td></tr>
+                <tr class="um-filler">
+                  <td colspan="4"></td>
+                </tr>
               }
             }
           </tbody>
@@ -102,11 +147,25 @@
       <div class="um-pager">
         <span class="muted um-count">{{ filtered().length }} of {{ users().length }} users</span>
         <div class="um-pages">
-          <button type="button" class="um-page-btn" (click)="prevPage()" [disabled]="pageIndex() === 0" aria-label="Previous page">
+          <button
+            type="button"
+            class="um-page-btn"
+            (click)="prevPage()"
+            [disabled]="pageIndex() === 0"
+            aria-label="Previous page"
+          >
             <mat-icon>arrow_back</mat-icon>
           </button>
-          <span class="um-page-num">{{ pageIndex() + 1 }}<span class="muted"> / {{ pageCount() }}</span></span>
-          <button type="button" class="um-page-btn" (click)="nextPage()" [disabled]="pageIndex() >= pageCount() - 1" aria-label="Next page">
+          <span class="um-page-num"
+            >{{ pageIndex() + 1 }}<span class="muted"> / {{ pageCount() }}</span></span
+          >
+          <button
+            type="button"
+            class="um-page-btn"
+            (click)="nextPage()"
+            [disabled]="pageIndex() >= pageCount() - 1"
+            aria-label="Next page"
+          >
             <mat-icon>arrow_forward</mat-icon>
           </button>
         </div>

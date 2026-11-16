@@ -18,7 +18,9 @@ $soft-surface: #f8fafd;
   align-items: stretch; // the summary panel matches the compose column's height
 }
 
-.invite-main { min-width: 0; }
+.invite-main {
+  min-width: 0;
+}
 
 fieldset {
   display: flex;
@@ -37,38 +39,91 @@ fieldset {
   gap: 12px;
   margin-bottom: 10px;
 
-  .status-pill { flex: none; white-space: nowrap; }
+  .status-pill {
+    flex: none;
+    white-space: nowrap;
+  }
 }
 
 // To, CC and Subject are roomier than the rest of the composer: 52px for a single line.
-.compose-field { @include mat.form-field-density(-1); }
+.compose-field {
+  @include mat.form-field-density(-1);
+}
 // A chip row is 40px (32px chip + 4px margins); 6px padding keeps To / CC at 52px, empty or not.
 :host ::ng-deep .compose-field:has(.mat-mdc-chip-grid) {
-  .mat-mdc-form-field-infix { padding-top: 6px; padding-bottom: 6px; }
-  .mat-mdc-chip-input { min-height: 40px; }
+  .mat-mdc-form-field-infix {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .mat-mdc-chip-input {
+    min-height: 40px;
+  }
 }
 
-h3 { margin: 0; font-size: 15px; font-weight: 700; color: #0f172a; }
-p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
+h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+p.muted {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
 
-.full-width { width: 100%; }
+.full-width {
+  width: 100%;
+}
 
-.schedule-controls { display: grid; gap: 10px; padding: 12px; border: $hairline-brand; border-radius: 12px; background: $soft-surface; }
-.schedule-toggle { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.schedule-controls {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: $hairline-brand;
+  border-radius: 12px;
+  background: $soft-surface;
+}
+.schedule-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
 .schedule-row {
   display: flex;
   align-items: center;
   gap: 4px;
 
-  mat-form-field { flex: 0 1 360px; min-width: 0; }
-  .schedule-field input { cursor: pointer; }
-  button { color: var(--pg-blue-deep); }
+  mat-form-field {
+    flex: 0 1 360px;
+    min-width: 0;
+  }
+  .schedule-field input {
+    cursor: pointer;
+  }
+  button {
+    color: var(--pg-blue-deep);
+  }
 }
-.schedule-error { margin: -6px 0 0; color: #b91c1c; font-size: 12px; }
+.schedule-error {
+  margin: -6px 0 0;
+  color: #b91c1c;
+  font-size: 12px;
+}
 // ---- Email history ----
-.email-history { margin-top: 20px; padding-top: 14px; border-top: $hairline-brand; }
+.email-history {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: $hairline-brand;
+}
 
-.history-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.history-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
 
 .history-title {
   display: inline-flex;
@@ -82,8 +137,12 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   font: inherit;
   cursor: pointer;
 
-  &:hover { background: $soft-surface; }
-  &:focus-visible { outline: 2px solid rgba(15, 95, 184, 0.45); }
+  &:hover {
+    background: $soft-surface;
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(15, 95, 184, 0.45);
+  }
 }
 
 .history-count {
@@ -103,7 +162,9 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   transition: transform 0.15s ease;
   transform: rotate(-90deg);
 
-  &.open { transform: none; }
+  &.open {
+    transform: none;
+  }
 }
 
 .history-filter {
@@ -112,13 +173,24 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   overflow: hidden;
   font-size: 12.5px;
 
-  ::ng-deep .mat-button-toggle-label-content { padding: 0 12px; font-weight: 600; }
+  ::ng-deep .mat-button-toggle-label-content {
+    padding: 0 12px;
+    font-weight: 600;
+  }
 }
 
-.spinning mat-icon { animation: history-spin 0.9s linear infinite; }
-@keyframes history-spin { to { transform: rotate(360deg); } }
+.spinning mat-icon {
+  animation: history-spin 0.9s linear infinite;
+}
+@keyframes history-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-#email-history-panel { margin-top: 10px; }
+#email-history-panel {
+  margin-top: 10px;
+}
 
 .history-empty {
   display: flex;
@@ -132,7 +204,11 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   color: #64748b;
   font-size: 13px;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .history-list {
@@ -145,8 +221,12 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
 .history-item {
   border-top: $hairline-brand;
 
-  &:first-child { border-top: 0; }
-  &.open { background: $soft-surface; }
+  &:first-child {
+    border-top: 0;
+  }
+  &.open {
+    background: $soft-surface;
+  }
 }
 
 .history-row {
@@ -162,26 +242,86 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   text-align: left;
   cursor: pointer;
 
-  &:hover:not(:disabled) { background: $soft-surface; }
-  &:disabled { cursor: default; }
-  &:focus-visible { outline: 2px solid rgba(15, 95, 184, 0.45); outline-offset: -2px; }
-  .history-chevron { font-size: 20px; width: 20px; height: 20px; }
+  &:hover:not(:disabled) {
+    background: $soft-surface;
+  }
+  &:disabled {
+    cursor: default;
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(15, 95, 184, 0.45);
+    outline-offset: -2px;
+  }
+  .history-chevron {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
 }
 
-.history-content { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-.history-subject, .history-recipients { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.history-subject { flex: 0 1 auto; max-width: 55%; font-weight: 600; color: var(--pg-blue-deep); }
-.history-recipients { flex: 1 1 0; font-size: 12.5px; color: #64748b; }
-.history-date { font-size: 12px; color: #64748b; white-space: nowrap; }
+.history-content {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.history-subject,
+.history-recipients {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.history-subject {
+  flex: 0 1 auto;
+  max-width: 55%;
+  font-weight: 600;
+  color: var(--pg-blue-deep);
+}
+.history-recipients {
+  flex: 1 1 0;
+  font-size: 12.5px;
+  color: #64748b;
+}
+.history-date {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
 
-.email-status { justify-self: start; padding: 2px 8px; background: #eef2ff; color: #3730a3; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.email-sent { background: #dcfce7; color: #166534; }
-.email-failed { background: #fff7ed; color: #9a3412; }
-.email-cancelled { background: #f1f5f9; color: #64748b; }
-.history-error { margin: 0 0 8px; color: #9a3412; font-size: 12.5px; overflow-wrap: anywhere; }
-.row-error { margin: -4px 12px 8px 106px; }
+.email-status {
+  justify-self: start;
+  padding: 2px 8px;
+  background: #eef2ff;
+  color: #3730a3;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.email-sent {
+  background: #dcfce7;
+  color: #166534;
+}
+.email-failed {
+  background: #fff7ed;
+  color: #9a3412;
+}
+.email-cancelled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+.history-error {
+  margin: 0 0 8px;
+  color: #9a3412;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+.row-error {
+  margin: -4px 12px 8px 106px;
+}
 
-.history-detail { padding: 2px 12px 12px 106px; }
+.history-detail {
+  padding: 2px 12px 12px 106px;
+}
 
 .history-meta {
   display: grid;
@@ -190,8 +330,14 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   margin: 0 0 8px;
   font-size: 12.5px;
 
-  dt { color: #64748b; font-weight: 600; }
-  dd { margin: 0; overflow-wrap: anywhere; }
+  dt {
+    color: #64748b;
+    font-weight: 600;
+  }
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
 }
 
 .history-body {
@@ -214,31 +360,74 @@ p.muted { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; }
   gap: 8px;
   margin-top: 8px;
 
-  .hint { flex: 1 1 220px; margin: 0; }
+  .hint {
+    flex: 1 1 220px;
+    margin: 0;
+  }
 }
 
 :host ::ng-deep .history-body {
-  img { max-width: 100%; height: auto; }
-  p, div { margin: 0 0 6px; }
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  p,
+  div {
+    margin: 0 0 6px;
+  }
 }
 
 @media (max-width: 600px) {
-  .history-row { grid-template-columns: minmax(0, 1fr) auto 20px; gap: 4px 10px; }
-  .history-row .email-status { grid-row: 2; grid-column: 1; }
-  .history-content { grid-row: 1; grid-column: 1 / -1; flex-direction: column; gap: 2px; }
-  .history-subject { max-width: 100%; }
-  .history-recipients { flex: none; max-width: 100%; }
-  .history-date { grid-row: 2; grid-column: 2; }
-  .history-row .history-chevron { grid-row: 2; grid-column: 3; }
-  .history-detail { padding-left: 12px; }
-  .row-error { margin-left: 12px; }
+  .history-row {
+    grid-template-columns: minmax(0, 1fr) auto 20px;
+    gap: 4px 10px;
+  }
+  .history-row .email-status {
+    grid-row: 2;
+    grid-column: 1;
+  }
+  .history-content {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .history-subject {
+    max-width: 100%;
+  }
+  .history-recipients {
+    flex: none;
+    max-width: 100%;
+  }
+  .history-date {
+    grid-row: 2;
+    grid-column: 2;
+  }
+  .history-row .history-chevron {
+    grid-row: 2;
+    grid-column: 3;
+  }
+  .history-detail {
+    padding-left: 12px;
+  }
+  .row-error {
+    margin-left: 12px;
+  }
 }
 
-mat-chip-row { max-width: 100%; }
-.group-chip { --mdc-chip-elevated-container-color: #e8f0fb; --mat-chip-elevated-container-color: #e8f0fb; font-weight: 700; }
+mat-chip-row {
+  max-width: 100%;
+}
+.group-chip {
+  --mdc-chip-elevated-container-color: #e8f0fb;
+  --mat-chip-elevated-container-color: #e8f0fb;
+  font-weight: 700;
+}
 
 // "Invite teams" sits inside the To field, pinned to its top-right as chips wrap.
-:host ::ng-deep .mat-mdc-form-field-icon-suffix:has(.invite-teams-btn) { align-self: flex-start; }
+:host ::ng-deep .mat-mdc-form-field-icon-suffix:has(.invite-teams-btn) {
+  align-self: flex-start;
+}
 .invite-teams-btn {
   // 36px button + 8px above and below = the field's 52px single-line height: centered on the
   // first row of chips, and in the empty field.
@@ -248,14 +437,34 @@ mat-chip-row { max-width: 100%; }
   color: var(--pg-blue-deep);
 }
 @media (max-width: 560px) {
-  .invite-teams-btn { min-width: 0; padding: 0 10px; }
-  .invite-teams-btn mat-icon { margin-right: 0; }
-  .invite-teams-label { display: none; }
+  .invite-teams-btn {
+    min-width: 0;
+    padding: 0 10px;
+  }
+  .invite-teams-btn mat-icon {
+    margin-right: 0;
+  }
+  .invite-teams-label {
+    display: none;
+  }
 }
 
-.saved-option ::ng-deep .mdc-list-item__primary-text { display: flex; align-items: center; gap: 8px; width: 100%; }
-.saved-address { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.forget-address { flex: none; color: var(--mat-sys-on-surface-variant); }
+.saved-option ::ng-deep .mdc-list-item__primary-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.saved-address {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.forget-address {
+  flex: none;
+  color: var(--mat-sys-on-surface-variant);
+}
 
 // Offered under To / CC after entering an address that isn't saved yet.
 .save-hint {
@@ -267,8 +476,16 @@ mat-chip-row { max-width: 100%; }
   font-size: 12.5px;
   color: var(--mat-sys-on-surface-variant);
 
-  > mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
-  > span { min-width: 0; overflow-wrap: anywhere; }
+  > mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--pg-blue);
+  }
+  > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 }
 
 .save-link {
@@ -286,8 +503,14 @@ mat-chip-row { max-width: 100%; }
   color: var(--pg-blue-deep);
   cursor: pointer;
 
-  mat-icon { font-size: 15px; width: 15px; height: 15px; }
-  &:hover { background: var(--tint-primary); }
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
+  &:hover {
+    background: var(--tint-primary);
+  }
 }
 
 // ---- Message editor ----
@@ -306,8 +529,15 @@ mat-chip-row { max-width: 100%; }
   border-bottom: $hairline-brand;
   background: $soft-surface;
 
-  button { color: var(--pg-blue-deep); }
-  .token-button { height: 30px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; }
+  button {
+    color: var(--pg-blue-deep);
+  }
+  .token-button {
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+  }
 }
 
 .toolbar-sep {
@@ -332,7 +562,9 @@ mat-chip-row { max-width: 100%; }
     font: inherit;
     outline: none;
 
-    &:focus { border-color: var(--pg-blue); }
+    &:focus {
+      border-color: var(--pg-blue);
+    }
   }
 }
 
@@ -346,11 +578,22 @@ mat-chip-row { max-width: 100%; }
   overflow-wrap: anywhere;
   line-height: 1.6;
 
-  &:focus { box-shadow: inset 0 0 0 2px rgba(15, 95, 184, 0.45); }
-  &:empty::before { content: attr(data-placeholder); color: var(--mat-sys-on-surface-variant); pointer-events: none; }
+  &:focus {
+    box-shadow: inset 0 0 0 2px rgba(15, 95, 184, 0.45);
+  }
+  &:empty::before {
+    content: attr(data-placeholder);
+    color: var(--mat-sys-on-surface-variant);
+    pointer-events: none;
+  }
 }
 
-.hint { margin: -4px 0 0; font-size: 12px; color: var(--mat-sys-on-surface-variant); line-height: 1.5; }
+.hint {
+  margin: -4px 0 0;
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.5;
+}
 
 // ---- Side summary + email preview ----
 .invite-side {
@@ -379,7 +622,11 @@ mat-chip-row { max-width: 100%; }
   font-weight: 600;
   color: var(--pg-blue-deep);
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 }
 
 // Explains a "0 CC" when the CC entries are already covered by To.
@@ -395,7 +642,13 @@ mat-chip-row { max-width: 100%; }
   font-size: 11.5px;
   line-height: 1.4;
 
-  mat-icon { flex: none; font-size: 15px; width: 15px; height: 15px; margin-top: 1px; }
+  mat-icon {
+    flex: none;
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    margin-top: 1px;
+  }
 }
 
 .side-label {
@@ -428,8 +681,13 @@ mat-chip-row { max-width: 100%; }
   line-height: 1.5;
   color: #333;
 
-  &:focus-visible { outline: 2px solid rgba(15, 95, 184, 0.45); outline-offset: -2px; }
-  p { margin: 0; }
+  &:focus-visible {
+    outline: 2px solid rgba(15, 95, 184, 0.45);
+    outline-offset: -2px;
+  }
+  p {
+    margin: 0;
+  }
 }
 
 .mail-meta {
@@ -445,7 +703,11 @@ mat-chip-row { max-width: 100%; }
   overflow-wrap: anywhere;
 }
 
-.mail-to { margin-top: 1px; font-size: 10.5px; color: #64748b; }
+.mail-to {
+  margin-top: 1px;
+  font-size: 10.5px;
+  color: #64748b;
+}
 
 .mail-body {
   display: flex;
@@ -463,18 +725,52 @@ mat-chip-row { max-width: 100%; }
   line-height: 1.6;
 
   ::ng-deep {
-    p, div, h1, h2, h3, blockquote, ul, ol { margin: 0 0 6px; }
-    h1 { font-size: 16px; }
-    h2 { font-size: 14px; }
-    h3 { font-size: 12.5px; }
-    ul, ol { padding-left: 18px; }
-    blockquote { padding-left: 8px; border-left: 2px solid #e0e0e0; color: #555; }
-    a { color: #1a73e8; text-decoration: underline; }
-    img { display: block; max-width: 100%; height: auto; margin: 6px 0; border-radius: 4px; }
+    p,
+    div,
+    h1,
+    h2,
+    h3,
+    blockquote,
+    ul,
+    ol {
+      margin: 0 0 6px;
+    }
+    h1 {
+      font-size: 16px;
+    }
+    h2 {
+      font-size: 14px;
+    }
+    h3 {
+      font-size: 12.5px;
+    }
+    ul,
+    ol {
+      padding-left: 18px;
+    }
+    blockquote {
+      padding-left: 8px;
+      border-left: 2px solid #e0e0e0;
+      color: #555;
+    }
+    a {
+      color: #1a73e8;
+      text-decoration: underline;
+    }
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 6px 0;
+      border-radius: 4px;
+    }
   }
 }
 
-.mail-empty { color: #94a3b8; font-style: italic; }
+.mail-empty {
+  color: #94a3b8;
+  font-style: italic;
+}
 
 // Scaled-down copy of the server's "You're invited!" card (EmailTemplates.Invitation).
 .mail-card {
@@ -557,14 +853,27 @@ mat-chip-row { max-width: 100%; }
   font-size: 10.5px;
   color: #475569;
 
-  mat-icon { flex: none; font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
+  mat-icon {
+    flex: none;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--pg-blue);
+  }
 }
 
 @media (max-width: 960px) {
-  .invite-grid { grid-template-columns: 1fr; }
-  .mail-frame { flex: none; height: 360px; }
+  .invite-grid {
+    grid-template-columns: 1fr;
+  }
+  .mail-frame {
+    flex: none;
+    height: 360px;
+  }
 }
 
 @media (max-width: 600px) {
-  .message-editor { padding: 12px; }
+  .message-editor {
+    padding: 12px;
+  }
 }

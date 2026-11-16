@@ -58,12 +58,15 @@ export function voucherDate(iso: string): string {
 
 /** Draws the voucher (layout: documentation/samples/sample-voucher.png) and returns a PNG data URL. */
 export async function voucherPngDataUrl(v: VoucherImageData): Promise<string> {
-  const W = 800, H = 1000, QR = 520;
+  const W = 800,
+    H = 1000,
+    QR = 520;
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
-  const font = (size: number, bold = false) => `${bold ? 'bold ' : ''}${size}px Arial, Helvetica, sans-serif`;
+  const font = (size: number, bold = false) =>
+    `${bold ? 'bold ' : ''}${size}px Arial, Helvetica, sans-serif`;
   const text = (y: number, value: string, size: number, color: string, bold = false) => {
     ctx.font = font(size, bold);
     ctx.fillStyle = color;

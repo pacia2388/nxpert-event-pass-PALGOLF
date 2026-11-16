@@ -2,14 +2,26 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckbox, MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { TeamDto, TeamMemberDto } from '../../core/models';
 import {
-  TeamCheckState, TeamInviteChanges, memberAddress, selectableEmails, selectionChanges, teamCheckState, toggleMember, toggleTeam,
+  TeamCheckState,
+  TeamInviteChanges,
+  memberAddress,
+  selectableEmails,
+  selectionChanges,
+  teamCheckState,
+  toggleMember,
+  toggleTeam,
 } from '../../core/team-invite.util';
 
 export interface InviteTeamsDialogData {
@@ -24,12 +36,21 @@ export interface InviteTeamsDialogData {
  */
 @Component({
   selector: 'app-invite-teams-dialog',
-  imports: [RouterLink, MatButtonModule, MatCheckboxModule, MatDialogModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+  ],
   template: `
     <h2 mat-dialog-title>Invite teams</h2>
     <mat-dialog-content>
-      <p class="hint">Tick a team to invite all its members, or open it to pick members one by one.
-        Ticked members are added to the To field; untick a member to take them out.</p>
+      <p class="hint">
+        Tick a team to invite all its members, or open it to pick members one by one. Ticked members
+        are added to the To field; untick a member to take them out.
+      </p>
       @if (loading()) {
         <div class="state"><mat-spinner diameter="28" /> <span>Loading teams…</span></div>
       } @else if (error()) {
@@ -39,22 +60,40 @@ export interface InviteTeamsDialogData {
         </div>
       } @else if (!teams().length) {
         <div class="state">
-          <span>No teams yet. Create one on the <a routerLink="/admin/teams" (click)="ref.close()">Teams page</a>.</span>
+          <span
+            >No teams yet. Create one on the
+            <a routerLink="/admin/teams" (click)="ref.close()">Teams page</a>.</span
+          >
         </div>
       } @else {
         <ul class="teams">
           @for (t of teams(); track t.id) {
             <li data-team [class.open]="isOpen(t.id)">
               <div class="team-head">
-                <mat-checkbox [checked]="state(t) === 'all'" [indeterminate]="state(t) === 'some'"
-                              [disabled]="!canTick(t)" (change)="tickTeam(t, $event)"
-                              [aria-label]="'Invite all members of ' + t.description" />
-                <button type="button" class="expand" (click)="toggleOpen(t)" [attr.aria-expanded]="isOpen(t.id)"
-                        [attr.aria-label]="(isOpen(t.id) ? 'Hide members of ' : 'Show members of ') + t.description">
+                <mat-checkbox
+                  [checked]="state(t) === 'all'"
+                  [indeterminate]="state(t) === 'some'"
+                  [disabled]="!canTick(t)"
+                  (change)="tickTeam(t, $event)"
+                  [aria-label]="'Invite all members of ' + t.description"
+                />
+                <button
+                  type="button"
+                  class="expand"
+                  (click)="toggleOpen(t)"
+                  [attr.aria-expanded]="isOpen(t.id)"
+                  [attr.aria-label]="
+                    (isOpen(t.id) ? 'Hide members of ' : 'Show members of ') + t.description
+                  "
+                >
                   <span class="team-name">{{ t.description }}</span>
                   <span class="team-meta">
                     {{ t.category }} ·
-                    {{ t.memberCount ? t.memberCount + (t.memberCount === 1 ? ' member' : ' members') : 'No members' }}
+                    {{
+                      t.memberCount
+                        ? t.memberCount + (t.memberCount === 1 ? ' member' : ' members')
+                        : 'No members'
+                    }}
                   </span>
                   <mat-icon>{{ isOpen(t.id) ? 'expand_less' : 'expand_more' }}</mat-icon>
                 </button>
@@ -64,8 +103,11 @@ export interface InviteTeamsDialogData {
                   @if (members()[t.id]; as list) {
                     @for (m of list; track m.userId) {
                       <div class="member" data-member>
-                        <mat-checkbox [checked]="isTicked(m)" [disabled]="!canPick(m)"
-                                      (change)="tickMember(m)">
+                        <mat-checkbox
+                          [checked]="isTicked(m)"
+                          [disabled]="!canPick(m)"
+                          (change)="tickMember(m)"
+                        >
                           <span class="member-name">{{ m.fullName }}</span>
                           <span class="member-email">{{ m.email || 'No email address' }}</span>
                         </mat-checkbox>
@@ -95,32 +137,118 @@ export interface InviteTeamsDialogData {
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button type="button" mat-button class="cancel" (click)="ref.close()">Cancel</button>
-      <button type="button" mat-flat-button class="add" (click)="confirm()" [disabled]="!hasChanges()">
+      <button
+        type="button"
+        mat-flat-button
+        class="add"
+        (click)="confirm()"
+        [disabled]="!hasChanges()"
+      >
         {{ confirmLabel() }}
       </button>
     </mat-dialog-actions>
   `,
   styles: [
     `
-      .hint { margin: 0 0 12px; color: #64748b; font-size: 13.5px; }
-      .state { display: flex; align-items: center; gap: 10px; padding: 18px 4px; color: #475569; }
-      .teams { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-      .teams li { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-      .teams li.open { border-color: #9dbfe8; }
-      .team-head { display: flex; align-items: center; padding: 2px 6px 2px 2px; }
-      .expand { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 8px 4px; border: 0;
-        background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
-      .team-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .team-meta { margin-left: auto; color: #64748b; font-size: 12.5px; white-space: nowrap; }
-      .expand mat-icon { color: #64748b; }
-      .members { padding: 2px 10px 8px 26px; border-top: 1px solid #eef2f6; background: #f8fafc; }
-      .member { display: flex; align-items: center; gap: 8px; }
-      .member mat-checkbox { flex: 1; min-width: 0; }
-      .member-name { display: block; font-weight: 500; }
-      .member-email { display: block; color: #64748b; font-size: 12.5px; overflow-wrap: anywhere; }
-      .added { color: var(--pg-blue-deep); font-size: 12px; font-weight: 600; white-space: nowrap; }
-      .added.removing { color: #b45309; }
-      .muted { margin: 8px 0 4px; color: #64748b; font-size: 13px; }
+      .hint {
+        margin: 0 0 12px;
+        color: #64748b;
+        font-size: 13.5px;
+      }
+      .state {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 4px;
+        color: #475569;
+      }
+      .teams {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 8px;
+      }
+      .teams li {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .teams li.open {
+        border-color: #9dbfe8;
+      }
+      .team-head {
+        display: flex;
+        align-items: center;
+        padding: 2px 6px 2px 2px;
+      }
+      .expand {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 4px;
+        border: 0;
+        background: none;
+        font: inherit;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .team-name {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .team-meta {
+        margin-left: auto;
+        color: #64748b;
+        font-size: 12.5px;
+        white-space: nowrap;
+      }
+      .expand mat-icon {
+        color: #64748b;
+      }
+      .members {
+        padding: 2px 10px 8px 26px;
+        border-top: 1px solid #eef2f6;
+        background: #f8fafc;
+      }
+      .member {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .member mat-checkbox {
+        flex: 1;
+        min-width: 0;
+      }
+      .member-name {
+        display: block;
+        font-weight: 500;
+      }
+      .member-email {
+        display: block;
+        color: #64748b;
+        font-size: 12.5px;
+        overflow-wrap: anywhere;
+      }
+      .added {
+        color: var(--pg-blue-deep);
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .added.removing {
+        color: #b45309;
+      }
+      .muted {
+        margin: 8px 0 4px;
+        color: #64748b;
+        font-size: 13px;
+      }
     `,
   ],
 })
@@ -263,11 +391,19 @@ export class InviteTeamsDialogComponent {
   }
 }
 
-export function openInviteTeamsDialog(dialog: MatDialog, data: InviteTeamsDialogData): Observable<TeamInviteChanges | undefined> {
-  return dialog.open<InviteTeamsDialogComponent, InviteTeamsDialogData, TeamInviteChanges>(InviteTeamsDialogComponent, {
-    data,
-    width: '520px',
-    maxWidth: '95vw',
-    autoFocus: false,
-  }).afterClosed();
+export function openInviteTeamsDialog(
+  dialog: MatDialog,
+  data: InviteTeamsDialogData,
+): Observable<TeamInviteChanges | undefined> {
+  return dialog
+    .open<InviteTeamsDialogComponent, InviteTeamsDialogData, TeamInviteChanges>(
+      InviteTeamsDialogComponent,
+      {
+        data,
+        width: '520px',
+        maxWidth: '95vw',
+        autoFocus: false,
+      },
+    )
+    .afterClosed();
 }

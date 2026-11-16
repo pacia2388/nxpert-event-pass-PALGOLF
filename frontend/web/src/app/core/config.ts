@@ -27,7 +27,9 @@ export async function loadAppSettings(): Promise<void> {
 
   document.title = BRANDING.appName;
   // iOS names the home-screen icon from this tag.
-  document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', BRANDING.appName);
+  document
+    .querySelector('meta[name="apple-mobile-web-app-title"]')
+    ?.setAttribute('content', BRANDING.appName);
 }
 
 // An optional line of wording: missing or blank keeps the built-in text.

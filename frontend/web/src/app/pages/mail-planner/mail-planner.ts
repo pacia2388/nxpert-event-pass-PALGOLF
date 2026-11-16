@@ -23,7 +23,14 @@ import {
   toPlanSend,
   toReceived,
 } from './mail-planner.model';
-import { CHANNEL_ICONS, KIND_ICONS, dayKey, shift, sortedSends, startOfToday } from './mail-planner.util';
+import {
+  CHANNEL_ICONS,
+  KIND_ICONS,
+  dayKey,
+  shift,
+  sortedSends,
+  startOfToday,
+} from './mail-planner.util';
 
 type Tab = 'plan' | 'reminders';
 type ReminderFilter = 'All' | ReminderStatus;
@@ -67,7 +74,14 @@ export class MailPlannerComponent {
 
   readonly kindIcons = KIND_ICONS;
   readonly channelIcons = CHANNEL_ICONS;
-  readonly reminderFilters: ReminderFilter[] = ['All', 'Due today', 'Upcoming', 'Not planned', 'Snoozed', 'Done'];
+  readonly reminderFilters: ReminderFilter[] = [
+    'All',
+    'Due today',
+    'Upcoming',
+    'Not planned',
+    'Snoozed',
+    'Done',
+  ];
 
   readonly tab = signal<Tab>(this.auth.isAdmin() ? 'plan' : 'reminders');
   readonly loading = signal(true);
@@ -84,7 +98,10 @@ export class MailPlannerComponent {
   readonly selectedDay = signal(startOfToday());
   readonly week = computed(() => Array.from({ length: 7 }, (_, i) => shift(startOfToday(), i)));
 
-  readonly receiverCounts = computed(() => new Map(this.plans().map((p) => [p.id, resolveReceivers(this.groups(), p.receivers).length])));
+  readonly receiverCounts = computed(
+    () =>
+      new Map(this.plans().map((p) => [p.id, resolveReceivers(this.groups(), p.receivers).length])),
+  );
 
   readonly dayItems = computed<DayItem[]>(() => {
     const key = dayKey(this.selectedDay());
@@ -93,7 +110,13 @@ export class MailPlannerComponent {
       const sends = sortedSends(plan.sends);
       sends.forEach((send, i) => {
         if (dayKey(send.at) === key)
-          items.push({ plan, send, index: i + 1, total: sends.length, receivers: this.receiversOf(plan, send) });
+          items.push({
+            plan,
+            send,
+            index: i + 1,
+            total: sends.length,
+            receivers: this.receiversOf(plan, send),
+          });
       });
     }
     return items.sort((a, b) => a.send.at.getTime() - b.send.at.getTime());
@@ -102,19 +125,27 @@ export class MailPlannerComponent {
   // Plans for the side list: upcoming first, then drafts, then finished.
   readonly planList = computed(() => {
     const rank = (p: MailPlan) => (p.draft ? 1 : this.nextSend(p) ? 0 : 2);
-    return [...this.plans()].sort((a, b) => rank(a) - rank(b) || (this.nextSend(a)?.at.getTime() ?? 0) - (this.nextSend(b)?.at.getTime() ?? 0));
+    return [...this.plans()].sort(
+      (a, b) =>
+        rank(a) - rank(b) ||
+        (this.nextSend(a)?.at.getTime() ?? 0) - (this.nextSend(b)?.at.getTime() ?? 0),
+    );
   });
 
   readonly stats = computed(() => {
     const plans = this.plans();
     const live = plans.filter((p) => !p.draft);
-    const sends = live.flatMap((p) => p.sends.map((s) => ({ s, n: this.receiverCounts().get(p.id) ?? 0 })));
+    const sends = live.flatMap((p) =>
+      p.sends.map((s) => ({ s, n: this.receiverCounts().get(p.id) ?? 0 })),
+    );
     const today = dayKey(new Date());
     return {
       active: live.filter((p) => this.nextSend(p)).length,
       today: sends.filter(({ s }) => dayKey(s.at) === today && s.status === 'Scheduled').length,
       drafts: plans.length - live.length,
-      deliveries: sends.filter(({ s }) => s.status === 'Scheduled').reduce((sum, { n }) => sum + n, 0),
+      deliveries: sends
+        .filter(({ s }) => s.status === 'Scheduled')
+        .reduce((sum, { n }) => sum + n, 0),
       failed: sends.filter(({ s }) => s.status === 'Failed').length,
     };
   });
@@ -145,8 +176,18 @@ export class MailPlannerComponent {
   readonly quickPlans: QuickPlan[] = [
     { label: 'Tonight 6 PM', icon: 'nights_stay', pick: () => shift(startOfToday(), 0, 18) },
     { label: 'Tomorrow 9 AM', icon: 'wb_sunny', pick: () => shift(startOfToday(), 1, 9) },
-    { label: 'Day before event', icon: 'event_upcoming', needsEvent: true, pick: (m) => shift(m.eventAt!, -1, 9) },
-    { label: 'Event morning', icon: 'alarm', needsEvent: true, pick: (m) => shift(m.eventAt!, 0, 7) },
+    {
+      label: 'Day before event',
+      icon: 'event_upcoming',
+      needsEvent: true,
+      pick: (m) => shift(m.eventAt!, -1, 9),
+    },
+    {
+      label: 'Event morning',
+      icon: 'alarm',
+      needsEvent: true,
+      pick: (m) => shift(m.eventAt!, 0, 7),
+    },
     { label: 'In 3 days', icon: 'date_range', pick: () => shift(startOfToday(), 3, 9) },
   ];
 
@@ -160,9 +201,11 @@ export class MailPlannerComponent {
   constructor() {
     this.load();
     // Picks up days the server sent (or failed) and reminders coming due.
-    interval(30_000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      if (!this.busy() && document.visibilityState === 'visible') this.refresh();
-    });
+    interval(30_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.busy() && document.visibilityState === 'visible') this.refresh();
+      });
   }
 
   load(): void {
@@ -173,7 +216,10 @@ export class MailPlannerComponent {
       plans: admin ? this.api.mailPlans() : of(null),
       options: admin ? this.api.mailPlanOptions() : of(null),
     })
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false)),
+      )
       .subscribe({
         next: ({ inbox, plans, options }) => {
           this.received.set(inbox.map(toReceived));
@@ -187,19 +233,30 @@ export class MailPlannerComponent {
           }
           this.loadError.set('');
         },
-        error: () => this.loadError.set('The mail planner could not be loaded. Check your connection and try again.'),
+        error: () =>
+          this.loadError.set(
+            'The mail planner could not be loaded. Check your connection and try again.',
+          ),
       });
   }
 
   private refresh(): void {
     if (this.auth.isAdmin())
-      this.api.mailPlans().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((plans) => this.plans.set(plans.map(toPlan)));
-    this.api.mailInbox().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((inbox) => this.received.set(inbox.map(toReceived)));
+      this.api
+        .mailPlans()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((plans) => this.plans.set(plans.map(toPlan)));
+    this.api
+      .mailInbox()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((inbox) => this.received.set(inbox.map(toReceived)));
   }
 
   // Days that have gone out show who actually got them; the rest show the list's current size.
   private receiversOf(plan: MailPlan, send: PlanSend): number {
-    return send.status === 'Scheduled' ? this.receiverCounts().get(plan.id) ?? 0 : send.recipientCount;
+    return send.status === 'Scheduled'
+      ? (this.receiverCounts().get(plan.id) ?? 0)
+      : send.recipientCount;
   }
 
   countOn(day: Date): number {
@@ -227,8 +284,13 @@ export class MailPlannerComponent {
   }
 
   receiverSummary(plan: MailPlan): string {
-    const parts = plan.receivers.groupIds.map((id) => this.groups().find((g) => g.id === id)?.name ?? 'Removed list');
-    if (plan.receivers.emails.length) parts.unshift(`${plan.receivers.emails.length} email${plan.receivers.emails.length === 1 ? '' : 's'}`);
+    const parts = plan.receivers.groupIds.map(
+      (id) => this.groups().find((g) => g.id === id)?.name ?? 'Removed list',
+    );
+    if (plan.receivers.emails.length)
+      parts.unshift(
+        `${plan.receivers.emails.length} email${plan.receivers.emails.length === 1 ? '' : 's'}`,
+      );
     if (plan.receivers.cc.length) parts.push(`CC ${plan.receivers.cc.length}`);
     return parts.join(', ');
   }
@@ -252,8 +314,9 @@ export class MailPlannerComponent {
       return next;
     });
     if (open || this.bodies().has(key)) return;
-    load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ bodyHtml }) =>
-      this.bodies.update((map) => new Map(map).set(key, bodyHtml)));
+    load()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ bodyHtml }) => this.bodies.update((map) => new Map(map).set(key, bodyHtml)));
   }
 
   sendBody(send: PlanSend): () => Observable<{ bodyHtml: string }> {
@@ -273,12 +336,18 @@ export class MailPlannerComponent {
     }
     // The editor needs every day's full message, which the list leaves out.
     this.busy.set(true);
-    this.api.mailPlan(plan.id).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.busy.set(false)))
+    this.api
+      .mailPlan(plan.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.busy.set(false)),
+      )
       .subscribe((full) => this.openDialog(toPlan(full)));
   }
 
   private openDialog(plan: MailPlan | null): void {
-    const day = this.selectedDay().getTime() < startOfToday().getTime() ? startOfToday() : this.selectedDay();
+    const day =
+      this.selectedDay().getTime() < startOfToday().getTime() ? startOfToday() : this.selectedDay();
     this.dialog
       .open<MailPlanDialogComponent, MailPlanDialogData, MailPlanDto>(MailPlanDialogComponent, {
         data: {
@@ -301,13 +370,24 @@ export class MailPlannerComponent {
       .subscribe((dto) => {
         if (!dto) return;
         const saved = toPlan(dto);
-        this.plans.update((list) => (list.some((p) => p.id === saved.id) ? list.map((p) => (p.id === saved.id ? saved : p)) : [...list, saved]));
+        this.plans.update((list) =>
+          list.some((p) => p.id === saved.id)
+            ? list.map((p) => (p.id === saved.id ? saved : p))
+            : [...list, saved],
+        );
         // Edited days get new bodies; drop the cached copies.
-        this.bodies.update((map) => new Map([...map].filter(([key]) => !saved.sends.some((s) => key === 's' + s.id))));
+        this.bodies.update(
+          (map) =>
+            new Map([...map].filter(([key]) => !saved.sends.some((s) => key === 's' + s.id))),
+        );
         const first = this.nextSend(saved) ?? saved.sends[0];
         if (first) this.selectedDay.set(shift(first.at, 0, 0));
         const days = saved.sends.filter((s) => s.status === 'Scheduled').length;
-        this.toast.success(saved.draft ? 'Plan saved as draft.' : `Plan scheduled on ${days} day${days === 1 ? '' : 's'}.`);
+        this.toast.success(
+          saved.draft
+            ? 'Plan saved as draft.'
+            : `Plan scheduled on ${days} day${days === 1 ? '' : 's'}.`,
+        );
       });
   }
 
@@ -328,14 +408,27 @@ export class MailPlannerComponent {
   private deliver(item: DayItem, request: Observable<MailPlanSendDto>): void {
     if (this.busy()) return;
     this.busy.set(true);
-    request.pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.busy.set(false))).subscribe((dto) => {
-      const send = toPlanSend(dto);
-      this.plans.update((list) =>
-        list.map((p) => (p.id === item.plan.id ? { ...p, sends: p.sends.map((s) => (s.id === send.id ? send : s)) } : p)));
-      this.selectedDay.set(shift(send.at, 0, 0));
-      if (send.status === 'Sent') this.toast.success(`Sent to ${send.recipientCount} receiver${send.recipientCount === 1 ? '' : 's'}.`);
-      else this.toast.warning(send.lastError ?? 'The mail could not be sent yet.', 8000);
-    });
+    request
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.busy.set(false)),
+      )
+      .subscribe((dto) => {
+        const send = toPlanSend(dto);
+        this.plans.update((list) =>
+          list.map((p) =>
+            p.id === item.plan.id
+              ? { ...p, sends: p.sends.map((s) => (s.id === send.id ? send : s)) }
+              : p,
+          ),
+        );
+        this.selectedDay.set(shift(send.at, 0, 0));
+        if (send.status === 'Sent')
+          this.toast.success(
+            `Sent to ${send.recipientCount} receiver${send.recipientCount === 1 ? '' : 's'}.`,
+          );
+        else this.toast.warning(send.lastError ?? 'The mail could not be sent yet.', 8000);
+      });
   }
 
   async removeDay(item: DayItem): Promise<void> {
@@ -351,12 +444,22 @@ export class MailPlannerComponent {
     });
     if (!ok || this.busy()) return;
     this.busy.set(true);
-    this.api.deleteMailPlanSend(item.send.id).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.busy.set(false)))
+    this.api
+      .deleteMailPlanSend(item.send.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.busy.set(false)),
+      )
       .subscribe(({ planDeleted }) => {
         this.plans.update((list) =>
           planDeleted
             ? list.filter((p) => p.id !== item.plan.id)
-            : list.map((p) => (p.id === item.plan.id ? { ...p, sends: p.sends.filter((s) => s.id !== item.send.id) } : p)));
+            : list.map((p) =>
+                p.id === item.plan.id
+                  ? { ...p, sends: p.sends.filter((s) => s.id !== item.send.id) }
+                  : p,
+              ),
+        );
         this.toast.success(planDeleted ? 'Plan removed.' : 'Day removed from the plan.');
       });
   }
@@ -371,7 +474,12 @@ export class MailPlannerComponent {
     });
     if (!ok || this.busy()) return;
     this.busy.set(true);
-    this.api.deleteMailPlan(plan.id).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.busy.set(false)))
+    this.api
+      .deleteMailPlan(plan.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.busy.set(false)),
+      )
       .subscribe(() => {
         this.plans.update((list) => list.filter((p) => p.id !== plan.id));
         this.toast.success('Plan deleted.');
@@ -390,7 +498,10 @@ export class MailPlannerComponent {
       return;
     }
     this.updateReceived(this.api.setMailReminder(mail.id, when), () =>
-      this.toast.success(`Reminder set for ${when.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`));
+      this.toast.success(
+        `Reminder set for ${when.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`,
+      ),
+    );
   }
 
   planCustom(mail: ReceivedMail, value: string): void {
@@ -398,7 +509,9 @@ export class MailPlannerComponent {
   }
 
   snooze(mail: ReceivedMail): void {
-    this.updateReceived(this.api.snoozeMailReminder(mail.id), () => this.toast.info('Snoozed for one day.'));
+    this.updateReceived(this.api.snoozeMailReminder(mail.id), () =>
+      this.toast.info('Snoozed for one day.'),
+    );
   }
 
   markDone(mail: ReceivedMail): void {
@@ -412,11 +525,16 @@ export class MailPlannerComponent {
   private updateReceived(request: Observable<InboxMailDto>, done?: () => void): void {
     if (this.busy()) return;
     this.busy.set(true);
-    request.pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.busy.set(false))).subscribe((dto) => {
-      const mail = toReceived(dto);
-      this.received.update((list) => list.map((m) => (m.id === mail.id ? mail : m)));
-      done?.();
-    });
+    request
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.busy.set(false)),
+      )
+      .subscribe((dto) => {
+        const mail = toReceived(dto);
+        this.received.update((list) => list.map((m) => (m.id === mail.id ? mail : m)));
+        done?.();
+      });
   }
 
   statusClass(status: string): string {

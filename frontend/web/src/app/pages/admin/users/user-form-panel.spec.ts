@@ -32,7 +32,9 @@ describe('User form panel', () => {
   const field = (name: string) => input(name).closest('mat-form-field')!;
   // The red "!" inside a field, with the message its tooltip gives, or null when there is none.
   const marker = (name: string): string | null => {
-    const icon = fixture.debugElement.query(By.css(`mat-form-field:has(input[name="${name}"]) mat-icon.req`));
+    const icon = fixture.debugElement.query(
+      By.css(`mat-form-field:has(input[name="${name}"]) mat-icon.req`),
+    );
     return icon ? icon.injector.get(MatTooltip).message : null;
   };
 

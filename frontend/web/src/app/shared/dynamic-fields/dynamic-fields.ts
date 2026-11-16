@@ -54,7 +54,10 @@ export class DynamicFieldsComponent implements OnInit {
       if (f.type === 'checkbox') {
         this.model[f.key] = raw === 'Yes' || raw === 'true';
       } else if (f.type === 'multiselect') {
-        this.model[f.key] = raw.split(',').map((s) => s.trim()).filter(Boolean);
+        this.model[f.key] = raw
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
       } else if (f.type === 'select') {
         // A saved value that isn't one of the options is a custom "Other" answer — restore it
         // into the Other text field and select the Other option.

@@ -1,7 +1,10 @@
 import { test, expect } from '../fixtures';
 import { createPublishedEvent } from '../helpers/data';
 
-test('a closed event sits under the Closed tab and can only be viewed', async ({ page, adminApi }) => {
+test('a closed event sits under the Closed tab and can only be viewed', async ({
+  page,
+  adminApi,
+}) => {
   const event = await createPublishedEvent(adminApi);
   expect((await adminApi.post(`/api/events/${event.id}/close`)).ok()).toBeTruthy();
 
@@ -9,10 +12,16 @@ test('a closed event sits under the Closed tab and can only be viewed', async ({
   await page.getByLabel('Search events').fill(event.title);
   const card = page.locator('article').filter({ hasText: event.title });
 
-  await page.getByRole('group', { name: 'Filter events' }).getByRole('button', { name: 'Open' }).click();
+  await page
+    .getByRole('group', { name: 'Filter events' })
+    .getByRole('button', { name: 'Open' })
+    .click();
   await expect(card).toHaveCount(0);
 
-  await page.getByRole('group', { name: 'Filter events' }).getByRole('button', { name: 'Closed' }).click();
+  await page
+    .getByRole('group', { name: 'Filter events' })
+    .getByRole('button', { name: 'Closed' })
+    .click();
   await expect(page).toHaveURL(/[?&]tab=Closed/);
   await expect(card).toContainText('Closed');
   await expect(card.getByRole('link', { name: 'View' })).toBeVisible();

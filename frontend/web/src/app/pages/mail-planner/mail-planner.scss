@@ -21,10 +21,16 @@ $muted: #64748b;
   flex-wrap: wrap;
   gap: 12px;
 
-  .page-title { margin: 0; }
+  .page-title {
+    margin: 0;
+  }
 }
 
-.mp-subtitle { margin: 2px 0 0; font-size: 13.5px; color: var(--mat-sys-on-surface-variant); }
+.mp-subtitle {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: var(--mat-sys-on-surface-variant);
+}
 
 .load-error {
   display: flex;
@@ -35,7 +41,9 @@ $muted: #64748b;
   color: #b91c1c;
   font-size: 13.5px;
 
-  span { flex: 1; }
+  span {
+    flex: 1;
+  }
 }
 
 // Why a day hasn't gone out yet (SMTP down, no receivers, ...).
@@ -47,7 +55,12 @@ $muted: #64748b;
   font-size: 12.5px;
   color: #b91c1c;
 
-  mat-icon { flex: none; font-size: 16px; width: 16px; height: 16px; }
+  mat-icon {
+    flex: none;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 }
 
 // ---- Tabs (same pill strip as the Home launcher) ----
@@ -75,21 +88,36 @@ $muted: #64748b;
   font-weight: 600;
   color: #334155;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 
-  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
 
-  &:hover:not(.active) { background: var(--tint-primary); color: var(--pg-blue); }
+  &:hover:not(.active) {
+    background: var(--tint-primary);
+    color: var(--pg-blue);
+  }
 
   &.active {
     background: var(--brand-grad);
     color: #fff;
     box-shadow: 0 4px 10px rgba(15, 95, 184, 0.28);
 
-    .tab-badge { background: #fff; color: #b45309; }
+    .tab-badge {
+      background: #fff;
+      color: #b45309;
+    }
   }
 
-  &:focus-visible { outline: 2px solid var(--pg-blue); outline-offset: 2px; }
+  &:focus-visible {
+    outline: 2px solid var(--pg-blue);
+    outline-offset: 2px;
+  }
 }
 
 .tab-badge {
@@ -122,8 +150,16 @@ $muted: #64748b;
   gap: 10px;
   margin-bottom: 14px;
 
-  h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.2px; color: $ink; }
-  .muted { font-weight: 600; }
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.2px;
+    color: $ink;
+  }
+  .muted {
+    font-weight: 600;
+  }
 }
 
 .mp-layout {
@@ -135,13 +171,22 @@ $muted: #64748b;
 }
 
 // Thin, quiet scrollbars for the scrolling side card and week strip.
-.plan-list, .week-strip {
+.plan-list,
+.week-strip {
   scrollbar-width: thin;
   scrollbar-color: #cdd7e8 transparent;
 
-  &::-webkit-scrollbar { width: 6px; height: 6px; }
-  &::-webkit-scrollbar-thumb { background: #cdd7e8; border-radius: 6px; }
-  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cdd7e8;
+    border-radius: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 // ---- KPI row ----
@@ -161,9 +206,14 @@ $muted: #64748b;
   border: $hairline-brand;
   box-shadow: var(--card-shadow);
 
-  > span:last-child { display: flex; flex-direction: column; }
+  > span:last-child {
+    display: flex;
+    flex-direction: column;
+  }
 
-  &.alert { border-color: rgba(220, 38, 38, 0.3); }
+  &.alert {
+    border-color: rgba(220, 38, 38, 0.3);
+  }
 }
 
 .kpi-icon {
@@ -175,14 +225,35 @@ $muted: #64748b;
   background: #e8f0fb;
   color: var(--pg-blue);
 
-  &.today { background: #e0f2fe; color: #0369a1; }
-  &.draft { background: #f1f5f9; color: #475569; }
-  &.reach { background: #f0f5fc; color: #15803d; }
-  &.failed { background: #fdecec; color: #b91c1c; }
+  &.today {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+  &.draft {
+    background: #f1f5f9;
+    color: #475569;
+  }
+  &.reach {
+    background: #f0f5fc;
+    color: #15803d;
+  }
+  &.failed {
+    background: #fdecec;
+    color: #b91c1c;
+  }
 }
 
-.kpi-value { font-size: 24px; font-weight: 800; line-height: 1.1; color: $ink; }
-.kpi-label { font-size: 12.5px; color: $muted; font-weight: 600; }
+.kpi-value {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: $ink;
+}
+.kpi-label {
+  font-size: 12.5px;
+  color: $muted;
+  font-weight: 600;
+}
 
 // ---- Week strip (target day picker) ----
 .week-strip {
@@ -203,9 +274,15 @@ $muted: #64748b;
   font: inherit;
   color: $ink;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 
-  &:hover:not(.active) { transform: translateY(-2px); box-shadow: var(--card-shadow); }
+  &:hover:not(.active) {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+  }
 
   &.active {
     border-color: transparent;
@@ -213,16 +290,38 @@ $muted: #64748b;
     color: #fff;
     box-shadow: 0 6px 16px rgba(15, 95, 184, 0.3);
 
-    .day-name, .day-month { color: rgba(255, 255, 255, 0.85); }
-    .day-count { background: rgba(255, 255, 255, 0.22); color: #fff; }
+    .day-name,
+    .day-month {
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .day-count {
+      background: rgba(255, 255, 255, 0.22);
+      color: #fff;
+    }
   }
 
-  &:focus-visible { outline: 3px solid rgba(15, 95, 184, 0.35); outline-offset: 2px; }
+  &:focus-visible {
+    outline: 3px solid rgba(15, 95, 184, 0.35);
+    outline-offset: 2px;
+  }
 }
 
-.day-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: $muted; }
-.day-num { font-size: 24px; font-weight: 800; line-height: 1.1; }
-.day-month { font-size: 12px; color: $muted; }
+.day-name {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: $muted;
+}
+.day-num {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.day-month {
+  font-size: 12px;
+  color: $muted;
+}
 
 .day-count {
   margin-top: 6px;
@@ -234,7 +333,10 @@ $muted: #64748b;
   font-weight: 700;
   white-space: nowrap;
 
-  &.empty { background: #f1f5f9; color: #94a3b8; }
+  &.empty {
+    background: #f1f5f9;
+    color: #94a3b8;
+  }
 }
 
 // ---- Timeline ----
@@ -243,12 +345,24 @@ $muted: #64748b;
   grid-template-columns: 58px 18px minmax(0, 1fr);
   gap: 10px;
 
-  &:last-of-type .plan-rail::after { display: none; }
+  &:last-of-type .plan-rail::after {
+    display: none;
+  }
 
-  &.sent .plan-body { opacity: 0.72; }
-  &.sent .dot { background: #16a34a; }
-  &.failed .dot { background: #dc2626; box-shadow: 0 0 0 4px #fdecec; }
-  &.failed .plan-body { border-color: rgba(220, 38, 38, 0.3); background: #fffafa; }
+  &.sent .plan-body {
+    opacity: 0.72;
+  }
+  &.sent .dot {
+    background: #16a34a;
+  }
+  &.failed .dot {
+    background: #dc2626;
+    box-shadow: 0 0 0 4px #fdecec;
+  }
+  &.failed .plan-body {
+    border-color: rgba(220, 38, 38, 0.3);
+    background: #fffafa;
+  }
 }
 
 .plan-time {
@@ -257,8 +371,16 @@ $muted: #64748b;
   display: flex;
   flex-direction: column;
 
-  .t { font-size: 16px; font-weight: 800; color: $ink; }
-  .ampm { font-size: 11.5px; font-weight: 700; color: $muted; }
+  .t {
+    font-size: 16px;
+    font-weight: 800;
+    color: $ink;
+  }
+  .ampm {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: $muted;
+  }
 }
 
 .plan-rail {
@@ -296,7 +418,11 @@ $muted: #64748b;
   min-width: 0;
 }
 
-.plan-top { display: flex; align-items: center; gap: 8px; }
+.plan-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .kind-tag {
   display: inline-flex;
@@ -308,14 +434,30 @@ $muted: #64748b;
   letter-spacing: 0.4px;
   color: var(--pg-blue-deep);
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 
-  &[data-kind='Reminder'] { color: #b45309; }
-  &[data-kind='Announcement'] { color: #7c3aed; }
-  &[data-kind='Follow-up'] { color: #0369a1; }
+  &[data-kind='Reminder'] {
+    color: #b45309;
+  }
+  &[data-kind='Announcement'] {
+    color: #7c3aed;
+  }
+  &[data-kind='Follow-up'] {
+    color: #0369a1;
+  }
 }
 
-.plan-subject { margin: 6px 0 8px; font-size: 15.5px; font-weight: 700; color: $ink; line-height: 1.35; }
+.plan-subject {
+  margin: 6px 0 8px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: $ink;
+  line-height: 1.35;
+}
 
 .plan-meta {
   display: flex;
@@ -324,8 +466,16 @@ $muted: #64748b;
   font-size: 12.5px;
   color: $muted;
 
-  > span { display: inline-flex; align-items: center; gap: 4px; }
-  mat-icon { font-size: 15px; width: 15px; height: 15px; }
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
 }
 
 .plan-actions {
@@ -335,7 +485,9 @@ $muted: #64748b;
   gap: 8px;
   margin-top: 10px;
 
-  .remove-btn { margin-left: auto; }
+  .remove-btn {
+    margin-left: auto;
+  }
 }
 
 .sent-note {
@@ -346,7 +498,11 @@ $muted: #64748b;
   font-weight: 700;
   color: #15803d;
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .ev-btn.sm {
@@ -354,7 +510,11 @@ $muted: #64748b;
   padding: 0 12px;
   font-size: 12.5px;
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 }
 
 // ---- Message body (plain text with line breaks, or formatted with images) ----
@@ -375,7 +535,9 @@ $muted: #64748b;
 }
 
 // Received mails are plain text; rich plan bodies use normal spacing.
-app-rich-text-view.mail-body { white-space: normal; }
+app-rich-text-view.mail-body {
+  white-space: normal;
+}
 
 .body-toggle {
   align-self: flex-start;
@@ -389,7 +551,9 @@ app-rich-text-view.mail-body { white-space: normal; }
   color: var(--pg-blue);
   cursor: pointer;
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .general-chip {
@@ -412,7 +576,12 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-weight: 600;
   color: var(--pg-blue-deep);
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--pg-blue); }
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--pg-blue);
+  }
 }
 
 // ---- Plan list (side card) ----
@@ -444,8 +613,13 @@ app-rich-text-view.mail-body { white-space: normal; }
   padding: 10px 0;
   border-bottom: 1px solid #eef2f8;
 
-  &:last-child { border-bottom: none; }
-  &.draft .pr-icon { background: #f1f5f9; color: #64748b; }
+  &:last-child {
+    border-bottom: none;
+  }
+  &.draft .pr-icon {
+    background: #f1f5f9;
+    color: #64748b;
+  }
 }
 
 .plan-row-main {
@@ -461,8 +635,13 @@ app-rich-text-view.mail-body { white-space: normal; }
   text-align: left;
   cursor: pointer;
 
-  &:hover { background: $soft-surface; }
-  &:focus-visible { outline: 2px solid var(--pg-blue); outline-offset: 1px; }
+  &:hover {
+    background: $soft-surface;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--pg-blue);
+    outline-offset: 1px;
+  }
 }
 
 .pr-icon {
@@ -475,10 +654,23 @@ app-rich-text-view.mail-body { white-space: normal; }
   background: #e8f0fb;
   color: var(--pg-blue);
 
-  mat-icon { font-size: 19px; width: 19px; height: 19px; }
-  &[data-kind='Reminder'] { background: #fef4e2; color: #b45309; }
-  &[data-kind='Announcement'] { background: #f3effe; color: #7c3aed; }
-  &[data-kind='Follow-up'] { background: #e0f2fe; color: #0369a1; }
+  mat-icon {
+    font-size: 19px;
+    width: 19px;
+    height: 19px;
+  }
+  &[data-kind='Reminder'] {
+    background: #fef4e2;
+    color: #b45309;
+  }
+  &[data-kind='Announcement'] {
+    background: #f3effe;
+    color: #7c3aed;
+  }
+  &[data-kind='Follow-up'] {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
 }
 
 .pr-text {
@@ -489,7 +681,14 @@ app-rich-text-view.mail-body { white-space: normal; }
   gap: 2px;
   font-size: 12.5px;
 
-  strong { font-size: 13.5px; color: $ink; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  strong {
+    font-size: 13.5px;
+    color: $ink;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .pr-next {
@@ -499,7 +698,11 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-weight: 600;
   color: var(--pg-blue-deep);
 
-  mat-icon { font-size: 15px; width: 15px; height: 15px; }
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+  }
 }
 
 .pr-progress {
@@ -510,19 +713,36 @@ app-rich-text-view.mail-body { white-space: normal; }
   background: #dde4f0;
   overflow: hidden;
 
-  span { display: block; height: 100%; border-radius: 4px; background: var(--brand-grad); }
+  span {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    background: var(--brand-grad);
+  }
 }
 
 .pr-actions {
   display: flex;
   flex-direction: column;
 
-  button { width: 34px; height: 34px; padding: 5px; }
-  mat-icon { font-size: 19px; width: 19px; height: 19px; }
+  button {
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+  }
+  mat-icon {
+    font-size: 19px;
+    width: 19px;
+    height: 19px;
+  }
 }
 
-.remove-btn { color: #94a3b8; }
-.remove-btn:hover { color: #dc2626; }
+.remove-btn {
+  color: #94a3b8;
+}
+.remove-btn:hover {
+  color: #dc2626;
+}
 
 .day-of {
   padding: 1px 8px;
@@ -533,11 +753,19 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-weight: 700;
 }
 
-.timeline .card-head .ev-btn { height: 36px; }
-.timeline .empty-state .ev-btn { margin-top: 8px; }
+.timeline .card-head .ev-btn {
+  height: 36px;
+}
+.timeline .empty-state .ev-btn {
+  margin-top: 8px;
+}
 
 // ---- Reminder filters ----
-.filter-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
 .filter-pill {
   display: inline-flex;
@@ -563,13 +791,19 @@ app-rich-text-view.mail-body { white-space: normal; }
     text-align: center;
   }
 
-  &:hover:not(.active) { background: var(--tint-primary); color: var(--pg-blue); }
+  &:hover:not(.active) {
+    background: var(--tint-primary);
+    color: var(--pg-blue);
+  }
 
   &.active {
     border-color: transparent;
     background: var(--brand-grad);
     color: #fff;
-    .count { background: rgba(255, 255, 255, 0.25); color: #fff; }
+    .count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
   }
 }
 
@@ -582,7 +816,9 @@ app-rich-text-view.mail-body { white-space: normal; }
   align-items: start;
   min-width: 0;
 
-  > .empty-state { grid-column: 1 / -1; }
+  > .empty-state {
+    grid-column: 1 / -1;
+  }
 }
 
 .mail-card {
@@ -591,8 +827,13 @@ app-rich-text-view.mail-body { white-space: normal; }
   gap: 14px;
   border-left: 4px solid var(--pg-blue);
 
-  &.due { border-left-color: #f59e0b; }
-  &.done { border-left-color: #16a34a; opacity: 0.8; }
+  &.due {
+    border-left-color: #f59e0b;
+  }
+  &.done {
+    border-left-color: #16a34a;
+    opacity: 0.8;
+  }
 }
 
 .mail-head {
@@ -618,8 +859,16 @@ app-rich-text-view.mail-body { white-space: normal; }
   display: flex;
   flex-direction: column;
 
-  h3 { margin: 0 0 2px; font-size: 15.5px; font-weight: 700; color: $ink; line-height: 1.35; }
-  .muted { font-size: 12.5px; }
+  h3 {
+    margin: 0 0 2px;
+    font-size: 15.5px;
+    font-weight: 700;
+    color: $ink;
+    line-height: 1.35;
+  }
+  .muted {
+    font-size: 12.5px;
+  }
 }
 
 .mail-event {
@@ -654,7 +903,14 @@ app-rich-text-view.mail-body { white-space: normal; }
     font-weight: 800;
     text-transform: uppercase;
   }
-  .d { flex: 1; display: grid; place-items: center; font-size: 22px; font-weight: 800; color: $ink; }
+  .d {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: $ink;
+  }
 }
 
 .event-lines {
@@ -665,11 +921,30 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-size: 13px;
   color: #475569;
 
-  strong { font-size: 14px; color: $ink; }
-  > span { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-  mat-icon { font-size: 15px; width: 15px; height: 15px; color: #94a3b8; }
+  strong {
+    font-size: 14px;
+    color: $ink;
+  }
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    color: #94a3b8;
+  }
 
-  .todo { color: var(--pg-blue-deep); font-weight: 600; mat-icon { color: var(--pg-blue); } }
+  .todo {
+    color: var(--pg-blue-deep);
+    font-weight: 600;
+    mat-icon {
+      color: var(--pg-blue);
+    }
+  }
 }
 
 .countdown {
@@ -680,10 +955,16 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-size: 11.5px;
   font-weight: 700;
 
-  &.soon { background: #fef4e2; color: #b45309; }
+  &.soon {
+    background: #fef4e2;
+    color: #b45309;
+  }
 }
 
-.mail-plan { border-top: 1px dashed #e2e8f0; padding-top: 12px; }
+.mail-plan {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 12px;
+}
 
 .remind-line {
   display: flex;
@@ -693,8 +974,12 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-size: 13.5px;
   color: #334155;
 
-  > mat-icon { color: var(--pg-blue); }
-  &.done-line > mat-icon { color: #16a34a; }
+  > mat-icon {
+    color: var(--pg-blue);
+  }
+  &.done-line > mat-icon {
+    color: #16a34a;
+  }
 }
 
 .plan-prompt {
@@ -706,10 +991,18 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-weight: 600;
   color: #b45309;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
 }
 
-.quick-plans { display: flex; flex-wrap: wrap; gap: 8px; }
+.quick-plans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
 .quick-chip {
   display: inline-flex;
@@ -725,11 +1018,20 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-weight: 700;
   color: var(--pg-blue-deep);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 
-  &:hover { background: var(--tint-primary); border-style: solid; }
+  &:hover {
+    background: var(--tint-primary);
+    border-style: solid;
+  }
 
   &.custom input {
     border: none;
@@ -754,7 +1056,10 @@ app-rich-text-view.mail-body { white-space: normal; }
   padding: 10px 0;
   border-bottom: 1px solid #eef2f8;
 
-  &.today .agenda-when { background: #fef4e2; color: #b45309; }
+  &.today .agenda-when {
+    background: #fef4e2;
+    color: #b45309;
+  }
 }
 
 .agenda-when {
@@ -769,8 +1074,14 @@ app-rich-text-view.mail-body { white-space: normal; }
   background: #e8f0fb;
   color: var(--pg-blue-deep);
 
-  .ad { font-size: 12px; font-weight: 800; }
-  .at { font-size: 11.5px; font-weight: 600; }
+  .ad {
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .at {
+    font-size: 11.5px;
+    font-weight: 600;
+  }
 }
 
 .agenda-what {
@@ -779,11 +1090,18 @@ app-rich-text-view.mail-body { white-space: normal; }
   min-width: 0;
   font-size: 13.5px;
 
-  strong { color: $ink; }
-  .muted { font-size: 12px; }
+  strong {
+    color: $ink;
+  }
+  .muted {
+    font-size: 12px;
+  }
 }
 
-.agenda-empty { margin: 4px 0 8px; font-size: 13.5px; }
+.agenda-empty {
+  margin: 4px 0 8px;
+  font-size: 13.5px;
+}
 
 .agenda-tip {
   display: flex;
@@ -795,97 +1113,216 @@ app-rich-text-view.mail-body { white-space: normal; }
   font-size: 12.5px;
   color: var(--pg-blue-deep);
 
-  mat-icon { flex: none; font-size: 18px; width: 18px; height: 18px; }
+  mat-icon {
+    flex: none;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
 }
 
-.quick-chip.custom { max-width: 100%; input { min-width: 0; max-width: 100%; } }
+.quick-chip.custom {
+  max-width: 100%;
+  input {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
 
 // ---- Responsive ----
 
 // Large screens: roomier day chips and timeline.
 @media (min-width: 1600px) {
-  .week-strip { gap: 12px; }
-  .day-chip { padding: 14px 8px; }
-  .day-num { font-size: 28px; }
-  .plan-item { grid-template-columns: 70px 18px minmax(0, 1fr); gap: 14px; }
+  .week-strip {
+    gap: 12px;
+  }
+  .day-chip {
+    padding: 14px 8px;
+  }
+  .day-num {
+    font-size: 28px;
+  }
+  .plan-item {
+    grid-template-columns: 70px 18px minmax(0, 1fr);
+    gap: 14px;
+  }
 }
 
 // Tablet: stack, and lay the side card's rows out in columns so it isn't a long ribbon.
 @media (max-width: 1100px) {
-  .mp-layout { grid-template-columns: 1fr; }
-  .plan-list, .agenda { position: static; max-height: none; overflow: visible; }
+  .mp-layout {
+    grid-template-columns: 1fr;
+  }
+  .plan-list,
+  .agenda {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
 
-  .plan-list, .agenda {
+  .plan-list,
+  .agenda {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
     column-gap: 24px;
 
-    > .card-head, > .agenda-tip, > .agenda-empty { grid-column: 1 / -1; }
+    > .card-head,
+    > .agenda-tip,
+    > .agenda-empty {
+      grid-column: 1 / -1;
+    }
   }
 
-  .plan-list > .card-head { position: static; margin: 0 0 4px; padding: 18px 0 12px; }
+  .plan-list > .card-head {
+    position: static;
+    margin: 0 0 4px;
+    padding: 18px 0 12px;
+  }
 }
 
 @media (max-width: 900px) {
-  .week-strip { gap: 6px; }
-  .day-chip { padding: 10px 4px; border-radius: 12px; }
-  .day-num { font-size: 20px; }
-  .day-count { padding: 2px 6px; font-size: 11px; }
+  .week-strip {
+    gap: 6px;
+  }
+  .day-chip {
+    padding: 10px 4px;
+    border-radius: 12px;
+  }
+  .day-num {
+    font-size: 20px;
+  }
+  .day-count {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
 }
 
 // Phone: scrollable week, compact KPIs and cards.
 @media (max-width: 700px) {
-  .mp-page { gap: 12px; }
+  .mp-page {
+    gap: 12px;
+  }
 
   .mp-header {
     align-items: flex-start;
-    .page-title > mat-icon { width: 38px; height: 38px; padding: 8px; font-size: 22px; }
+    .page-title > mat-icon {
+      width: 38px;
+      height: 38px;
+      padding: 8px;
+      font-size: 22px;
+    }
   }
-  .mp-subtitle { font-size: 12.5px; }
+  .mp-subtitle {
+    font-size: 12.5px;
+  }
 
   .week-strip {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x proximity;
     padding-bottom: 4px;
-    .day-chip { flex: 0 0 76px; scroll-snap-align: start; }
+    .day-chip {
+      flex: 0 0 76px;
+      scroll-snap-align: start;
+    }
   }
 
-  .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
   .kpi {
     gap: 10px;
     padding: 10px 12px;
     // An odd last tile (e.g. Failed sends) takes the full row.
-    &:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    &:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
   }
-  .kpi-icon { width: 36px; height: 36px; border-radius: 10px; mat-icon { font-size: 20px; width: 20px; height: 20px; } }
-  .kpi-value { font-size: 20px; }
-  .kpi-label { font-size: 11.5px; }
+  .kpi-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+  .kpi-value {
+    font-size: 20px;
+  }
+  .kpi-label {
+    font-size: 11.5px;
+  }
 
-  .mp-tabs { display: flex; }
-  .mp-tab { flex: 1; justify-content: center; padding: 10px 12px; }
+  .mp-tabs {
+    display: flex;
+  }
+  .mp-tab {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px;
+  }
 
-  .mp-card { padding: 14px; }
-  .plan-list { padding-top: 0; }
-  .plan-list > .card-head { padding-top: 14px; }
-  .card-head { flex-wrap: wrap; h2 { font-size: 16px; } }
+  .mp-card {
+    padding: 14px;
+  }
+  .plan-list {
+    padding-top: 0;
+  }
+  .plan-list > .card-head {
+    padding-top: 14px;
+  }
+  .card-head {
+    flex-wrap: wrap;
+    h2 {
+      font-size: 16px;
+    }
+  }
 
-  .plan-item { grid-template-columns: 46px 14px minmax(0, 1fr); gap: 6px; }
-  .plan-time .t { font-size: 14px; }
-  .plan-body { padding: 10px 12px; }
-  .plan-top { flex-wrap: wrap; }
-  .plan-subject { font-size: 14.5px; }
+  .plan-item {
+    grid-template-columns: 46px 14px minmax(0, 1fr);
+    gap: 6px;
+  }
+  .plan-time .t {
+    font-size: 14px;
+  }
+  .plan-body {
+    padding: 10px 12px;
+  }
+  .plan-top {
+    flex-wrap: wrap;
+  }
+  .plan-subject {
+    font-size: 14.5px;
+  }
 
-  .mail-event { flex-direction: column; }
-  .remind-line .spacer { display: none; }
-  .filter-strip { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .filter-pill { flex: none; }
+  .mail-event {
+    flex-direction: column;
+  }
+  .remind-line .spacer {
+    display: none;
+  }
+  .filter-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filter-pill {
+    flex: none;
+  }
 }
 
 // Small phones: drop the rail and show the time inline above each mail.
 @media (max-width: 480px) {
-  .plan-item { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .plan-rail { display: none; }
+  .plan-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .plan-rail {
+    display: none;
+  }
   .plan-time {
     flex-direction: row;
     align-items: baseline;
@@ -893,6 +1330,12 @@ app-rich-text-view.mail-body { white-space: normal; }
     padding: 0 0 4px 2px;
     text-align: left;
   }
-  .plan-actions .ev-btn { flex: 1 1 auto; justify-content: center; }
-  .timeline .card-head .ev-btn { width: 100%; justify-content: center; }
+  .plan-actions .ev-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .timeline .card-head .ev-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

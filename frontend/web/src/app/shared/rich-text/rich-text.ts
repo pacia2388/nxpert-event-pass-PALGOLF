@@ -8,10 +8,30 @@ export const MAX_IMAGE_EDGE = 1600;
 export const MAX_IMAGES = 5;
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 export const MAX_TOTAL_IMAGE_BYTES = 5 * 1024 * 1024;
-export const IMAGE_LIMIT_MESSAGE = 'Use up to five images, at most 2 MB each and 5 MB in total after resizing.';
+export const IMAGE_LIMIT_MESSAGE =
+  'Use up to five images, at most 2 MB each and 5 MB in total after resizing.';
 
 // Formatting the server keeps (InvitationMessageBuilder.RenderBody) — previews mirror it.
-const RICH_TAGS = new Set(['p', 'div', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'ul', 'ol', 'li', 'blockquote', 'span', 'h1', 'h2', 'h3', 'a']);
+const RICH_TAGS = new Set([
+  'p',
+  'div',
+  'br',
+  'b',
+  'strong',
+  'i',
+  'em',
+  'u',
+  's',
+  'ul',
+  'ol',
+  'li',
+  'blockquote',
+  'span',
+  'h1',
+  'h2',
+  'h3',
+  'a',
+]);
 const RICH_STYLES: Record<string, RegExp> = {
   'text-align': /^(left|center|right)$/,
   'font-weight': /^(bold|400|600|700)$/,
@@ -20,9 +40,54 @@ const RICH_STYLES: Record<string, RegExp> = {
   color: /^#[0-9a-f]{3}([0-9a-f]{3})?$/,
 };
 // Dropped with everything inside them (pasted pages and documents carry these).
-const SKIP_TAGS = new Set(['script', 'style', 'head', 'title', 'meta', 'link', 'template', 'noscript', 'iframe', 'object', 'embed', 'svg', 'math', 'canvas', 'video', 'audio', 'button', 'input', 'select', 'textarea']);
+const SKIP_TAGS = new Set([
+  'script',
+  'style',
+  'head',
+  'title',
+  'meta',
+  'link',
+  'template',
+  'noscript',
+  'iframe',
+  'object',
+  'embed',
+  'svg',
+  'math',
+  'canvas',
+  'video',
+  'audio',
+  'button',
+  'input',
+  'select',
+  'textarea',
+]);
 // Block elements outside the allowlist keep their line breaks as a plain div.
-const BLOCK_TAGS = new Set(['section', 'article', 'header', 'footer', 'main', 'aside', 'nav', 'figure', 'figcaption', 'address', 'pre', 'table', 'tbody', 'thead', 'tfoot', 'tr', 'dl', 'dt', 'dd', 'h4', 'h5', 'h6', 'center']);
+const BLOCK_TAGS = new Set([
+  'section',
+  'article',
+  'header',
+  'footer',
+  'main',
+  'aside',
+  'nav',
+  'figure',
+  'figcaption',
+  'address',
+  'pre',
+  'table',
+  'tbody',
+  'thead',
+  'tfoot',
+  'tr',
+  'dl',
+  'dt',
+  'dd',
+  'h4',
+  'h5',
+  'h6',
+  'center',
+]);
 const PNG_PREFIX = 'data:image/png;base64,';
 
 /** Allowlisted copy of a node: only PNG data images, safe links and a few inline styles survive. */
@@ -40,8 +105,10 @@ export function cleanNode(node: Node, depth = 0): Node {
   const children = Array.from(node.childNodes, (n) => cleanNode(n, depth + 1));
   const style = (node as HTMLElement).style;
   // Google Docs wraps whole selections in <b style="font-weight:normal">.
-  const notBold = (tag === 'b' || tag === 'strong') && /^(normal|400)$/.test(style?.getPropertyValue('font-weight').trim() ?? '');
-  const as = BLOCK_TAGS.has(tag) ? 'div' : (tag === 'td' || tag === 'th') ? 'span' : tag;
+  const notBold =
+    (tag === 'b' || tag === 'strong') &&
+    /^(normal|400)$/.test(style?.getPropertyValue('font-weight').trim() ?? '');
+  const as = BLOCK_TAGS.has(tag) ? 'div' : tag === 'td' || tag === 'th' ? 'span' : tag;
   if (!RICH_TAGS.has(as) || notBold) {
     fragment.append(...children);
     return fragment;
@@ -77,7 +144,13 @@ export function newImage(src: string, alt: string): HTMLImageElement {
 export function richNodes(html: string | null | undefined): Node[] {
   const value = html ?? '';
   if (!/<[a-z!/]/i.test(value)) {
-    return value.split('\n').flatMap((line, i) => (i ? [document.createElement('br'), document.createTextNode(line)] : [document.createTextNode(line)]));
+    return value
+      .split('\n')
+      .flatMap((line, i) =>
+        i
+          ? [document.createElement('br'), document.createTextNode(line)]
+          : [document.createTextNode(line)],
+      );
   }
   const doc = new DOMParser().parseFromString(value, 'text/html');
   return Array.from(doc.body.childNodes, (n) => cleanNode(n));
@@ -125,12 +198,16 @@ export interface ImageBudget {
 
 export function imageBudget(root: ParentNode): ImageBudget {
   const images = Array.from(root.querySelectorAll('img'));
-  return { count: images.length, bytes: images.reduce((sum, i) => sum + pngBytes(i.getAttribute('src') ?? ''), 0) };
+  return {
+    count: images.length,
+    bytes: images.reduce((sum, i) => sum + pngBytes(i.getAttribute('src') ?? ''), 0),
+  };
 }
 
 /** Re-encodes an image as a static PNG (max 1600 px) and reserves it in the budget. */
 export async function toPng(blob: Blob, budget: ImageBudget): Promise<string> {
-  if (!blob.type.startsWith('image/') || blob.size > MAX_SOURCE_BYTES) throw new Error('Choose a PNG, JPEG, WebP, GIF or BMP image up to 10 MB.');
+  if (!blob.type.startsWith('image/') || blob.size > MAX_SOURCE_BYTES)
+    throw new Error('Choose a PNG, JPEG, WebP, GIF or BMP image up to 10 MB.');
   const objectUrl = URL.createObjectURL(blob);
   try {
     const image = new Image();
@@ -143,7 +220,12 @@ export async function toPng(blob: Blob, budget: ImageBudget): Promise<string> {
     canvas.getContext('2d')!.drawImage(image, 0, 0, canvas.width, canvas.height);
     const png = canvas.toDataURL('image/png');
     const size = pngBytes(png);
-    if (budget.count >= MAX_IMAGES || size > MAX_IMAGE_BYTES || budget.bytes + size > MAX_TOTAL_IMAGE_BYTES) throw new Error(IMAGE_LIMIT_MESSAGE);
+    if (
+      budget.count >= MAX_IMAGES ||
+      size > MAX_IMAGE_BYTES ||
+      budget.bytes + size > MAX_TOTAL_IMAGE_BYTES
+    )
+      throw new Error(IMAGE_LIMIT_MESSAGE);
     budget.count++;
     budget.bytes += size;
     return png;
@@ -169,7 +251,11 @@ export type RemoteImageFetcher = (url: string) => Promise<Blob | undefined>;
  * those images come from the clipboard's RTF copy. Anything else falls back to image files on the
  * clipboard, otherwise it is skipped.
  */
-export async function readPaste(data: DataTransfer | null, budget: ImageBudget, fetchRemote?: RemoteImageFetcher): Promise<PasteResult> {
+export async function readPaste(
+  data: DataTransfer | null,
+  budget: ImageBudget,
+  fetchRemote?: RemoteImageFetcher,
+): Promise<PasteResult> {
   // The clipboard is only readable during the paste event, so take everything before awaiting.
   const html = data?.getData('text/html') ?? '';
   const text = data?.getData('text/plain') ?? '';
@@ -194,7 +280,10 @@ export async function readPaste(data: DataTransfer | null, budget: ImageBudget, 
   const doc = html.trim() ? new DOMParser().parseFromString(html, 'text/html') : null;
   const pastedImages = doc ? Array.from(doc.body.querySelectorAll('img')) : [];
   if (doc && (doc.body.textContent?.trim() || pastedImages.length)) {
-    const localImages = rtf && pastedImages.some((i) => isLocalSrc(i.getAttribute('src') ?? '')) ? rtfImages(rtf) : [];
+    const localImages =
+      rtf && pastedImages.some((i) => isLocalSrc(i.getAttribute('src') ?? ''))
+        ? rtfImages(rtf)
+        : [];
     for (const img of pastedImages) {
       const src = (img.getAttribute('src') ?? '').trim();
       let blob: Blob | undefined;
@@ -219,7 +308,8 @@ export async function readPaste(data: DataTransfer | null, budget: ImageBudget, 
   if (text) result.nodes.push(...richNodes(text));
   for (const file of files) {
     const png = await convert(file);
-    if (png) result.nodes.push(newImage(png, file.name || 'Message image'), document.createElement('br'));
+    if (png)
+      result.nodes.push(newImage(png, file.name || 'Message image'), document.createElement('br'));
     else result.skipped++;
   }
   return result;
@@ -266,11 +356,15 @@ function groupEnd(rtf: string, start: number): number {
 function rtfPicture(body: string): Blob | null {
   // Nested groups (picture properties, ids) can hold hex-looking text; drop them first.
   let flat = body;
-  for (let prev = ''; prev !== flat; ) {
+  for (let prev = ''; prev !== flat;) {
     prev = flat;
     flat = flat.replace(/\{[^{}]*\}/g, '');
   }
-  const type = /\\pngblip\b/.test(flat) ? 'image/png' : /\\jpegblip\b/.test(flat) ? 'image/jpeg' : null;
+  const type = /\\pngblip\b/.test(flat)
+    ? 'image/png'
+    : /\\jpegblip\b/.test(flat)
+      ? 'image/jpeg'
+      : null;
   if (!type) return null;
   const hex = flat.replace(/\\[a-z]+-?\d* ?/gi, '').replace(/[^0-9a-f]/gi, '');
   if (hex.length < 16 || hex.length % 2) return null;

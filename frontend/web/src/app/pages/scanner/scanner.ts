@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -124,7 +133,13 @@ type BannerState =
   | 'mealnotvalid';
 
 // Results that mean "done" (checked in / redeemed); anything else is a validation error.
-const SUCCESS_STATES = new Set<BannerState>(['valid', 'verified', 'already', 'mealvalid', 'mealalready']);
+const SUCCESS_STATES = new Set<BannerState>([
+  'valid',
+  'verified',
+  'already',
+  'mealvalid',
+  'mealalready',
+]);
 
 @Component({
   selector: 'app-scanner',
@@ -274,21 +289,16 @@ export class ScannerComponent implements OnInit, OnDestroy {
     if (online && this.eventId) this.requestAttendanceRefresh();
   });
 
-
   constructor() {
-    this.realtime.verifyOnlyChanged$
-      .pipe(takeUntilDestroyed())
-      .subscribe((n) => {
-        if (n.eventId !== this.eventId || n.enabled === this.verifyOnly()) return;
-        this.verifyOnly.set(n.enabled);
-        if (n.enabled) this.verifiedCount.set(0);
-      });
+    this.realtime.verifyOnlyChanged$.pipe(takeUntilDestroyed()).subscribe((n) => {
+      if (n.eventId !== this.eventId || n.enabled === this.verifyOnly()) return;
+      this.verifyOnly.set(n.enabled);
+      if (n.enabled) this.verifiedCount.set(0);
+    });
     // Any committed attendance change for this event (from any device) refreshes the totals.
-    this.realtime.attendeesChanged$
-      .pipe(takeUntilDestroyed())
-      .subscribe((n) => {
-        if (n.eventId === this.eventId) this.requestAttendanceRefresh();
-      });
+    this.realtime.attendeesChanged$.pipe(takeUntilDestroyed()).subscribe((n) => {
+      if (n.eventId === this.eventId) this.requestAttendanceRefresh();
+    });
   }
 
   ngOnInit(): void {
@@ -322,7 +332,9 @@ export class ScannerComponent implements OnInit, OnDestroy {
   // Reopen the camera by itself once the browser grants permission (no Retry click needed).
   private async watchCameraPermission(): Promise<void> {
     try {
-      this.cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      this.cameraPermission = await navigator.permissions.query({
+        name: 'camera' as PermissionName,
+      });
       this.cameraPermission.onchange = () => {
         if (this.cameraPermission?.state === 'granted') this.reopenCamera();
       };
@@ -371,21 +383,35 @@ export class ScannerComponent implements OnInit, OnDestroy {
   // Failures keep the last good snapshot and label it, rather than showing an invented zero.
   private async refreshAttendanceCounts(): Promise<void> {
     if (this.countsDestroyed || !this.eventId) return;
-    if (!this.offline.online()) { this.countSyncState.set('offline'); return; }
-    if (this.countRequestBusy) { this.countRefreshNeeded = true; return; }
+    if (!this.offline.online()) {
+      this.countSyncState.set('offline');
+      return;
+    }
+    if (this.countRequestBusy) {
+      this.countRefreshNeeded = true;
+      return;
+    }
     this.countRequestBusy = true;
     try {
-      const summary = await firstValueFrom(this.api.attendanceSummary(this.eventId).pipe(timeout(5000)));
+      const summary = await firstValueFrom(
+        this.api.attendanceSummary(this.eventId).pipe(timeout(5000)),
+      );
       if (this.countsDestroyed) return;
-      if (summary.eventId !== this.eventId || !Number.isInteger(summary.checkedIn) ||
-        !Number.isInteger(summary.registered) || summary.checkedIn < 0 ||
-        summary.registered < summary.checkedIn) throw new Error('Invalid attendance totals.');
+      if (
+        summary.eventId !== this.eventId ||
+        !Number.isInteger(summary.checkedIn) ||
+        !Number.isInteger(summary.registered) ||
+        summary.checkedIn < 0 ||
+        summary.registered < summary.checkedIn
+      )
+        throw new Error('Invalid attendance totals.');
       this.checkedCount.set(summary.checkedIn);
       this.registeredCount.set(summary.registered);
       this.countsReady.set(true);
       this.countSyncState.set(this.offline.online() ? 'live' : 'offline');
     } catch {
-      if (!this.countsDestroyed) this.countSyncState.set(this.offline.online() ? 'stale' : 'offline');
+      if (!this.countsDestroyed)
+        this.countSyncState.set(this.offline.online() ? 'stale' : 'offline');
     } finally {
       this.countRequestBusy = false;
       if (this.countRefreshNeeded && !this.countsDestroyed) {
@@ -586,7 +612,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.scanAction.set(a);
     this.resetResult();
     // Meal redemption is token-only, so drop face input (dedicated or auto) back to the QR camera.
-    if (a === 'meal' && (this.mode() === 'face' || this.mode() === 'auto')) void this.setMode('camera');
+    if (a === 'meal' && (this.mode() === 'face' || this.mode() === 'auto'))
+      void this.setMode('camera');
   }
 
   // ---- Input source switching (camera <-> barcode scanner) ----
@@ -602,7 +629,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
       setTimeout(() => this.start(), 0);
     } else if (m === 'auto') {
       // QR camera + face detection on the same stream.
-      setTimeout(() => { void this.start(); void this.startAutoFace(); }, 0);
+      setTimeout(() => {
+        void this.start();
+        void this.startAutoFace();
+      }, 0);
     } else if (m === 'barcode') {
       this.focusBarcode();
     } else {
@@ -655,7 +685,9 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.faceReady.set(true);
       void this.detectCameras();
       if (this.enrolled.length === 0 && this.guestFaces.length === 0) {
-        this.faceError.set('No registered faces yet — register a face in Users, or have guests add one at sign-up.');
+        this.faceError.set(
+          'No registered faces yet — register a face in Users, or have guests add one at sign-up.',
+        );
       }
       this.faceTimer = setInterval(() => this.detectFace(), FACE_CHECK_INTERVAL_MS);
     } catch (err) {
@@ -809,7 +841,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   // Only clear, reasonably sized, front-facing faces are matched.
   private goodFaceSample(s: FaceSample): boolean {
     if (s.score < FACE_MIN_SCORE) return false;
-    if (s.box.width < FACE_MIN_WIDTH_PX || s.box.width / s.imageWidth < FACE_MIN_WIDTH_RATIO) return false;
+    if (s.box.width < FACE_MIN_WIDTH_PX || s.box.width / s.imageWidth < FACE_MIN_WIDTH_RATIO)
+      return false;
     const pose = this.face.pose(s);
     return !pose || (Math.abs(pose.yaw) <= FACE_MAX_YAW && pose.roll <= FACE_MAX_ROLL);
   }
@@ -819,13 +852,27 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private bestFaceMatch(
     desc: ArrayLike<number>,
   ): { key: string; user: FaceDescriptorDto | null; guest: RegistrationFace | null } | null {
-    type Cand = { key: string; name: string; d: number; user: FaceDescriptorDto | null; guest: RegistrationFace | null };
+    type Cand = {
+      key: string;
+      name: string;
+      d: number;
+      user: FaceDescriptorDto | null;
+      guest: RegistrationFace | null;
+    };
     const cands: Cand[] = [
       ...this.enrolled.map((u) => ({
-        key: `u:${u.userId}`, name: u.fullName, d: this.face.distance(desc, u.descriptor), user: u, guest: null,
+        key: `u:${u.userId}`,
+        name: u.fullName,
+        d: this.face.distance(desc, u.descriptor),
+        user: u,
+        guest: null,
       })),
       ...this.guestFaces.map((g) => ({
-        key: `g:${g.token}`, name: g.name, d: this.face.distance(desc, g.descriptor), user: null, guest: g,
+        key: `g:${g.token}`,
+        name: g.name,
+        d: this.face.distance(desc, g.descriptor),
+        user: null,
+        guest: g,
       })),
     ].sort((a, b) => a.d - b.d);
 
@@ -935,7 +982,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       message:
         res.status === 'valid'
           ? `₱${res.value.toFixed(2)} · ${res.label ?? ''}`
-          : res.message ?? (res.status === 'invalid' ? 'Not a valid meal stub.' : null),
+          : (res.message ?? (res.status === 'invalid' ? 'Not a valid meal stub.' : null)),
     });
     if (res.status === 'valid') this.mealsRedeemedCount.update((c) => c + 1);
     this.scheduleResume();
@@ -950,7 +997,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     if (this.offline.online()) {
       try {
         const res = await firstValueFrom(
-          this.api.checkInUser(this.eventId, userId, { sessionId: opts.sessionId, verify: opts.verify }),
+          this.api.checkInUser(this.eventId, userId, {
+            sessionId: opts.sessionId,
+            verify: opts.verify,
+          }),
         );
         if (!this.isCurrent(t)) return;
         if (res.status === 'invalid') {
@@ -964,7 +1014,9 @@ export class ScannerComponent implements OnInit, OnDestroy {
       }
     }
     if (!this.isCurrent(t)) return;
-    const token = this.bundle ? this.offline.resolveFaceToken(this.bundle, userId, opts.sessionId) : null;
+    const token = this.bundle
+      ? this.offline.resolveFaceToken(this.bundle, userId, opts.sessionId)
+      : null;
     if (!token) {
       this.showNotRegistered(name); // recognized, but no registration for this event in the bundle
       return;

@@ -68,7 +68,11 @@ export class TeamComponent implements OnInit {
   /** Members who can still get the notice (account not completed yet). */
   readonly pending = computed(() => this.team()?.members.filter((m) => !m.registered) ?? []);
   /** Checked members the notice goes to (registered members are exempt). */
-  readonly noticeIds = computed(() => this.pending().filter((m) => this.selected().has(m.userId)).map((m) => m.userId));
+  readonly noticeIds = computed(() =>
+    this.pending()
+      .filter((m) => this.selected().has(m.userId))
+      .map((m) => m.userId),
+  );
   readonly allChecked = computed(() => {
     const ms = this.team()?.members ?? [];
     return ms.length > 0 && ms.every((m) => this.selected().has(m.userId));
@@ -173,14 +177,25 @@ export class TeamComponent implements OnInit {
       this.removing.set(false);
       const gone = new Set(members.filter((_, i) => results[i]).map((m) => m.userId));
       this.team.update((t) =>
-        t ? { ...t, memberCount: t.memberCount - gone.size, members: t.members.filter((x) => !gone.has(x.userId)) } : t,
+        t
+          ? {
+              ...t,
+              memberCount: t.memberCount - gone.size,
+              members: t.members.filter((x) => !gone.has(x.userId)),
+            }
+          : t,
       );
       this.selected.set(new Set([...this.selected()].filter((id) => !gone.has(id))));
       const failed = members.length - gone.size;
-      const msg = one && !failed ? `${members[0].fullName} removed from the team.` : `${gone.size} removed from the team.`;
+      const msg =
+        one && !failed
+          ? `${members[0].fullName} removed from the team.`
+          : `${gone.size} removed from the team.`;
       if (!failed) this.toast.success(msg);
-      else if (gone.size) this.toast.warning(`${msg} ${failed} could not be removed; they are still selected.`);
-      else this.toast.error(one ? 'Could not remove this member.' : 'Could not remove these members.');
+      else if (gone.size)
+        this.toast.warning(`${msg} ${failed} could not be removed; they are still selected.`);
+      else
+        this.toast.error(one ? 'Could not remove this member.' : 'Could not remove these members.');
     });
   }
 
@@ -258,7 +273,9 @@ export class TeamComponent implements OnInit {
               ? {
                   ...t,
                   memberCount: t.memberCount + 1,
-                  members: [...t.members, res.member].sort((a, b) => a.fullName.localeCompare(b.fullName)),
+                  members: [...t.members, res.member].sort((a, b) =>
+                    a.fullName.localeCompare(b.fullName),
+                  ),
                 }
               : t,
           );

@@ -54,8 +54,12 @@ export class RegistrationEditComponent implements OnInit {
   protected countries = inject(PhoneCountryService);
 
   identityValid(): boolean {
-    return !this.form()?.canEditIdentity || (!!this.fullName.trim() &&
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim()) && this.countries.isValid(this.phone));
+    return (
+      !this.form()?.canEditIdentity ||
+      (!!this.fullName.trim() &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim()) &&
+        this.countries.isValid(this.phone))
+    );
   }
 
   ngOnInit(): void {
@@ -84,12 +88,13 @@ export class RegistrationEditComponent implements OnInit {
     }
     this.saving.set(true);
     const identity = this.form()?.canEditIdentity
-      ? { fullName: this.fullName.trim(), email: this.email.trim(), phone: this.phone ?? '' } : undefined;
+      ? { fullName: this.fullName.trim(), email: this.email.trim(), phone: this.phone ?? '' }
+      : undefined;
     this.api.updatePublicResponses(this.token, this.dyn?.collect() ?? {}, identity).subscribe({
       next: () => {
         this.saving.set(false);
         this.saved.set(true);
-        if (identity) this.form.update((f) => f ? { ...f, attendeeName: identity.fullName } : f);
+        if (identity) this.form.update((f) => (f ? { ...f, attendeeName: identity.fullName } : f));
         this.toast.success('Your response was updated.');
       },
       error: (err) => {

@@ -111,10 +111,18 @@ export class RealtimeService {
     conn.on('newRegistration', (n: NewRegistrationNotice) => this.onNewRegistration(n));
     conn.on('registrationApproved', (n: RegistrationApprovedNotice) => this.onApproved(n));
     conn.on('kitClaimed', (n: KitClaimedNotice) => this.onKitClaimed(n));
-    conn.on('attendeesChanged', (n: AttendeesChangedNotice) => this.attendeesChangedSubject.next(n));
-    conn.on('faceGalleryChanged', (n: FaceGalleryChangedNotice) => this.faceGalleryChangedSubject.next(n));
-    conn.on('verifyOnlyChanged', (n: VerifyOnlyChangedNotice) => this.verifyOnlyChangedSubject.next(n));
-    conn.on('viberBroadcastProgress', (n: ViberBroadcastProgressNotice) => this.viberBroadcastProgressSubject.next(n));
+    conn.on('attendeesChanged', (n: AttendeesChangedNotice) =>
+      this.attendeesChangedSubject.next(n),
+    );
+    conn.on('faceGalleryChanged', (n: FaceGalleryChangedNotice) =>
+      this.faceGalleryChangedSubject.next(n),
+    );
+    conn.on('verifyOnlyChanged', (n: VerifyOnlyChangedNotice) =>
+      this.verifyOnlyChangedSubject.next(n),
+    );
+    conn.on('viberBroadcastProgress', (n: ViberBroadcastProgressNotice) =>
+      this.viberBroadcastProgressSubject.next(n),
+    );
     conn.onreconnected(() => this.connected.set(true));
     conn.onreconnecting(() => this.connected.set(false));
     conn.onclose(() => this.connected.set(false));
@@ -215,6 +223,8 @@ export class RealtimeService {
   }
 
   private newId(): string {
-    return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return (
+      globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    );
   }
 }

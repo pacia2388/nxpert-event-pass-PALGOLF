@@ -19,7 +19,13 @@ import { AuthService } from '../../core/auth.service';
 import { NotificationChannel, ProfileUpdate } from '../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { BIRTHDATE_MIN, birthdateMax, fromIsoDate, isValidBirthdate, toIsoDate } from '../../shared/birthdate';
+import {
+  BIRTHDATE_MIN,
+  birthdateMax,
+  fromIsoDate,
+  isValidBirthdate,
+  toIsoDate,
+} from '../../shared/birthdate';
 
 @Component({
   selector: 'app-account',

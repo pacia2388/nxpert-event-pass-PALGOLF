@@ -20,8 +20,7 @@ if (!/^\d+$/.test(RUN_ID)) throw new Error(`E2E_RUN_ID must be digits only, got 
 // LocalDB by default; set EVENTPASS_E2E_SQLSERVER to use another SQL Server (Windows auth).
 export const SQL_SERVER = process.env['EVENTPASS_E2E_SQLSERVER'] ?? '(localdb)\\MSSQLLocalDB';
 export const DATABASE = `EventPassE2E_${RUN_ID}`;
-export const CONNECTION_STRING =
-  `Server=${SQL_SERVER};Database=${DATABASE};Integrated Security=True;TrustServerCertificate=True;`;
+export const CONNECTION_STRING = `Server=${SQL_SERVER};Database=${DATABASE};Integrated Security=True;TrustServerCertificate=True;`;
 
 export const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 export const API_PROJECT = path.join(REPO_ROOT, 'backend', 'EventRegistration.Api');

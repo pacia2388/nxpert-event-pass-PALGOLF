@@ -17,8 +17,14 @@
 
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Comment (optional)</mat-label>
-    <textarea matInput [(ngModel)]="comment" rows="3" maxlength="1000"
-              placeholder="How was the event?" #commentCtrl></textarea>
+    <textarea
+      matInput
+      [(ngModel)]="comment"
+      rows="3"
+      maxlength="1000"
+      placeholder="How was the event?"
+      #commentCtrl
+    ></textarea>
     <mat-hint align="end">{{ commentCtrl.value.length }}/1000</mat-hint>
   </mat-form-field>
 </mat-dialog-content>

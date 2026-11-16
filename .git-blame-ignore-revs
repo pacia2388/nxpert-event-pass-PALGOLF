@@ -1,0 +1,3 @@
+# Bulk formatting commits; git blame skips them with --ignore-revs-file or blame.ignoreRevsFile.
+# style(web): format the frontend with Prettier
+77a8aa629d186e37f4453556bd41d1fc9ec69fdb

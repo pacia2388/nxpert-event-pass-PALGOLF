@@ -57,7 +57,10 @@ describe('Login page', () => {
     expect(submit.textContent).toContain('Sign in');
     expect(submit.disabled).toBe(true);
 
-    for (const [name, value] of [['email', 'admin'], ['password', 'secret-1']]) {
+    for (const [name, value] of [
+      ['email', 'admin'],
+      ['password', 'secret-1'],
+    ]) {
       const input = root().querySelector<HTMLInputElement>(`input[name="${name}"]`)!;
       input.value = value;
       input.dispatchEvent(new Event('input'));
@@ -89,7 +92,8 @@ describe('Login page', () => {
   });
 
   it('colours the phone toolbar like the page, and puts it back on leaving', () => {
-    const toolbar = () => document.querySelector('meta[name="theme-color"]')?.getAttribute('content');
+    const toolbar = () =>
+      document.querySelector('meta[name="theme-color"]')?.getAttribute('content');
     expect(toolbar()).toBe('#1a5aa8');
 
     fixture.destroy();

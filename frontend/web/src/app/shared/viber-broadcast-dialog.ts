@@ -55,31 +55,44 @@ export interface ViberBroadcastData {
       } @else {
         <p class="vb-count">
           <mat-icon>groups</mat-icon>
-          This will send to <strong>{{ recipientCount() }}</strong>
-          Viber number{{ recipientCount() === 1 ? '' : 's' }}.
+          This will send to <strong>{{ recipientCount() }}</strong> Viber number{{
+            recipientCount() === 1 ? '' : 's'
+          }}.
         </p>
       }
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Message</mat-label>
-        <textarea matInput [(ngModel)]="message" rows="5" maxlength="1000"
-                  placeholder="e.g. The keynote in Hall A starts in 15 minutes. Please take your seats."
-                  [disabled]="sending()"></textarea>
+        <textarea
+          matInput
+          [(ngModel)]="message"
+          rows="5"
+          maxlength="1000"
+          placeholder="e.g. The keynote in Hall A starts in 15 minutes. Please take your seats."
+          [disabled]="sending()"
+        ></textarea>
         <mat-hint align="end">{{ message.length }}/1000</mat-hint>
       </mat-form-field>
 
-      <mat-slide-toggle [(ngModel)]="fallbackToEmail" [disabled]="sending()">Fallback to email</mat-slide-toggle>
+      <mat-slide-toggle [(ngModel)]="fallbackToEmail" [disabled]="sending()"
+        >Fallback to email</mat-slide-toggle
+      >
       <p class="muted vb-hint">
-        When on, registrants Viber can't reach (send failed, or their country isn't enabled for Viber)
-        get the message by email instead.
+        When on, registrants Viber can't reach (send failed, or their country isn't enabled for
+        Viber) get the message by email instead.
       </p>
 
       @if (sending()) {
         <div class="vb-progress" role="status" aria-live="polite">
           @if (progress(); as p) {
-            <mat-progress-bar mode="determinate" [value]="p.total ? (p.done * 100) / p.total : 0"></mat-progress-bar>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="p.total ? (p.done * 100) / p.total : 0"
+            ></mat-progress-bar>
             <p class="muted">
-              Sending {{ p.done }} of {{ p.total }} — {{ p.sent }} sent by Viber{{ p.emailed ? ', ' + p.emailed + ' emailed' : '' }}{{ p.failed ? ', ' + p.failed + ' failed' : '' }}
+              Sending {{ p.done }} of {{ p.total }} — {{ p.sent }} sent by Viber{{
+                p.emailed ? ', ' + p.emailed + ' emailed' : ''
+              }}{{ p.failed ? ', ' + p.failed + ' failed' : '' }}
             </p>
           } @else {
             <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -90,8 +103,7 @@ export interface ViberBroadcastData {
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button (click)="ref.close()" [disabled]="sending()">Cancel</button>
-      <button mat-flat-button color="primary" (click)="send()"
-              [disabled]="!canSend()">
+      <button mat-flat-button color="primary" (click)="send()" [disabled]="!canSend()">
         @if (sending()) {
           <mat-spinner diameter="18"></mat-spinner>
         } @else {
@@ -103,18 +115,42 @@ export interface ViberBroadcastData {
   `,
   styles: [
     `
-      :host { display: block; min-width: min(460px, 86vw); }
-      .vb-intro { margin: 0 0 12px; }
-      .vb-count, .vb-none {
-        display: flex; align-items: center; gap: 8px;
-        margin: 0 0 14px; font-size: 13px;
+      :host {
+        display: block;
+        min-width: min(460px, 86vw);
       }
-      .vb-none { color: var(--mat-sys-error, #b00020); }
-      .full-width { width: 100%; }
-      button mat-spinner { display: inline-block; margin-right: 6px; }
-      .vb-hint { margin: 4px 0 0; font-size: 12px; }
-      .vb-progress { margin-top: 14px; }
-      .vb-progress p { margin: 6px 0 0; font-size: 12px; }
+      .vb-intro {
+        margin: 0 0 12px;
+      }
+      .vb-count,
+      .vb-none {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 14px;
+        font-size: 13px;
+      }
+      .vb-none {
+        color: var(--mat-sys-error, #b00020);
+      }
+      .full-width {
+        width: 100%;
+      }
+      button mat-spinner {
+        display: inline-block;
+        margin-right: 6px;
+      }
+      .vb-hint {
+        margin: 4px 0 0;
+        font-size: 12px;
+      }
+      .vb-progress {
+        margin-top: 14px;
+      }
+      .vb-progress p {
+        margin: 6px 0 0;
+        font-size: 12px;
+      }
     `,
   ],
 })
@@ -151,7 +187,12 @@ export class ViberBroadcastDialogComponent {
   }
 
   canSend(): boolean {
-    return !this.sending() && !this.loadingCount() && this.recipientCount() > 0 && this.message.trim().length > 0;
+    return (
+      !this.sending() &&
+      !this.loadingCount() &&
+      this.recipientCount() > 0 &&
+      this.message.trim().length > 0
+    );
   }
 
   send(): void {
@@ -164,9 +205,16 @@ export class ViberBroadcastDialogComponent {
         (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
       );
     this.sending.set(true);
-    this.api.viberBroadcast(this.data.eventId, this.message.trim(), this.fallbackToEmail, this.broadcastId).subscribe({
-      next: (res) => this.ref.close(res),
-      error: () => this.sending.set(false),
-    });
+    this.api
+      .viberBroadcast(
+        this.data.eventId,
+        this.message.trim(),
+        this.fallbackToEmail,
+        this.broadcastId,
+      )
+      .subscribe({
+        next: (res) => this.ref.close(res),
+        error: () => this.sending.set(false),
+      });
   }
 }

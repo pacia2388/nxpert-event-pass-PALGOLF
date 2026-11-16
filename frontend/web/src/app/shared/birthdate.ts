@@ -9,7 +9,12 @@ export function birthdateMax(): Date {
 }
 
 export function isValidBirthdate(value: Date | null | undefined): boolean {
-  return value instanceof Date && !isNaN(value.getTime()) && value >= BIRTHDATE_MIN && value <= birthdateMax();
+  return (
+    value instanceof Date &&
+    !isNaN(value.getTime()) &&
+    value >= BIRTHDATE_MIN &&
+    value <= birthdateMax()
+  );
 }
 
 /** Date → yyyy-MM-dd (local date, no time-zone shift). */

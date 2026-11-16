@@ -5,15 +5,21 @@
     } @else if (notFound()) {
       <div class="empty-state">
         <mat-icon>link_off</mat-icon>
-        <p>This edit link isn't valid. It may have been mistyped or the registration was removed.</p>
+        <p>
+          This edit link isn't valid. It may have been mistyped or the registration was removed.
+        </p>
       </div>
     } @else if (form(); as f) {
       <mat-card-content>
         <h1 class="event-heading">{{ f.eventTitle }}</h1>
         @if (f.sessionTitle) {
-          <p class="detail-row"><mat-icon class="inline-icon">event</mat-icon> {{ f.sessionTitle }}</p>
+          <p class="detail-row">
+            <mat-icon class="inline-icon">event</mat-icon> {{ f.sessionTitle }}
+          </p>
         }
-        <p class="muted">Registered as <strong>{{ f.attendeeName }}</strong></p>
+        <p class="muted">
+          Registered as <strong>{{ f.attendeeName }}</strong>
+        </p>
 
         <hr class="divider" />
 
@@ -22,7 +28,9 @@
             <mat-icon color="primary" class="big-check">check_circle</mat-icon>
             <h2>Response saved</h2>
             <p class="muted">Thanks, {{ f.attendeeName }} — your details have been updated.</p>
-            <a mat-stroked-button class="top-gap" [routerLink]="['/e', f.eventSlug]">Back to event</a>
+            <a mat-stroked-button class="top-gap" [routerLink]="['/e', f.eventSlug]"
+              >Back to event</a
+            >
           </div>
         } @else if (!f.editable) {
           <div class="success-block">
@@ -47,14 +55,25 @@
             </mat-form-field>
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
-              <input matInput name="email" type="email" [(ngModel)]="email" required maxlength="256" />
+              <input
+                matInput
+                name="email"
+                type="email"
+                [(ngModel)]="email"
+                required
+                maxlength="256"
+              />
             </mat-form-field>
             <app-phone-field [(value)]="phone" [required]="true" />
           } @else {
             <p class="muted">Your name and contact details are managed in your account profile.</p>
           }
 
-          <app-dynamic-fields #dyn [fields]="f.formFields" [initial]="f.responses"></app-dynamic-fields>
+          <app-dynamic-fields
+            #dyn
+            [fields]="f.formFields"
+            [initial]="f.responses"
+          ></app-dynamic-fields>
 
           <button
             mat-flat-button

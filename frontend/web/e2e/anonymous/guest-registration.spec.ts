@@ -26,7 +26,9 @@ test.describe('guest registration on the public event page', () => {
     await expect(page.getByText('Please enter your ID No.')).toBeHidden();
   });
 
-  test('a malformed email and mobile number are flagged after leaving the field', async ({ page }) => {
+  test('a malformed email and mobile number are flagged after leaving the field', async ({
+    page,
+  }) => {
     await page.getByLabel('Email').fill('not-an-email');
     await page.getByLabel('Mobile number').fill('12345');
     await page.getByLabel('Full name').focus();

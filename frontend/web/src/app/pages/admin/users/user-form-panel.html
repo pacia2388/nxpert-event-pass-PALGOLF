@@ -30,15 +30,27 @@
           <button type="button" mat-button (click)="removePhoto()">Remove</button>
         }
       </div>
-      @if (photoError()) { <span class="error-text">{{ photoError() }}</span> }
+      @if (photoError()) {
+        <span class="error-text">{{ photoError() }}</span>
+      }
     </div>
     <input #photoInput type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" />
   </div>
 
   <mat-form-field appearance="outline">
     <mat-label>First name</mat-label>
-    <input matInput name="firstName" [(ngModel)]="firstName" #firstNameModel="ngModel" required pattern=".*\S.*" maxlength="100" />
-    @if (firstNameModel.invalid && firstNameModel.touched) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
+    <input
+      matInput
+      name="firstName"
+      [(ngModel)]="firstName"
+      #firstNameModel="ngModel"
+      required
+      pattern=".*\S.*"
+      maxlength="100"
+    />
+    @if (firstNameModel.invalid && firstNameModel.touched) {
+      <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
+    }
   </mat-form-field>
 
   <div class="uf-pair">
@@ -48,42 +60,93 @@
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label>Last name</mat-label>
-      <input matInput name="lastName" [(ngModel)]="lastName" #lastNameModel="ngModel" required pattern=".*\S.*" maxlength="100" />
-      @if (lastNameModel.invalid && lastNameModel.touched) { <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon> }
+      <input
+        matInput
+        name="lastName"
+        [(ngModel)]="lastName"
+        #lastNameModel="ngModel"
+        required
+        pattern=".*\S.*"
+        maxlength="100"
+      />
+      @if (lastNameModel.invalid && lastNameModel.touched) {
+        <mat-icon matSuffix class="req" matTooltip="Required">error</mat-icon>
+      }
     </mat-form-field>
   </div>
 
   <mat-form-field appearance="outline">
     <mat-label>Email</mat-label>
-    <input matInput type="email" name="email" [(ngModel)]="email" #emailModel="ngModel" required maxlength="256"
-           pattern="\s*[^\s@]+@[^\s@]+\.[^\s@]+\s*" />
+    <input
+      matInput
+      type="email"
+      name="email"
+      [(ngModel)]="email"
+      #emailModel="ngModel"
+      required
+      maxlength="256"
+      pattern="\s*[^\s@]+@[^\s@]+\.[^\s@]+\s*"
+    />
     @if (emailModel.invalid && emailModel.touched) {
-      <mat-icon matSuffix class="req" [matTooltip]="emailModel.hasError('required') ? 'Required' : 'Enter a valid email address'">error</mat-icon>
+      <mat-icon
+        matSuffix
+        class="req"
+        [matTooltip]="emailModel.hasError('required') ? 'Required' : 'Enter a valid email address'"
+        >error</mat-icon
+      >
     }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
     <mat-label>Birthdate</mat-label>
-    <input matInput [matDatepicker]="birthdatePicker" name="birthdate" [(ngModel)]="birthdate"
-           required [min]="birthdateMin" [max]="birthdateMax" placeholder="MM/DD/YYYY" />
+    <input
+      matInput
+      [matDatepicker]="birthdatePicker"
+      name="birthdate"
+      [(ngModel)]="birthdate"
+      required
+      [min]="birthdateMin"
+      [max]="birthdateMax"
+      placeholder="MM/DD/YYYY"
+    />
     <mat-datepicker-toggle matIconSuffix [for]="birthdatePicker"></mat-datepicker-toggle>
     <mat-datepicker #birthdatePicker startView="multi-year"></mat-datepicker>
-    @if (!birthdate) { <mat-error>Birthdate is required.</mat-error> }
+    @if (!birthdate) {
+      <mat-error>Birthdate is required.</mat-error>
+    }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
     <mat-label>Username</mat-label>
-    <input matInput name="username" [(ngModel)]="username" maxlength="100"
-           placeholder="Auto-generated if blank" />
+    <input
+      matInput
+      name="username"
+      [(ngModel)]="username"
+      maxlength="100"
+      placeholder="Auto-generated if blank"
+    />
   </mat-form-field>
 
   <mat-form-field appearance="outline">
     <mat-label>{{ isEdit ? 'New password' : 'Password' }}</mat-label>
-    <input matInput type="password" name="password" [(ngModel)]="password" #passwordModel="ngModel"
-           [required]="!isEdit" minlength="8" autocomplete="new-password"
-           [placeholder]="isEdit ? 'Leave blank to keep' : 'At least 8 characters'" />
+    <input
+      matInput
+      type="password"
+      name="password"
+      [(ngModel)]="password"
+      #passwordModel="ngModel"
+      [required]="!isEdit"
+      minlength="8"
+      autocomplete="new-password"
+      [placeholder]="isEdit ? 'Leave blank to keep' : 'At least 8 characters'"
+    />
     @if (passwordModel.invalid && passwordModel.touched) {
-      <mat-icon matSuffix class="req" [matTooltip]="passwordModel.hasError('minlength') ? 'At least 8 characters' : 'Required'">error</mat-icon>
+      <mat-icon
+        matSuffix
+        class="req"
+        [matTooltip]="passwordModel.hasError('minlength') ? 'At least 8 characters' : 'Required'"
+        >error</mat-icon
+      >
     }
   </mat-form-field>
 
@@ -121,8 +184,12 @@
     </mat-select>
   </mat-form-field>
 
-  <app-phone-field [(value)]="phone" [required]="phoneRequired()" label="Phone"
-                   requiredMessage="A phone number is required for mobile." />
+  <app-phone-field
+    [(value)]="phone"
+    [required]="phoneRequired()"
+    label="Phone"
+    requiredMessage="A phone number is required for mobile."
+  />
 
   <div class="uf-checks span-2">
     <mat-checkbox name="canConfirm" [(ngModel)]="canConfirmRegistrations">
@@ -133,7 +200,9 @@
       <span class="uf-label">
         Facial registration:
         @if (faceRegistered()) {
-          <span class="face-ok"><mat-icon class="inline-icon">verified_user</mat-icon> Registered</span>
+          <span class="face-ok"
+            ><mat-icon class="inline-icon">verified_user</mat-icon> Registered</span
+          >
         } @else {
           <span class="muted">not registered</span>
         }

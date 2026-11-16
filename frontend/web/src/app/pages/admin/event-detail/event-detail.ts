@@ -25,7 +25,15 @@ import { ToastService } from '../../../core/toast.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { RealtimeService } from '../../../core/realtime.service';
 import { AttendeePassDialogComponent } from '../../../shared/attendee-pass-dialog';
-import { AttendeeDto, ContactDto, EventDto, EventFeedbackSummary, MealBoardDto, MealBoardRow, MealStubDetailDto } from '../../../core/models';
+import {
+  AttendeeDto,
+  ContactDto,
+  EventDto,
+  EventFeedbackSummary,
+  MealBoardDto,
+  MealBoardRow,
+  MealStubDetailDto,
+} from '../../../core/models';
 import { ImageViewerDialogComponent } from '../../../shared/image-viewer/image-viewer-dialog';
 import { KitClaimDialogComponent, KitClaimResult } from '../../../shared/kit-claim-dialog';
 import { ViberBroadcastDialogComponent } from '../../../shared/viber-broadcast-dialog';
@@ -34,7 +42,8 @@ import { ScheduleComponent } from '../../../shared/schedule';
 
 @Component({
   selector: 'app-event-detail',
-  imports: [ScheduleComponent, 
+  imports: [
+    ScheduleComponent,
     DatePipe,
     DecimalPipe,
     FormsModule,
@@ -112,27 +121,38 @@ export class EventDetailComponent implements OnInit {
     if (!confirmed) return;
 
     this.deleting.set(true);
-    from(rows.map((r) => r.registrationId)).pipe(
-      mergeMap((id) => this.api.deleteAttendee(this.id, id).pipe(
-        map(() => ({ id, ok: true })),
-        catchError(() => of({ id, ok: false })),
-      ), 4),
-      toArray(),
-    ).subscribe((results) => {
-      this.deleting.set(false);
-      const deleted = new Set(results.filter((r) => r.ok).map((r) => r.id));
-      const failed = results.length - deleted.size;
-      if (deleted.size) {
-        this.attendees.update((list) => list.filter((r) => !deleted.has(r.registrationId)));
-        const prune = (s: Set<number>) => new Set([...s].filter((id) => !deleted.has(id)));
-        this.selectedAttendees.update(prune);
-        this.selectedKits.update(prune);
-        this.selectedMeals.update(prune);
-        this.toast.success(`Deleted ${deleted.size} attendee${deleted.size === 1 ? '' : 's'}. Registration history retained.`);
-        this.reload();
-      }
-      if (failed) this.toast.error(`Could not delete ${failed} attendee${failed === 1 ? '' : 's'}. Please try again.`);
-    });
+    from(rows.map((r) => r.registrationId))
+      .pipe(
+        mergeMap(
+          (id) =>
+            this.api.deleteAttendee(this.id, id).pipe(
+              map(() => ({ id, ok: true })),
+              catchError(() => of({ id, ok: false })),
+            ),
+          4,
+        ),
+        toArray(),
+      )
+      .subscribe((results) => {
+        this.deleting.set(false);
+        const deleted = new Set(results.filter((r) => r.ok).map((r) => r.id));
+        const failed = results.length - deleted.size;
+        if (deleted.size) {
+          this.attendees.update((list) => list.filter((r) => !deleted.has(r.registrationId)));
+          const prune = (s: Set<number>) => new Set([...s].filter((id) => !deleted.has(id)));
+          this.selectedAttendees.update(prune);
+          this.selectedKits.update(prune);
+          this.selectedMeals.update(prune);
+          this.toast.success(
+            `Deleted ${deleted.size} attendee${deleted.size === 1 ? '' : 's'}. Registration history retained.`,
+          );
+          this.reload();
+        }
+        if (failed)
+          this.toast.error(
+            `Could not delete ${failed} attendee${failed === 1 ? '' : 's'}. Please try again.`,
+          );
+      });
   }
 
   // Print QR: needs exactly one selected attendee; opens the pass and starts the print.
@@ -157,14 +177,20 @@ export class EventDetailComponent implements OnInit {
   kitSearch = signal('');
   kitClaimFilter = signal<'all' | 'claimed' | 'unclaimed'>('all');
   kitOrgFilter = signal<string>('all');
-  kitSort = signal<{ active: string; direction: 'asc' | 'desc' | '' }>({ active: '', direction: '' });
+  kitSort = signal<{ active: string; direction: 'asc' | 'desc' | '' }>({
+    active: '',
+    direction: '',
+  });
   kitClaiming = signal(false);
 
   // Meal-stub redemption: its own selection + filters.
   selectedMeals = signal<Set<number>>(new Set());
   mealSearch = signal('');
   mealRedeemFilter = signal<'all' | 'redeemed' | 'unredeemed'>('all');
-  mealSort = signal<{ active: string; direction: 'asc' | 'desc' | '' }>({ active: '', direction: '' });
+  mealSort = signal<{ active: string; direction: 'asc' | 'desc' | '' }>({
+    active: '',
+    direction: '',
+  });
   mealRedeeming = signal(false);
 
   // Filters for the attendance list: sub-event, status, organization, and free-text search.
@@ -199,7 +225,14 @@ export class EventDetailComponent implements OnInit {
     if (q) {
       list = list.filter((a) => {
         const responses = a.responses ? Object.values(a.responses).join(' ') : '';
-        return [a.fullName, a.email, a.organization ?? '', a.sessionTitle ?? '(whole event)', a.notificationChannel ?? '', responses]
+        return [
+          a.fullName,
+          a.email,
+          a.organization ?? '',
+          a.sessionTitle ?? '(whole event)',
+          a.notificationChannel ?? '',
+          responses,
+        ]
           .join(' ')
           .toLowerCase()
           .includes(q);
@@ -282,7 +315,15 @@ export class EventDetailComponent implements OnInit {
     return 'pending';
   }
 
-  private readonly baseColumns = ['select', 'name', 'senate', 'phone', 'email', 'registered', 'status'];
+  private readonly baseColumns = [
+    'select',
+    'name',
+    'senate',
+    'phone',
+    'email',
+    'registered',
+    'status',
+  ];
   // Custom form fields become extra attendance columns.
   formFields = computed(() => this.event()?.formFields ?? []);
   displayedColumns = computed(() => {
@@ -300,7 +341,9 @@ export class EventDetailComponent implements OnInit {
   });
 
   // Header summary tiles (independent of the Attendance filters).
-  totalPendingCount = computed(() => this.attendees().filter((a) => !a.confirmedAt && !a.checkedInAt).length);
+  totalPendingCount = computed(
+    () => this.attendees().filter((a) => !a.confirmedAt && !a.checkedInAt).length,
+  );
   capacityPct = computed(() => {
     const e = this.event();
     return e?.capacity ? Math.min(100, Math.round((e.registeredCount / e.capacity) * 100)) : 0;
@@ -316,11 +359,9 @@ export class EventDetailComponent implements OnInit {
     // Live updates: registrations, confirmations, check-ins (incl. scanner), kit/meal claims and
     // cancellations arrive over the SignalR hub with their full rows, so the Attendance list is
     // patched in place instead of re-fetched — also when another admin made the change.
-    this.realtime.attendeesChanged$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((n) => {
-        if (n.eventId === this.id) this.applyAttendeeChanges(n.attendees, n.removedIds);
-      });
+    this.realtime.attendeesChanged$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((n) => {
+      if (n.eventId === this.id) this.applyAttendeeChanges(n.attendees, n.removedIds);
+    });
     // The invitation composer's user directory is admin-only; confirmers only need the attendance list.
     if (this.auth.isAdmin()) {
       this.api.listContacts().subscribe((c) => this.contacts.set(c));
@@ -355,12 +396,16 @@ export class EventDetailComponent implements OnInit {
     const fresh = rows.filter((r) => !current.has(r.registrationId));
 
     let checkedInDelta = 0;
-    for (const r of rows) checkedInDelta += (r.checkedInAt ? 1 : 0) - (current.get(r.registrationId)?.checkedInAt ? 1 : 0);
+    for (const r of rows)
+      checkedInDelta +=
+        (r.checkedInAt ? 1 : 0) - (current.get(r.registrationId)?.checkedInAt ? 1 : 0);
     for (const id of removed) checkedInDelta -= current.get(id)?.checkedInAt ? 1 : 0;
     const registeredDelta = fresh.length - removed.size;
 
     this.attendees.update((list) => [
-      ...list.filter((a) => !removed.has(a.registrationId)).map((a) => byId.get(a.registrationId) ?? a),
+      ...list
+        .filter((a) => !removed.has(a.registrationId))
+        .map((a) => byId.get(a.registrationId) ?? a),
       ...fresh,
     ]);
     if (registeredDelta || checkedInDelta) {
@@ -445,18 +490,24 @@ export class EventDetailComponent implements OnInit {
   // Cancel (remove) the selected registrations — pending ones only. Confirmed / checked-in rows in
   // the selection are left alone (the server enforces the same rule).
   async cancelSelected(): Promise<void> {
-    const pending = this.pendingAttendees().filter((a) => this.selectedAttendees().has(a.registrationId));
+    const pending = this.pendingAttendees().filter((a) =>
+      this.selectedAttendees().has(a.registrationId),
+    );
     if (pending.length === 0) {
       this.toast.warning('Only pending registrations can be cancelled.');
       return;
     }
     const skipped = this.selectedAttendeeCount() - pending.length;
-    const who = pending.length === 1 ? pending[0].fullName : `${pending.length} pending registrations`;
+    const who =
+      pending.length === 1 ? pending[0].fullName : `${pending.length} pending registrations`;
     const ok = await this.confirmer.confirm({
-      title: pending.length === 1 ? 'Cancel registration?' : `Cancel ${pending.length} registrations?`,
+      title:
+        pending.length === 1 ? 'Cancel registration?' : `Cancel ${pending.length} registrations?`,
       message:
         `${who} will be removed from this event. This cannot be undone.` +
-        (skipped > 0 ? ` ${skipped} confirmed or checked-in selection${skipped === 1 ? '' : 's'} will be kept.` : ''),
+        (skipped > 0
+          ? ` ${skipped} confirmed or checked-in selection${skipped === 1 ? '' : 's'} will be kept.`
+          : ''),
       confirmText: pending.length === 1 ? 'Cancel registration' : `Cancel ${pending.length}`,
       cancelText: 'Keep',
       tone: 'error',
@@ -465,27 +516,36 @@ export class EventDetailComponent implements OnInit {
     if (!ok) return;
 
     this.cancelling.set(true);
-    this.api.cancelRegistrations(this.id, pending.map((a) => a.registrationId)).subscribe({
-      next: (res) => {
-        this.cancelling.set(false);
-        this.selectedAttendees.set(new Set());
-        const parts = [`Cancelled ${res.cancelled} registration${res.cancelled === 1 ? '' : 's'}`];
-        if (res.notPending) parts.push(`${res.notPending} not pending — kept`);
-        this.toast.success(parts.join(' · ') + '.');
-        this.reload();
-      },
-      error: (err) => {
-        this.cancelling.set(false);
-        this.toast.error(err?.error?.message ?? 'Could not cancel registrations.');
-      },
-    });
+    this.api
+      .cancelRegistrations(
+        this.id,
+        pending.map((a) => a.registrationId),
+      )
+      .subscribe({
+        next: (res) => {
+          this.cancelling.set(false);
+          this.selectedAttendees.set(new Set());
+          const parts = [
+            `Cancelled ${res.cancelled} registration${res.cancelled === 1 ? '' : 's'}`,
+          ];
+          if (res.notPending) parts.push(`${res.notPending} not pending — kept`);
+          this.toast.success(parts.join(' · ') + '.');
+          this.reload();
+        },
+        error: (err) => {
+          this.cancelling.set(false);
+          this.toast.error(err?.error?.message ?? 'Could not cancel registrations.');
+        },
+      });
   }
 
   // Manually check in the selected registrations (marks them attended with method "Manual").
   checkInSelected(): void {
     // Already-checked-in rows may be selected (for Print QR / Delete); skip them here.
     const sel = this.selectedAttendees();
-    const ids = this.selectableAttendees().filter((a) => sel.has(a.registrationId)).map((a) => a.registrationId);
+    const ids = this.selectableAttendees()
+      .filter((a) => sel.has(a.registrationId))
+      .map((a) => a.registrationId);
     if (ids.length === 0) {
       this.toast.warning('Select at least one registration to check in.');
       return;
@@ -592,7 +652,9 @@ export class EventDetailComponent implements OnInit {
   // Open the claim dialog for the unclaimed rows in the selection, then record the claim.
   claimKitSelected(): void {
     const claimableIds = new Set(
-      this.kitDisplayed().filter((a) => !a.kitClaimedAt).map((a) => a.registrationId),
+      this.kitDisplayed()
+        .filter((a) => !a.kitClaimedAt)
+        .map((a) => a.registrationId),
     );
     const ids = [...this.selectedKits()].filter((id) => claimableIds.has(id));
     if (ids.length === 0) {
@@ -626,7 +688,9 @@ export class EventDetailComponent implements OnInit {
   // Clear the kit-claimed flag on the claimed rows in the selection.
   unclaimKitSelected(): void {
     const claimedIds = new Set(
-      this.kitDisplayed().filter((a) => !!a.kitClaimedAt).map((a) => a.registrationId),
+      this.kitDisplayed()
+        .filter((a) => !!a.kitClaimedAt)
+        .map((a) => a.registrationId),
     );
     const ids = [...this.selectedKits()].filter((id) => claimedIds.has(id));
     if (ids.length === 0) {
@@ -648,7 +712,16 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  private readonly kitBaseColumns = ['kitselect', 'name', 'senate', 'phone', 'email', 'registered', 'kit', 'claimedby'];
+  private readonly kitBaseColumns = [
+    'kitselect',
+    'name',
+    'senate',
+    'phone',
+    'email',
+    'registered',
+    'kit',
+    'claimedby',
+  ];
   kitColumns = computed(() => {
     const cols = [...this.kitBaseColumns];
     if (this.hasSessions()) cols.splice(cols.indexOf('email') + 1, 0, 'session');
@@ -662,7 +735,9 @@ export class EventDetailComponent implements OnInit {
   mealRedeemedCount = computed(() => this.mealEligible().filter((a) => !!a.mealsRedeemedAt).length);
   // Total value redeemed so far (Σ meal value over redeemed registrations).
   mealValueRedeemed = computed(() =>
-    this.mealEligible().filter((a) => !!a.mealsRedeemedAt).reduce((sum, a) => sum + a.mealValue, 0),
+    this.mealEligible()
+      .filter((a) => !!a.mealsRedeemedAt)
+      .reduce((sum, a) => sum + a.mealValue, 0),
   );
 
   mealDisplayed = computed(() => {
@@ -701,7 +776,8 @@ export class EventDetailComponent implements OnInit {
       return a.mealValue - b.mealValue;
     }
     if (col === 'mealvalue') return a.mealValue - b.mealValue;
-    if (col === 'redeemedby') return (a.mealsRedeemedBy ?? '').localeCompare(b.mealsRedeemedBy ?? '');
+    if (col === 'redeemedby')
+      return (a.mealsRedeemedBy ?? '').localeCompare(b.mealsRedeemedBy ?? '');
     return this.compareAttendees(a, b, col);
   }
 
@@ -712,11 +788,13 @@ export class EventDetailComponent implements OnInit {
   selectedMealCount = computed(() => this.selectedMeals().size);
   selectedMealRedeemableCount = computed(() => {
     const sel = this.selectedMeals();
-    return this.mealDisplayed().filter((a) => sel.has(a.registrationId) && !a.mealsRedeemedAt).length;
+    return this.mealDisplayed().filter((a) => sel.has(a.registrationId) && !a.mealsRedeemedAt)
+      .length;
   });
   selectedMealRedeemedCount = computed(() => {
     const sel = this.selectedMeals();
-    return this.mealDisplayed().filter((a) => sel.has(a.registrationId) && !!a.mealsRedeemedAt).length;
+    return this.mealDisplayed().filter((a) => sel.has(a.registrationId) && !!a.mealsRedeemedAt)
+      .length;
   });
   allMealsSelected = computed(() => {
     const items = this.mealDisplayed();
@@ -742,7 +820,9 @@ export class EventDetailComponent implements OnInit {
 
   redeemMealsSelected(): void {
     const redeemableIds = new Set(
-      this.mealDisplayed().filter((a) => !a.mealsRedeemedAt).map((a) => a.registrationId),
+      this.mealDisplayed()
+        .filter((a) => !a.mealsRedeemedAt)
+        .map((a) => a.registrationId),
     );
     const ids = [...this.selectedMeals()].filter((id) => redeemableIds.has(id));
     if (ids.length === 0) {
@@ -783,7 +863,9 @@ export class EventDetailComponent implements OnInit {
 
   unredeemMealsSelected(): void {
     const redeemedIds = new Set(
-      this.mealDisplayed().filter((a) => !!a.mealsRedeemedAt).map((a) => a.registrationId),
+      this.mealDisplayed()
+        .filter((a) => !!a.mealsRedeemedAt)
+        .map((a) => a.registrationId),
     );
     const ids = [...this.selectedMeals()].filter((id) => redeemedIds.has(id));
     if (ids.length === 0) {
@@ -805,7 +887,15 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  private readonly mealBaseColumns = ['mealselect', 'name', 'organization', 'registered', 'mealvalue', 'meal', 'redeemedby'];
+  private readonly mealBaseColumns = [
+    'mealselect',
+    'name',
+    'organization',
+    'registered',
+    'mealvalue',
+    'meal',
+    'redeemedby',
+  ];
   mealColumns = computed(() => {
     const cols = [...this.mealBaseColumns];
     if (this.hasSessions()) cols.splice(cols.indexOf('organization') + 1, 0, 'session');
@@ -822,13 +912,16 @@ export class EventDetailComponent implements OnInit {
   hasEventMeals = computed(() => !this.hasSessions() && (this.mealBoard()?.days.length ?? 0) > 0);
   mealDays = computed(() => this.mealBoard()?.days ?? []);
   currentMealDay = computed(
-    () => this.mealDays().find((d) => d.day === this.selectedMealDay()) ?? this.mealDays()[0] ?? null,
+    () =>
+      this.mealDays().find((d) => d.day === this.selectedMealDay()) ?? this.mealDays()[0] ?? null,
   );
   // Total value redeemed for the selected day across all registrants.
   mealDayRedeemedValue = computed(() => {
     const day = this.currentMealDay();
     if (!day) return 0;
-    const redeemed = (this.mealBoard()?.rows ?? []).filter((r) => r.redeemedDays.includes(day.day)).length;
+    const redeemed = (this.mealBoard()?.rows ?? []).filter((r) =>
+      r.redeemedDays.includes(day.day),
+    ).length;
     return redeemed * day.value;
   });
 
@@ -856,7 +949,8 @@ export class EventDetailComponent implements OnInit {
     this.api.mealBoard(this.id).subscribe({
       next: (b) => {
         this.mealBoard.set(b);
-        if (this.selectedMealDay() == null && b.days.length) this.selectedMealDay.set(b.days[0].day);
+        if (this.selectedMealDay() == null && b.days.length)
+          this.selectedMealDay.set(b.days[0].day);
       },
       error: () => {},
     });
@@ -866,13 +960,17 @@ export class EventDetailComponent implements OnInit {
     const day = this.selectedMealDay();
     if (day == null) return 0;
     const sel = this.selectedMealRows();
-    return this.mealBoardRows().filter((r) => sel.has(r.registrationId) && !r.redeemedDays.includes(day)).length;
+    return this.mealBoardRows().filter(
+      (r) => sel.has(r.registrationId) && !r.redeemedDays.includes(day),
+    ).length;
   });
   selectedMealRowRedeemed = computed(() => {
     const day = this.selectedMealDay();
     if (day == null) return 0;
     const sel = this.selectedMealRows();
-    return this.mealBoardRows().filter((r) => sel.has(r.registrationId) && r.redeemedDays.includes(day)).length;
+    return this.mealBoardRows().filter(
+      (r) => sel.has(r.registrationId) && r.redeemedDays.includes(day),
+    ).length;
   });
   allMealRowsSelected = computed(() => {
     const rows = this.mealBoardRows();
@@ -897,7 +995,9 @@ export class EventDetailComponent implements OnInit {
     const day = this.selectedMealDay();
     if (day == null) return;
     const eligible = new Set(
-      this.mealBoardRows().filter((r) => !r.redeemedDays.includes(day)).map((r) => r.registrationId),
+      this.mealBoardRows()
+        .filter((r) => !r.redeemedDays.includes(day))
+        .map((r) => r.registrationId),
     );
     const ids = [...this.selectedMealRows()].filter((id) => eligible.has(id));
     if (ids.length === 0) {
@@ -940,7 +1040,9 @@ export class EventDetailComponent implements OnInit {
     const day = this.selectedMealDay();
     if (day == null) return;
     const redeemed = new Set(
-      this.mealBoardRows().filter((r) => r.redeemedDays.includes(day)).map((r) => r.registrationId),
+      this.mealBoardRows()
+        .filter((r) => r.redeemedDays.includes(day))
+        .map((r) => r.registrationId),
     );
     const ids = [...this.selectedMealRows()].filter((id) => redeemed.has(id));
     if (ids.length === 0) {
@@ -984,7 +1086,9 @@ export class EventDetailComponent implements OnInit {
 
   // The event defines meal stubs (event-level per-day, or any sub-event's stubs).
   eventHasMealDefs = computed(
-    () => (this.event()?.meals?.length ?? 0) > 0 || (this.event()?.sessions ?? []).some((s) => s.meals.length > 0),
+    () =>
+      (this.event()?.meals?.length ?? 0) > 0 ||
+      (this.event()?.sessions ?? []).some((s) => s.meals.length > 0),
   );
 
   stubTotals = computed(() => {
@@ -1064,7 +1168,11 @@ export class EventDetailComponent implements OnInit {
   }
 
   redeemStubsSelected(): void {
-    const redeemable = new Set(this.filteredStubs().filter((s) => !s.redeemedAt).map((s) => s.stubId));
+    const redeemable = new Set(
+      this.filteredStubs()
+        .filter((s) => !s.redeemedAt)
+        .map((s) => s.stubId),
+    );
     const ids = [...this.selectedStubIds()].filter((id) => redeemable.has(id));
     if (ids.length === 0) {
       this.toast.warning('Select at least one un-redeemed stub.');
@@ -1072,7 +1180,12 @@ export class EventDetailComponent implements OnInit {
     }
     this.dialog
       .open(KitClaimDialogComponent, {
-        data: { count: ids.length, noun: 'meal stub', title: 'Redeem meal stubs', confirmLabel: 'Mark redeemed' },
+        data: {
+          count: ids.length,
+          noun: 'meal stub',
+          title: 'Redeem meal stubs',
+          confirmLabel: 'Mark redeemed',
+        },
         autoFocus: false,
       })
       .afterClosed()
@@ -1095,7 +1208,11 @@ export class EventDetailComponent implements OnInit {
   }
 
   unredeemStubsSelected(): void {
-    const redeemed = new Set(this.filteredStubs().filter((s) => !!s.redeemedAt).map((s) => s.stubId));
+    const redeemed = new Set(
+      this.filteredStubs()
+        .filter((s) => !!s.redeemedAt)
+        .map((s) => s.stubId),
+    );
     const ids = [...this.selectedStubIds()].filter((id) => redeemed.has(id));
     if (ids.length === 0) {
       this.toast.warning('Select at least one redeemed stub to clear.');
@@ -1139,7 +1256,9 @@ export class EventDetailComponent implements OnInit {
         a.click();
         URL.revokeObjectURL(url);
         const kb = Math.round(blob.size / 1024);
-        this.toast.success(`Offline bundle: ${bundle.members.length} members, ${bundle.registrations.length} registrations (~${kb} KB).`);
+        this.toast.success(
+          `Offline bundle: ${bundle.members.length} members, ${bundle.registrations.length} registrations (~${kb} KB).`,
+        );
       },
     });
   }
@@ -1158,7 +1277,8 @@ export class EventDetailComponent implements OnInit {
   async deleteEvent(): Promise<void> {
     const ok = await this.confirmer.confirm({
       title: 'Delete event?',
-      message: 'This event and all of its registrations will be permanently removed. This cannot be undone.',
+      message:
+        'This event and all of its registrations will be permanently removed. This cannot be undone.',
       confirmText: 'Delete event',
       tone: 'error',
     });

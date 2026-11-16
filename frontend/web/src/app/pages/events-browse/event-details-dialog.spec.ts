@@ -9,9 +9,21 @@ describe('Event details dialog', () => {
 
   function actionText(status: string): string {
     const e = {
-      id: 1, title: 'Cup', description: '', venue: 'Course', startsAt: future, endsAt: future, status,
-      publicSlug: 'cup', sessions: [], meals: [], schedule: [], formFields: [], format: 'Onsite',
-      bannerImage: null, registrationFees: null,
+      id: 1,
+      title: 'Cup',
+      description: '',
+      venue: 'Course',
+      startsAt: future,
+      endsAt: future,
+      status,
+      publicSlug: 'cup',
+      sessions: [],
+      meals: [],
+      schedule: [],
+      formFields: [],
+      format: 'Onsite',
+      bannerImage: null,
+      registrationFees: null,
     } as unknown as EventDto;
     TestBed.configureTestingModule({
       providers: [
@@ -22,7 +34,9 @@ describe('Event details dialog', () => {
     });
     const fixture = TestBed.createComponent(EventDetailsDialogComponent);
     fixture.detectChanges();
-    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll('mat-dialog-actions button');
+    const buttons = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      'mat-dialog-actions button',
+    );
     return buttons[buttons.length - 1].textContent ?? '';
   }
 

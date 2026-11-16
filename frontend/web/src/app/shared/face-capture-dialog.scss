@@ -42,7 +42,9 @@
   border: 3px solid rgba(255, 255, 255, 0.85);
   border-radius: 50% / 45%;
   box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.32);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .guide-adjust .face-oval {
@@ -51,7 +53,9 @@
 
 .guide-good .face-oval {
   border-color: #22c55e; /* green — holding for capture */
-  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.2), 0 0 22px rgba(34, 197, 94, 0.75);
+  box-shadow:
+    0 0 0 2000px rgba(0, 0, 0, 0.2),
+    0 0 22px rgba(34, 197, 94, 0.75);
 }
 
 /* Live positioning hint under the camera. */

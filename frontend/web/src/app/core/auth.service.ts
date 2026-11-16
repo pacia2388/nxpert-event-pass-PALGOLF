@@ -81,7 +81,10 @@ export class AuthService {
   /** Completes the account a Captain created, from the emailed team registration link. */
   completeTeamRegistration(token: string, body: RegisterBody): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${API_BASE}/api/auth/team-registration/${encodeURIComponent(token)}`, body)
+      .post<AuthResponse>(
+        `${API_BASE}/api/auth/team-registration/${encodeURIComponent(token)}`,
+        body,
+      )
       .pipe(tap((res) => this.store(res)));
   }
 
@@ -142,7 +145,9 @@ export class AuthService {
     try {
       const res = JSON.parse(raw) as AuthResponse;
       // A cached session whose JWT has expired counts as signed out (avoids home -> 401 -> login bounce).
-      const exp = JSON.parse(atob(res.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp;
+      const exp = JSON.parse(
+        atob(res.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
+      ).exp;
       if (typeof exp === 'number' && exp * 1000 <= Date.now()) {
         localStorage.removeItem(STORAGE_KEY);
         return null;

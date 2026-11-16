@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -10,7 +19,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { CalendarEvent, addDays, calendarDays, dateKey, dayEvents, wallDate, weekBlocks } from '../../core/calendar.util';
+import {
+  CalendarEvent,
+  addDays,
+  calendarDays,
+  dateKey,
+  dayEvents,
+  wallDate,
+  weekBlocks,
+} from '../../core/calendar.util';
 
 const REFRESH_MS = 30_000;
 const MONTH_PREVIEW = 3;
@@ -106,7 +123,10 @@ export class CalendarComponent implements OnInit, OnDestroy {
     this.load();
     // Start the week view at 8 AM rather than midnight.
     if (view === 'week')
-      this.initialWeekScroll = setTimeout(() => this.weekScroll?.nativeElement.scrollTo({ top: 8 * 60 }), 0);
+      this.initialWeekScroll = setTimeout(
+        () => this.weekScroll?.nativeElement.scrollTo({ top: 8 * 60 }),
+        0,
+      );
   }
 
   jump(value: string): void {
@@ -121,16 +141,18 @@ export class CalendarComponent implements OnInit, OnDestroy {
     if (showLoading) this.loading.set(true);
     this.error.set(false);
     const days = this.days();
-    this.request = this.api.calendar(dateKey(days[0]), dateKey(addDays(days.at(-1)!, 1))).subscribe({
-      next: (result) => {
-        this.events.set(result.events);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set(true);
-        this.loading.set(false);
-      },
-    });
+    this.request = this.api
+      .calendar(dateKey(days[0]), dateKey(addDays(days.at(-1)!, 1)))
+      .subscribe({
+        next: (result) => {
+          this.events.set(result.events);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set(true);
+          this.loading.set(false);
+        },
+      });
   }
 
   eventLink(event: CalendarEvent): string[] {

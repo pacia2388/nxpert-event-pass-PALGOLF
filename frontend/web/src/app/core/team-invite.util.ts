@@ -21,7 +21,10 @@ export function selectableEmails(members: TeamMemberDto[]): string[] {
 }
 
 /** Team checkbox: checked, partial or unchecked. `selected` starts as the addresses already in To. */
-export function teamCheckState(members: TeamMemberDto[], selected: ReadonlySet<string>): TeamCheckState {
+export function teamCheckState(
+  members: TeamMemberDto[],
+  selected: ReadonlySet<string>,
+): TeamCheckState {
   const emails = selectableEmails(members);
   const ticked = emails.filter((e) => selected.has(e)).length;
   if (!ticked) return 'none';
@@ -43,7 +46,10 @@ export function toggleMember(email: string, selected: ReadonlySet<string>): Set<
 }
 
 /** Newly ticked addresses to add to To, and unticked ones to take out of it. */
-export function selectionChanges(selected: ReadonlySet<string>, alreadyInTo: string[]): TeamInviteChanges {
+export function selectionChanges(
+  selected: ReadonlySet<string>,
+  alreadyInTo: string[],
+): TeamInviteChanges {
   return {
     add: [...selected].filter((e) => !alreadyInTo.includes(e)),
     remove: alreadyInTo.filter((e) => !selected.has(e)),
