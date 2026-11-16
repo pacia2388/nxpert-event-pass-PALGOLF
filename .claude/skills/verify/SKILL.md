@@ -41,6 +41,13 @@ Use `preview_start` with these `.claude/launch.json` names. Start only what the 
 - First start on an empty DB seeds it. Dropping the DB (`dotnet ef database drop --force`) needs
   the user's go-ahead.
 - In a worktree, run `scripts\setup-worktree.cmd` first, then use `api-alt` + `web-alt`.
+- `api` and `api-alt` build into the same `bin/`, so any API already running from this checkout
+  (a preview, a terminal, a leftover e2e run) fails the build with MSB3027 "locked by
+  EventRegistration.Api (<pid>)". Identify it from Bash with `tasklist //V //FI "PID eq <pid>"`;
+  stop your own preview with `preview_stop`, and ask the user before `taskkill //PID <pid>` on any
+  other.
+- `preview_start` returns before the API listens: wait until `/api/auth/me` answers 401 before
+  opening pages.
 
 ## 3. Drive the surface
 
@@ -48,6 +55,8 @@ For a flow worth keeping, write a Playwright spec in `frontend/web/e2e/<role>/` 
 the dev DB by hand: it starts its own API (5188), web app (4300) and throwaway DB, signs in per role,
 and arranges data through `adminApi` (`e2e/helpers/data.ts`). Run one file with
 `npm run e2e --prefix frontend/web -- e2e/<role>/<file>.spec.ts`.
+Data you make by hand in the dev DB stays there: start every title, team and email with `Verify`
+and list what you made under Findings, so the user can clean it up.
 
 | Change in | Drive it through |
 |-----------|------------------|
