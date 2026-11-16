@@ -15,10 +15,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { ConfirmService } from '../../core/confirm.service';
-import { categoryAgeWarning } from '../../core/event-category';
+import { categoryTeamWarning } from '../../core/event-category';
 import { OfflineService } from '../../core/offline.service';
 import { ToastService } from '../../core/toast.service';
-import { EventDto, MealDto } from '../../core/models';
+import { EventDto, MealDto, TeamCategory } from '../../core/models';
 import { DynamicFieldsComponent } from '../../shared/dynamic-fields/dynamic-fields';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
 import { PhoneCountryService } from '../../core/phone-country.service';
@@ -177,7 +177,8 @@ export class PublicEventComponent implements OnInit {
     this.api.getPublicEvent(this.slug).subscribe({
       next: (e) => {
         this.event.set(e);
-        if (e.category) this.auth.myBirthdate(); // warm the session cache so Register doesn't wait
+        // Look the team up now so Register doesn't wait.
+        if (e.category) this.teamCategory = this.auth.myTeamCategory();
         this.loading.set(false);
       },
       error: (err) => {
@@ -220,7 +221,7 @@ export class PublicEventComponent implements OnInit {
       return;
     }
     this.registering.set(true);
-    if (!(await this.confirmCategoryAge(e.category))) {
+    if (!(await this.confirmCategoryTeam(e.category))) {
       this.registering.set(false);
       return;
     }
@@ -236,14 +237,16 @@ export class PublicEventComponent implements OnInit {
     });
   }
 
-  // Senior (65+) / Regular events: warn a player whose age doesn't match before registering.
-  // Resolves true to go ahead. No category or no birthdate on file → no warning.
-  private async confirmCategoryAge(category: EventDto['category']): Promise<boolean> {
+  // Senior / Regular events: warn a player whose team is in the other category before registering.
+  // Resolves true to go ahead. No event category or no team → no warning.
+  private teamCategory: Promise<TeamCategory | null> | null = null;
+
+  private async confirmCategoryTeam(category: EventDto['category']): Promise<boolean> {
     if (!category) return true;
-    const message = categoryAgeWarning(category, await this.auth.myBirthdate());
+    const message = categoryTeamWarning(category, await (this.teamCategory ?? this.auth.myTeamCategory()));
     if (!message) return true;
     return this.confirmer.confirm({
-      title: category === 'Senior' ? 'This event is for seniors' : 'This event is for regular players',
+      title: 'Different category',
       message: `${message} Register anyway?`,
       confirmText: 'Register anyway',
       tone: 'warning',
