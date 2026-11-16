@@ -204,4 +204,24 @@ public class TeamLeadAddsMembersTests(ApiFixture api)
 
         Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
     }
+
+    // The event page needs only the category for its registration warning, not the member list.
+    [Fact]
+    public async Task A_player_reads_only_their_team_category()
+    {
+        var admin = await api.AdminAsync();
+        var team = await api.CreateTeamAsync(admin, "Senior");
+        var participant = await api.CreateUserAsync(admin, "Participant");
+        await team.LeadClient.PostAsJsonAsync("/api/teams/mine/members", ApiFixture.Member(participant.Email));
+        var member = await api.SignInAsync(participant.Email, ApiFixture.UserPassword);
+        var loner = await api.SignInAsync((await api.CreateUserAsync(admin, "Participant")).Email, ApiFixture.UserPassword);
+
+        var asMember = await member.GetStringAsync("/api/teams/mine/category");
+        var asLead = await team.LeadClient.GetStringAsync("/api/teams/mine/category");
+        var noTeam = await loner.GetAsync("/api/teams/mine/category");
+
+        Assert.Equal("""{"category":"Senior"}""", asMember);
+        Assert.Equal("""{"category":"Senior"}""", asLead);
+        Assert.Equal(HttpStatusCode.NoContent, noTeam.StatusCode);
+    }
 }
