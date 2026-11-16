@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApiService } from '../../core/api.service';
+import { CATEGORY_CONFIRMED_STATE, CategoryWarningService } from '../../core/category-warning.service';
 import { EventDto } from '../../core/models';
 import { EventDetailsDialogComponent } from './event-details-dialog';
 import { openImageLightbox } from '../../shared/image-lightbox';
@@ -43,6 +44,21 @@ export class EventsBrowseComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private categoryWarning = inject(CategoryWarningService);
+  private location = inject(Location);
+
+  // Register on a card: warn about a team-category mismatch first, then open the event page
+  // (which then doesn't ask again). Ctrl/middle-click still opens the page in a new tab.
+  async register(e: EventDto, click: MouseEvent): Promise<void> {
+    if (click.button !== 0 || click.ctrlKey || click.metaKey || click.shiftKey) return;
+    click.preventDefault();
+    if (!(await this.categoryWarning.confirm(e.category))) return;
+    this.router.navigate(['/e', e.publicSlug], { state: { [CATEGORY_CONFIRMED_STATE]: true } });
+  }
+
+  eventHref(e: EventDto): string {
+    return this.location.prepareExternalUrl(this.router.serializeUrl(this.router.createUrlTree(['/e', e.publicSlug])));
+  }
 
   openDetails(e: EventDto): void {
     this.dialog.open(EventDetailsDialogComponent, {

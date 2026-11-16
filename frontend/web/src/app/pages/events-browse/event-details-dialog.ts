@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { EventDto } from '../../core/models';
+import { CATEGORY_CONFIRMED_STATE, CategoryWarningService } from '../../core/category-warning.service';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
 import { canRegister } from './event-tab';
@@ -29,6 +30,7 @@ export class EventDetailsDialogComponent {
   private ref = inject(MatDialogRef<EventDetailsDialogComponent>);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private categoryWarning = inject(CategoryWarningService);
 
   viewImage(src: string | null | undefined): void {
     openImageLightbox(this.dialog, src);
@@ -42,9 +44,12 @@ export class EventDetailsDialogComponent {
     this.ref.close();
   }
 
-  register(): void {
+  // Like the card's Register: warn about a team-category mismatch first; Cancel keeps the dialog open.
+  async register(): Promise<void> {
+    const warn = this.canRegister() && !this.registered;
+    if (warn && !(await this.categoryWarning.confirm(this.e.category))) return;
     this.ref.close();
-    this.router.navigate(['/e', this.e.publicSlug]);
+    this.router.navigate(['/e', this.e.publicSlug], warn ? { state: { [CATEGORY_CONFIRMED_STATE]: true } } : {});
   }
 
   goMyEvents(): void {

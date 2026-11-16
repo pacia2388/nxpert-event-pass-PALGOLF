@@ -73,3 +73,46 @@ test('a player who is not on a team registers without a warning', async ({ page,
 
   await expect(page.getByText('Your registration is pending confirmation.')).toBeVisible();
 });
+
+test('Register on Browse Events warns once, before the event page opens', async ({ page, adminApi }) => {
+  const event = await createPublishedEvent(adminApi, { category: 'Senior' });
+  const player = await createTeamMember(adminApi, 'Regular');
+  await signIn(page, player);
+  await expect(page).toHaveURL(/\/home$/);
+
+  await page.goto('/events');
+  await page.getByLabel('Search events').fill(event.title);
+  const card = page.locator('article').filter({ hasText: event.title });
+  await card.getByRole('link', { name: 'Register' }).click();
+
+  // Cancel keeps them on Browse Events.
+  const dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByText('This is a Senior event, but your team is in the Regular category.'),
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page).toHaveURL(/\/events/);
+
+  // Register anyway opens the event page, which does not ask again.
+  await card.getByRole('link', { name: 'Register' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Register anyway' }).click();
+  await expect(page).toHaveURL(new RegExp(`/e/${event.publicSlug}$`));
+  await page.getByRole('button', { name: 'Register for this event' }).click();
+  await expect(page.getByText('Your registration is pending confirmation.')).toBeVisible();
+});
+
+test('Register in the Browse Events details dialog warns too', async ({ page, adminApi }) => {
+  const event = await createPublishedEvent(adminApi, { category: 'Regular' });
+  const player = await createTeamMember(adminApi, 'Senior');
+  await signIn(page, player);
+  await expect(page).toHaveURL(/\/home$/);
+
+  await page.goto('/events');
+  await page.getByLabel('Search events').fill(event.title);
+  await page.locator('article').filter({ hasText: event.title }).getByRole('button', { name: 'Details' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Register' }).click();
+
+  await expect(
+    page.getByText('This is a Regular event, but your team is in the Senior category.'),
+  ).toBeVisible();
+});

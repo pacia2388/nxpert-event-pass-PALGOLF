@@ -22,7 +22,9 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
   registrations cannot be removed; check-in opens only on its own dates.
 - Event **category** (Senior / Regular) only **warns** a signed-in player whose **team category**
   differs before registering (Cancel pre-selected); it never blocks, and guests, admins and
-  players not on a team get no warning. The message names both categories, not ages.
+  players not on a team get no warning. The message names both categories, not ages. It shows
+  on the event page's Register and on Browse Events' Register (card and Details); accepting it on
+  Browse Events means the event page doesn't ask again.
 - **Online** events: no QR pass, no meal stubs. **Hybrid**: pass + link. The meeting link is never
   shown on public pages — confirmed registrants only. Meeting changes/cancellations must update or
   remove calendar entries automatically.

@@ -14,8 +14,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { ConfirmService } from '../../core/confirm.service';
-import { categoryTeamWarning } from '../../core/event-category';
+import { CATEGORY_CONFIRMED_STATE, CategoryWarningService } from '../../core/category-warning.service';
 import { OfflineService } from '../../core/offline.service';
 import { ToastService } from '../../core/toast.service';
 import { EventDto, MealDto } from '../../core/models';
@@ -61,7 +60,9 @@ export class PublicEventComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private toast = inject(ToastService);
-  private confirmer = inject(ConfirmService);
+  private categoryWarning = inject(CategoryWarningService);
+  // Set when the player already chose "Register anyway" on Browse Events: don't ask twice.
+  private categoryConfirmed = !!history.state?.[CATEGORY_CONFIRMED_STATE];
   private dialog = inject(MatDialog);
 
   slug = '';
@@ -219,7 +220,7 @@ export class PublicEventComponent implements OnInit {
       return;
     }
     this.registering.set(true);
-    if (!(await this.confirmCategoryTeam(e.category))) {
+    if (!this.categoryConfirmed && !(await this.categoryWarning.confirm(e.category))) {
       this.registering.set(false);
       return;
     }
@@ -232,21 +233,6 @@ export class PublicEventComponent implements OnInit {
         this.registering.set(false);
         this.toast.error(err?.error?.message ?? 'Registration failed. Please try again.');
       },
-    });
-  }
-
-  // Senior / Regular events: warn a player whose team is in the other category before registering.
-  // Resolves true to go ahead. No event category or no team → no warning. The team is looked up on
-  // each Register click, so a sign-in or team change after the page loaded is seen.
-  private async confirmCategoryTeam(category: EventDto['category']): Promise<boolean> {
-    if (!category) return true;
-    const message = categoryTeamWarning(category, await this.auth.myTeamCategory());
-    if (!message) return true;
-    return this.confirmer.confirm({
-      title: 'Different category',
-      message: `${message} Register anyway?`,
-      confirmText: 'Register anyway',
-      tone: 'warning',
     });
   }
 

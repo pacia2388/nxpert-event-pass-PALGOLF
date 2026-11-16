@@ -14,7 +14,7 @@ does not match the event category gets a warning before registering.
 | Values | `Senior` \| `Regular` \| null; anything else is a 400 with a `message` |
 | Mismatch | Event category ≠ the player's team category (Senior / Regular). Age is not used |
 | Message | "This is a Senior event, but your team is in the Regular category." Title "Different category". No age wording |
-| Warning | Confirm dialog on **Register** (account flow); safe option **Cancel** pre-selected; "Register anyway" continues. Not enforced on the server |
+| Warning | Confirm dialog on **Register** (account flow on the event page, and Browse Events card + Details); safe option **Cancel** pre-selected; "Register anyway" continues. Accepted on Browse Events → the event page doesn't ask again (router state). Not enforced on the server |
 | No team | Guests, admins/merchants, and players not on a team: no warning |
 | Team lookup | On each **Register** click the page reads only the player's team category via `GET /api/teams/mine/category` (Captain or Participant; 204 = no team), so a sign-in by invite link or a team change after the page loaded is seen |
 | Pill | Admin Events list cards and Browse Events cards: "Senior" / "Regular" (no age range on the label) |
@@ -34,7 +34,9 @@ does not match the event category gets a warning before registering.
 | Frontend | `core/auth.service.ts` | `myTeamCategory()` (replaces `myBirthdate()`), `canHaveTeam` |
 | Frontend | `pages/admin/event-form` | Category toggle |
 | Frontend | `pages/admin/events-list`, `pages/events-browse` | Category pill |
-| Frontend | `pages/public-event` | Confirm dialog before account registration |
+| Frontend | `core/category-warning.service.ts` | Shared warning dialog for every Register button |
+| Frontend | `pages/public-event` | Confirm dialog before account registration (skipped after Browse Events accepted it) |
+| Frontend | `pages/events-browse` (card + Details dialog) | Warn on Register before opening the event page |
 | Docs | `documentation/database-table.md`, `.claude/` guides and rules | Category column; admin and participant guides; validation and registration-flow rules |
 
 ## Test seams
@@ -65,3 +67,4 @@ does not match the event category gets a warning before registering.
 | 2026-11-13 | Plan corrected: form uses a toggle; `.claude/` guides and rules were updated |
 | 2026-11-16 | Warning now compares the event category with the player's team category, not age; message names categories only; no team = no warning. 6 + 6 unit, 4 e2e tests |
 | 2026-11-16 | Review fixes: category-only endpoint, lookup on Register (not page load), own role check, `TeamCategory` type. +1 API test |
+| 2026-11-16 | Warning added to Browse Events Register (card and Details); shared `CategoryWarningService`; warns once. +2 e2e tests |

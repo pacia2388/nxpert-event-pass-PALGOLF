@@ -72,7 +72,9 @@ it**, fees, schedule and meal stubs.
   **Register for this event**.
   - On a **Senior** event when your team is **Regular**, or a **Regular** event when your team is
     **Senior**, a **Different category** warning asks you to confirm — **Cancel** or **Register
-    anyway**. If you're not on a team there is no warning.
+    anyway**. If you're not on a team there is no warning. The same warning shows when you click
+    **Register** on a **Browse Events** card or in its **Details**; after **Register anyway** there,
+    the event page doesn't ask again.
 - **Not signed in (guest):** fill in
   - **Full name** and **ID No.**
   - **Send my pass via** — Email, Viber, or Both
