@@ -145,9 +145,8 @@
               [(ngModel)]="password"
               #pwdCtrl="ngModel"
               required
-              minlength="8"
               maxlength="128"
-              [pattern]="passwordPattern"
+              [appPasswordRule]="email"
               autocomplete="new-password"
             />
             @if (pwdCtrl.hasError('required')) {

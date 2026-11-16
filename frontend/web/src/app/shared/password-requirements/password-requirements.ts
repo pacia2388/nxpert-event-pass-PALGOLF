@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { PASSWORD_MAX, PASSWORD_MIN } from '../password';
+import { passwordChecks } from '../password';
 
 // The password rule (PasswordRules on the API) as a checklist under a new-password field; each
 // line ticks as the typed password meets it. The email line shows only when the email is known.
@@ -62,20 +62,5 @@ export class PasswordRequirementsComponent {
   readonly password = input('');
   readonly email = input<string | null>();
 
-  protected readonly rules = computed(() => {
-    const p = this.password() ?? '';
-    const rules = [
-      {
-        text: `${PASSWORD_MIN} to ${PASSWORD_MAX} characters`,
-        met: p.length >= PASSWORD_MIN && p.length <= PASSWORD_MAX,
-      },
-      { text: 'A letter', met: /[A-Za-z]/.test(p) },
-      { text: 'A number', met: /\d/.test(p) },
-      { text: 'A symbol, like ! @ # or ?', met: /[^A-Za-z\d\s]/.test(p) },
-    ];
-    const email = this.email()?.trim();
-    if (email)
-      rules.push({ text: 'Not your email', met: !!p && p.toLowerCase() !== email.toLowerCase() });
-    return rules;
-  });
+  protected readonly rules = computed(() => passwordChecks(this.password() ?? '', this.email()));
 }

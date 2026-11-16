@@ -185,9 +185,8 @@
               name="newPassword"
               [(ngModel)]="newPassword"
               #newPwdCtrl="ngModel"
-              minlength="8"
               maxlength="128"
-              [pattern]="passwordPattern"
+              [appPasswordRule]="email"
               autocomplete="new-password"
             />
             @if (newPwdCtrl.invalid) {
@@ -195,7 +194,9 @@
             }
           </mat-form-field>
         </div>
-        <app-password-requirements [password]="newPassword" [email]="email" />
+        @if (newPassword) {
+          <app-password-requirements [password]="newPassword" [email]="email" />
+        }
 
         <div class="form-actions">
           <a mat-button routerLink="/my-events">Cancel</a>

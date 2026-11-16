@@ -136,9 +136,8 @@
       [(ngModel)]="password"
       #passwordModel="ngModel"
       [required]="!isEdit"
-      minlength="8"
       maxlength="128"
-      [pattern]="passwordPattern"
+      [appPasswordRule]="email"
       autocomplete="new-password"
       [placeholder]="isEdit ? 'Leave blank to keep' : ''"
     />

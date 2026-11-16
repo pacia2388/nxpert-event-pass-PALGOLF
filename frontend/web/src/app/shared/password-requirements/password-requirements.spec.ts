@@ -44,6 +44,11 @@ describe('Password requirements', () => {
     expect(rules()[3].met).toBe(false);
   });
 
+  it('counts an accented letter as a letter, not as the symbol', () => {
+    show('ñññññññ1');
+    expect(rules().map((r) => r.met)).toEqual([true, true, true, false]);
+  });
+
   it('adds the email rule when the email is known', () => {
     show('me@x.com1!', 'me@x.com1!');
     expect(rules().at(-1)).toEqual({ text: 'Not your email', met: false });
