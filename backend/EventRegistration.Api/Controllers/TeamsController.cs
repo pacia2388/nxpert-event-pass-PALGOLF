@@ -397,7 +397,9 @@ public class TeamsController : ControllerBase
         _db.TeamMembers.Add(member);
         try
         {
-            await _db.SaveChangesAsync();
+            // A new account may lose its username to a concurrent create: save it with the next free one.
+            if (isNew) await UsernameHelper.SaveNewUserAsync(_db, user, UsernameHelper.Base(user.FirstName, user.LastName, null));
+            else await _db.SaveChangesAsync();
             await tx.CommitAsync();
         }
         catch (DbUpdateException)

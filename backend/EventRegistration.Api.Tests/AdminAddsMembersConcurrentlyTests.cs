@@ -37,13 +37,13 @@ public class AdminAddsMembersConcurrentlyTests(ApiFixture api)
         var admin = await api.AdminAsync();
         var teams = new List<TestTeam>();
         for (var i = 0; i < Parallel; i++) teams.Add(await api.CreateTeamAsync(admin, "Regular"));
+        var lastName = $"Same{Guid.NewGuid():N}"[..20];
 
         for (var round = 0; round < Rounds; round++)
         {
-            // Distinct names: same-name accounts created at once can collide on the username.
+            // Same name for everyone: each new account still gets its own username.
             var results = await Task.WhenAll(teams.Select(t =>
-                t.LeadClient.PostAsJsonAsync("/api/teams/mine/members",
-                    ApiFixture.Member(ApiFixture.NewEmail(), lastName: $"S{Guid.NewGuid():N}"[..12]))));
+                t.LeadClient.PostAsJsonAsync("/api/teams/mine/members", ApiFixture.Member(ApiFixture.NewEmail(), lastName: lastName))));
 
             Assert.All(results, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
         }
