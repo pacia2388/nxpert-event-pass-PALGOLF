@@ -9,23 +9,46 @@ namespace EventRegistration.Api.Tests;
 public class AdminAddsMembersConcurrentlyTests(ApiFixture api)
 {
     private const int Parallel = 8;
+    // Several bursts, so a lock conflict between the adds shows up on any machine.
+    private const int Rounds = 3;
 
     [Fact]
     public async Task Parallel_adds_to_different_teams_all_succeed()
     {
         var admin = await api.AdminAsync();
         var teams = new List<TestTeam>();
-        var users = new List<TestUser>();
-        for (var i = 0; i < Parallel; i++)
+        for (var i = 0; i < Parallel; i++) teams.Add(await api.CreateTeamAsync(admin, "Regular"));
+
+        for (var round = 0; round < Rounds; round++)
         {
-            teams.Add(await api.CreateTeamAsync(admin, "Regular"));
-            users.Add(await api.CreateUserAsync(admin, "Participant"));
+            var users = new List<TestUser>();
+            for (var i = 0; i < Parallel; i++) users.Add(await api.CreateUserAsync(admin, "Participant"));
+
+            var results = await Task.WhenAll(teams.Select((t, i) =>
+                admin.PostAsJsonAsync($"/api/teams/{t.Id}/members", new { userId = users[i].Id })));
+
+            Assert.All(results, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
         }
+    }
 
-        var results = await Task.WhenAll(teams.Select((t, i) =>
-            admin.PostAsJsonAsync($"/api/teams/{t.Id}/members", new { userId = users[i].Id })));
+    [Fact]
+    public async Task Parallel_captain_adds_of_new_accounts_all_succeed()
+    {
+        var admin = await api.AdminAsync();
+        var teams = new List<TestTeam>();
+        for (var i = 0; i < Parallel; i++) teams.Add(await api.CreateTeamAsync(admin, "Regular"));
 
-        Assert.All(results, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
+        for (var round = 0; round < Rounds; round++)
+        {
+            // Distinct names: same-name accounts created at once can collide on the username.
+            var results = await Task.WhenAll(teams.Select(t =>
+                t.LeadClient.PostAsJsonAsync("/api/teams/mine/members",
+                    ApiFixture.Member(ApiFixture.NewEmail(), lastName: $"S{Guid.NewGuid():N}"[..12]))));
+
+            Assert.All(results, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
+        }
+        foreach (var t in teams)
+            Assert.Equal(Rounds, (await admin.GetFromJsonAsync<TeamBody>($"/api/teams/{t.Id}"))!.MemberCount);
     }
 
     [Fact]
