@@ -141,7 +141,9 @@ cd backend/EventRegistration.Api.Tests/bin/Debug/net10.0 && dotnet exec EventReg
 Add `--filter-class EventRegistration.Api.Tests.NotificationMatrixTests` to run only this matrix.
 In Visual Studio: set the test project as startup project and press F5 (profile **Run tests**).
 
-`dotnet test --project backend/EventRegistration.Api.Tests` and Test Explorer also work on most
-machines. On a locked-down machine they stop with **"Access is denied"**: Windows refuses the test
+`cd backend && dotnet test --project EventRegistration.Api.Tests` and Test Explorer also work on
+most machines. Run `dotnet test` from `backend/`: it reads `backend/global.json` (the
+Microsoft.Testing.Platform opt-in) from the working directory, and from the repo root it fails with
+"Testing with VSTest target is no longer supported". On a locked-down machine they stop with **"Access is denied"**: Windows refuses the test
 `.exe` (or the old VSTest `testhost`) access to the process that started it. `dotnet exec` above
 runs everything in one process and avoids that.
