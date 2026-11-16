@@ -359,15 +359,20 @@ public class TeamsController : ControllerBase
             team.Members.OrderBy(m => m.User!.FullName).Select(ToMemberDto).ToList()));
     }
 
-    // The one place a member row is written. The member cap and the one-team-per-user rule are
-    // checked inside a serializable transaction so two concurrent adds cannot overfill a team, and
-    // a new account is only saved together with its membership (a full team leaves no orphan user).
+    // The one place a member row is written. Each add first locks its team's row until commit, so
+    // adds to the same team queue up and cannot overfill it, while adds to different teams share no
+    // locks and cannot deadlock. The one-team-per-user rule is also the unique index on
+    // TeamMembers.UserId. A new account is only saved together with its membership (a full team
+    // leaves no orphan user).
     private async Task<ActionResult<TeamMemberAddResult>> AddMemberAsync(int teamId, User user, bool isNew)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        await using var tx = await _db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted);
 
-        var team = await _db.Teams.FirstOrDefaultAsync(t => t.Id == teamId);
-        if (team is null) return NotFound();
+        // A no-op update: takes the team row's exclusive lock and holds it until commit.
+        if (await _db.Teams.Where(t => t.Id == teamId)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.Category, t => t.Category)) == 0)
+            return NotFound();
+        var team = await _db.Teams.FirstAsync(t => t.Id == teamId);
 
         var max = TeamCategories.MaxMembers(team.Category);
         if (await _db.TeamMembers.CountAsync(m => m.TeamId == teamId) >= max)
@@ -392,7 +397,9 @@ public class TeamsController : ControllerBase
         _db.TeamMembers.Add(member);
         try
         {
-            await _db.SaveChangesAsync();
+            // A new account may lose its username to a concurrent create: save it with the next free one.
+            if (isNew) await UsernameHelper.SaveNewUserAsync(_db, user, UsernameHelper.Base(user.FirstName, user.LastName, null));
+            else await _db.SaveChangesAsync();
             await tx.CommitAsync();
         }
         catch (DbUpdateException)

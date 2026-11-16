@@ -5,9 +5,6 @@ import { signIn } from '../helpers/ui';
 // An event's category (Senior / Regular) is compared with the player's team category.
 // Registering for the other category is allowed, after a warning.
 
-// Serial: concurrent admin team-member adds can fail with a 500 (serializable transaction).
-test.describe.configure({ mode: 'serial' });
-
 test('a Regular-team player is warned before registering for a Senior event', async ({
   page,
   adminApi,
