@@ -22,7 +22,7 @@ public class TeamRegistrationNoticeTests(ApiFixture api)
     private static Task<HttpResponseMessage> SendAsync(TestTeam team, params int[] userIds) =>
         team.LeadClient.PostAsJsonAsync("/api/teams/mine/registration-notice", new { userIds });
 
-    private static object Completion(string password = "NewPass123") => new
+    private static object Completion(string password = "NewPass123!") => new
     {
         firstName = "Mia",
         middleInitial = "R",
@@ -82,7 +82,7 @@ public class TeamRegistrationNoticeTests(ApiFixture api)
         Assert.Equal(HttpStatusCode.OK, done.StatusCode);
 
         // New password signs in, the temporary one no longer does, the link is spent.
-        await api.SignInAsync(a.Email, "NewPass123");
+        await api.SignInAsync(a.Email, "NewPass123!");
         var old = await anon.PostAsJsonAsync("/api/auth/login", new { email = a.Email, password = "char" });
         Assert.Equal(HttpStatusCode.Unauthorized, old.StatusCode);
         var again = await anon.PostAsJsonAsync($"/api/auth/team-registration/{token}", Completion());

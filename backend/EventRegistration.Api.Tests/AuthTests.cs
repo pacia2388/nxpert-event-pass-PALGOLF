@@ -95,6 +95,8 @@ public class AuthTests(ApiFixture api)
     [InlineData("abcdefgh")] // no digit
     [InlineData("12345678")] // no letter
     [InlineData("abc1234")] // under 8 characters
+    [InlineData("Passw0rd1")] // no symbol
+    [InlineData("Pass w0rd1")] // a space is not a symbol
     [InlineData("")] // the email address itself (filled in below)
     public async Task Sign_up_with_a_weak_password_is_refused(string password)
     {
@@ -124,18 +126,19 @@ public class AuthTests(ApiFixture api)
         var user = await api.CreateUserAsync(admin, "Participant");
         var player = await api.SignInAsync(user.Email, ApiFixture.UserPassword);
 
-        (await player.PutAsJsonAsync("/api/auth/me", Profile(ApiFixture.UserPassword, "N3wPassword")))
+        (await player.PutAsJsonAsync("/api/auth/me", Profile(ApiFixture.UserPassword, "N3wPassword!")))
             .EnsureSuccessStatusCode();
 
-        await api.SignInAsync(user.Email, "N3wPassword");
+        await api.SignInAsync(user.Email, "N3wPassword!");
     }
 
     [Theory]
-    [InlineData("Wrong123!", "N3wPassword")] // wrong current password
-    [InlineData(null, "N3wPassword")] // no current password
+    [InlineData("Wrong123!", "N3wPassword!")] // wrong current password
+    [InlineData(null, "N3wPassword!")] // no current password
     [InlineData(ApiFixture.UserPassword, "short1")] // new password under 8 characters
     [InlineData(ApiFixture.UserPassword, "abcdefgh")] // no digit
     [InlineData(ApiFixture.UserPassword, "12345678")] // no letter
+    [InlineData(ApiFixture.UserPassword, "N3wPassword")] // no symbol
     public async Task A_password_change_is_refused_without_the_current_password_or_with_a_weak_one(
         string? currentPassword, string newPassword)
     {
