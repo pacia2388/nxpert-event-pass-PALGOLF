@@ -1,23 +1,28 @@
 import { test, expect } from '../fixtures';
-import { createParticipant, createPublishedEvent } from '../helpers/data';
+import { createParticipant, createPublishedEvent, createTeamMember } from '../helpers/data';
 import { signIn } from '../helpers/ui';
 
-// Senior events are for players 65 and older; Regular events are for players under 65.
-// Registering for the other kind is allowed, after a warning.
+// An event's category (Senior / Regular) is compared with the player's team category.
+// Registering for the other category is allowed, after a warning.
 
-test('a player under 65 is warned before registering for a Senior event', async ({ page, adminApi }) => {
+// Serial: concurrent admin team-member adds can fail with a 500 (serializable transaction).
+test.describe.configure({ mode: 'serial' });
+
+test('a Regular-team player is warned before registering for a Senior event', async ({ page, adminApi }) => {
   const event = await createPublishedEvent(adminApi, { category: 'Senior' });
-  const player = await createParticipant(adminApi, '1990-01-31');
+  const player = await createTeamMember(adminApi, 'Regular');
   await signIn(page, player);
   await expect(page).toHaveURL(/\/home$/);
 
   await page.goto(`/e/${event.publicSlug}`);
   await page.getByRole('button', { name: 'Register for this event' }).click();
 
-  // The warning names the mismatch, with the safe choice focused.
+  // The warning names both categories, with the safe choice focused.
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('heading', { name: 'This event is for seniors' })).toBeVisible();
-  await expect(dialog.getByText('This event is for seniors (65 and older).')).toBeVisible();
+  await expect(dialog.getByRole('heading', { name: 'Different category' })).toBeVisible();
+  await expect(
+    dialog.getByText('This is a Senior event, but your team is in the Regular category.'),
+  ).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused();
 
   // Cancel leaves them unregistered.
@@ -31,21 +36,35 @@ test('a player under 65 is warned before registering for a Senior event', async 
   await expect(page.getByText('Your registration is pending confirmation.')).toBeVisible();
 });
 
-test('a player 65 or older is warned before registering for a Regular event', async ({ page, adminApi }) => {
+test('a Senior-team player is warned before registering for a Regular event', async ({ page, adminApi }) => {
   const event = await createPublishedEvent(adminApi, { category: 'Regular' });
-  const player = await createParticipant(adminApi, '1950-01-02');
+  const player = await createTeamMember(adminApi, 'Senior');
   await signIn(page, player);
   await expect(page).toHaveURL(/\/home$/);
 
   await page.goto(`/e/${event.publicSlug}`);
   await page.getByRole('button', { name: 'Register for this event' }).click();
 
-  await expect(page.getByRole('dialog').getByText('This event is for regular players (under 65).')).toBeVisible();
+  await expect(
+    page.getByRole('dialog').getByText('This is a Regular event, but your team is in the Senior category.'),
+  ).toBeVisible();
 });
 
-test('a player whose age matches registers without a warning', async ({ page, adminApi }) => {
+test('a player whose team category matches registers without a warning', async ({ page, adminApi }) => {
   const event = await createPublishedEvent(adminApi, { category: 'Senior' });
-  const player = await createParticipant(adminApi, '1950-01-02');
+  const player = await createTeamMember(adminApi, 'Senior');
+  await signIn(page, player);
+  await expect(page).toHaveURL(/\/home$/);
+
+  await page.goto(`/e/${event.publicSlug}`);
+  await page.getByRole('button', { name: 'Register for this event' }).click();
+
+  await expect(page.getByText('Your registration is pending confirmation.')).toBeVisible();
+});
+
+test('a player who is not on a team registers without a warning', async ({ page, adminApi }) => {
+  const event = await createPublishedEvent(adminApi, { category: 'Senior' });
+  const player = await createParticipant(adminApi);
   await signIn(page, player);
   await expect(page).toHaveURL(/\/home$/);
 

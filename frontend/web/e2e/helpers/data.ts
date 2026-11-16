@@ -81,17 +81,42 @@ export async function guestRegister(
 }
 
 export interface CreatedUser {
+  id: number;
   email: string;
   password: string;
 }
 
-/** Creates a participant account with the given birthdate (yyyy-MM-dd) through the admin Users API. */
-export async function createParticipant(adminApi: APIRequestContext, birthdate: string): Promise<CreatedUser> {
+/** Creates an account with the given role through the admin Users API. */
+async function createUser(adminApi: APIRequestContext, role: 'Participant' | 'Captain'): Promise<CreatedUser> {
   const email = uniqueEmail();
   const password = 'Passw0rd!';
   const res = await adminApi.post('/api/users', {
-    data: { firstName: 'Pat', lastName: unique('Cruz'), email, password, role: 'Participant', birthdate },
+    data: { firstName: 'Pat', lastName: unique('Cruz'), email, password, role, birthdate: '1980-06-15' },
   });
   expect(res.ok(), `create user: ${res.status()} ${await res.text()}`).toBeTruthy();
-  return { email, password };
+  const { id } = (await res.json()) as { id: number };
+  return { id, email, password };
+}
+
+/** Creates a participant account that is not on a team. */
+export function createParticipant(adminApi: APIRequestContext): Promise<CreatedUser> {
+  return createUser(adminApi, 'Participant');
+}
+
+/** Creates a team of the given category (with a new Captain) and a participant who is a member of it. */
+export async function createTeamMember(
+  adminApi: APIRequestContext,
+  category: 'Senior' | 'Regular',
+): Promise<CreatedUser> {
+  const captain = await createUser(adminApi, 'Captain');
+  const team = await adminApi.post('/api/teams', {
+    data: { description: unique('E2E Team'), category, teamLeadUserId: captain.id },
+  });
+  expect(team.ok(), `create team: ${team.status()} ${await team.text()}`).toBeTruthy();
+  const { id: teamId } = (await team.json()) as { id: number };
+
+  const member = await createParticipant(adminApi);
+  const added = await adminApi.post(`/api/teams/${teamId}/members`, { data: { userId: member.id } });
+  expect(added.ok(), `add member: ${added.status()} ${await added.text()}`).toBeTruthy();
+  return member;
 }
