@@ -90,8 +90,11 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
         XElement root;
         try
         {
-            using var reader = XmlReader.Create(new StringReader(xhtml), new XmlReaderSettings {
-                DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 8_000_000,
+            using var reader = XmlReader.Create(new StringReader(xhtml), new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null,
+                MaxCharactersInDocument = 8_000_000,
             });
             root = XDocument.Load(reader).Root!;
         }
@@ -121,8 +124,11 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
         XDocument document;
         try
         {
-            using var reader = XmlReader.Create(new StringReader(xhtml), new XmlReaderSettings {
-                DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 8_000_000,
+            using var reader = XmlReader.Create(new StringReader(xhtml), new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null,
+                MaxCharactersInDocument = 8_000_000,
             });
             document = XDocument.Load(reader, LoadOptions.PreserveWhitespace);
         }

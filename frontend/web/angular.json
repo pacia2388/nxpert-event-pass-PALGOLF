@@ -80,6 +80,21 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "alt": {
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public",
+                  "ignore": [
+                    "appSettings.json"
+                  ]
+                },
+                {
+                  "glob": "appSettings.json",
+                  "input": "config/alt"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -92,12 +107,22 @@
             },
             "development": {
               "buildTarget": "web:build:development"
+            },
+            "alt": {
+              "buildTarget": "web:build:development,alt"
             }
           },
           "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"],
+            "maxWarnings": 27
+          }
         }
       }
     }

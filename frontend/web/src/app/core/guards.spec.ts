@@ -12,7 +12,6 @@ import { AuthResponse } from './models';
 import {
   authGuard,
   confirmerGuard,
-  merchantGuard,
   nonMerchantGuard,
   participantOrCaptainGuard,
   voucherGuard,

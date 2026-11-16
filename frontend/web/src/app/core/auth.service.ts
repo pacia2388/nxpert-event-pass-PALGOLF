@@ -1,6 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, firstValueFrom, tap } from 'rxjs';
 import { API_BASE } from './config';
 import { AuthResponse, InviteResolveResult, VerifyEmailResult } from './models';
 
@@ -22,6 +22,7 @@ export interface RegisterBody {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private http = inject(HttpClient);
   private readonly _auth = signal<AuthResponse | null>(this.load());
 
   readonly auth = this._auth.asReadonly();
@@ -56,8 +57,6 @@ export class AuthService {
     return !!a && a.verificationRequired && !a.emailVerified;
   });
 
-  constructor(private http: HttpClient) {}
-
   get token(): string | null {
     return this._auth()?.token ?? null;
   }
@@ -84,6 +83,25 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(STORAGE_KEY);
     this._auth.set(null);
+    this.birthdate = null;
+  }
+
+  // The signed-in user's birthdate (yyyy-MM-dd), for the event-category age warning. Fetched once
+  // per session; a failed fetch isn't kept, so the next call retries. null = none on file, signed
+  // out, or unavailable.
+  private birthdate: Promise<string | null> | null = null;
+
+  myBirthdate(): Promise<string | null> {
+    if (!this._auth()) return Promise.resolve(null);
+    return (this.birthdate ??= firstValueFrom(
+      this.http.get<{ birthdate: string | null }>(`${API_BASE}/api/auth/me`),
+    ).then(
+      (p) => p.birthdate,
+      () => {
+        this.birthdate = null;
+        return null;
+      },
+    ));
   }
 
   /** Opens an invitation magic-link. Auto-logs in when the invitee has an account. */
@@ -117,6 +135,7 @@ export class AuthService {
   private store(res: AuthResponse): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
     this._auth.set(res);
+    this.birthdate = null; // new session or edited profile
   }
 
   private load(): AuthResponse | null {

@@ -1,3 +1,4 @@
+import { EventCategory } from './event-category';
 export interface AuthResponse {
   token: string;
   userId: number;
@@ -450,6 +451,7 @@ export interface EventDto {
   format: EventFormat;
   meetingUrl?: string | null; // admin responses only — never sent to public / browse callers
   verifyOnly: boolean; // scanners verify passes but record no check-ins
+  category?: EventCategory | null; // who the event is for; null = everyone
 }
 
 export interface ViberBroadcastProgressNotice {
@@ -486,6 +488,7 @@ export interface EventUpsert {
   meals: MealUpsert[]; // event-level (per-day) meal stubs
   format: EventFormat;
   meetingUrl: string | null;
+  category: EventCategory | null;
 }
 
 export interface RegistrationDto {

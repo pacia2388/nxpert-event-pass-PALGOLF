@@ -13,7 +13,8 @@ Full guide: [reference.md](reference.md). Rules that must stay true when changin
 - Registrations start **Pending**; **no pass is sent**. An admin (or a user with **Can confirm
   registrations**) confirms → then the QR pass (and, for online events, meeting link + calendar
   invite; plus meal stubs) is sent. Only **confirmed** passes can be checked in.
-- An event shows in *Browse Events* only when **Published** *and* the public link is on.
+- An event shows in *Browse Events* only when **Published** or **Closed** *and* the public link is
+  on; closed events sit under the **Closed** tab.
 - Formats: **In person** (venue), **Online** (meeting link, no QR/stubs), **Hybrid** (both).
 - Sub-events = separate registration + pass + confirmation + check-in each.
 

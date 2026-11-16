@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -40,7 +40,7 @@ export class FeedbackDialogComponent implements OnInit {
   saving = signal(false);
   readonly stars = [1, 2, 3, 4, 5];
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: FeedbackDialogData) {}
+  data = inject<FeedbackDialogData>(MAT_DIALOG_DATA);
 
   ngOnInit(): void {
     this.api.myFeedback(this.data.eventId).subscribe((fb) => {

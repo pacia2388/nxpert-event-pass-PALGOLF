@@ -20,7 +20,7 @@ export function uniqueEmail(): string {
 /** Creates a published, public in-person event with no sub-events or custom fields. */
 export async function createPublishedEvent(
   adminApi: APIRequestContext,
-  overrides: Partial<{ title: string; capacity: number | null }> = {},
+  overrides: Partial<{ title: string; capacity: number | null; category: 'Senior' | 'Regular' | null }> = {},
 ): Promise<CreatedEvent> {
   const startsAt = new Date(Date.now() + 7 * 24 * 3600_000);
   startsAt.setUTCHours(1, 0, 0, 0);
@@ -42,6 +42,7 @@ export async function createPublishedEvent(
       sessions: [],
       registrationFees: null,
       schedule: [],
+      category: overrides.category ?? null,
     },
   });
   expect(res.ok(), `create event: ${res.status()} ${await res.text()}`).toBeTruthy();
@@ -77,4 +78,20 @@ export async function guestRegister(
   });
   expect(res.ok(), `guest register: ${res.status()} ${await res.text()}`).toBeTruthy();
   return guest;
+}
+
+export interface CreatedUser {
+  email: string;
+  password: string;
+}
+
+/** Creates a participant account with the given birthdate (yyyy-MM-dd) through the admin Users API. */
+export async function createParticipant(adminApi: APIRequestContext, birthdate: string): Promise<CreatedUser> {
+  const email = uniqueEmail();
+  const password = 'Passw0rd!';
+  const res = await adminApi.post('/api/users', {
+    data: { firstName: 'Pat', lastName: unique('Cruz'), email, password, role: 'Participant', birthdate },
+  });
+  expect(res.ok(), `create user: ${res.status()} ${await res.text()}`).toBeTruthy();
+  return { email, password };
 }

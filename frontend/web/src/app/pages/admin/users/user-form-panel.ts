@@ -59,7 +59,7 @@ export class UserFormPanelComponent {
   email = '';
   username = '';
   password = '';
-  role: string = 'Participant';
+  role = 'Participant';
   organization = '';
   // "+<code><number>" from the phone field; storedPhone is the saved value (dirty check, warning).
   phone: string | null = null;

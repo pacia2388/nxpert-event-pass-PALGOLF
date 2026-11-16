@@ -14,6 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../core/api.service';
 import { ToastService } from '../../../core/toast.service';
 import { EventFormat, EventUpsert, FieldType, SessionUpsert } from '../../../core/models';
+import { EVENT_CATEGORY_LABELS, EventCategory } from '../../../core/event-category';
 
 interface BuilderField {
   key: string;
@@ -129,6 +130,13 @@ export class EventFormComponent implements OnInit {
     { value: 'InPerson', label: 'In person', icon: 'place' },
     { value: 'Online', label: 'Online', icon: 'videocam' },
     { value: 'Hybrid', label: 'Hybrid', icon: 'devices' },
+  ];
+  // Who the event is for: '' = no category, Senior (65+) or Regular.
+  category: EventCategory | '' = '';
+  readonly categories: { value: EventCategory | ''; label: string }[] = [
+    { value: '', label: 'No category' },
+    { value: 'Senior', label: EVENT_CATEGORY_LABELS.Senior },
+    { value: 'Regular', label: EVENT_CATEGORY_LABELS.Regular },
   ];
   isPublicLinkEnabled = true;
   status = 'Published';
@@ -464,6 +472,7 @@ export class EventFormComponent implements OnInit {
           this.endDate = en.date;
           this.endTime = en.time;
           this.format = e.format ?? 'InPerson';
+          this.category = e.category ?? '';
           this.meetingUrl = e.meetingUrl ?? '';
           // Online-only events store "Online" as the venue; show an empty field instead.
           this.venue = this.format === 'Online' && e.venue === 'Online' ? '' : e.venue;
@@ -556,6 +565,7 @@ export class EventFormComponent implements OnInit {
       endsAt: combine(this.endDate, this.endTime),
       venue: this.format === 'Online' ? this.venue.trim() || 'Online' : this.venue,
       format: this.format,
+      category: this.category || null,
       meetingUrl: this.hasOnline ? this.meetingUrl.trim() || null : null,
       isPublicLinkEnabled: this.isPublicLinkEnabled,
       status: this.status,

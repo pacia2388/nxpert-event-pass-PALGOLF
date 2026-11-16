@@ -99,6 +99,9 @@ centred on the page. Fill in:
   - **In person** — enter the **Venue**.
   - **Online** — no venue; paste the **Online meeting link**.
   - **Hybrid** — both the **Venue** and the **Online meeting link**.
+- **Category** — **No category**, **Senior** (players 65 and older) or **Regular** (under 65).
+  Shows as a pill next to the status pill on event cards. Players whose age doesn't match get a
+  warning when they register, but can still register.
 - **TV welcome message** (optional) — the greeting on the check-in TV screen (default
   "Welcome").
 - **Registration fees** (optional) — free text shown on the registration page.
@@ -116,8 +119,9 @@ Click **Create event** (or **Save**). Editing keeps all existing registrations.
 - **Off (invite-only):** only people you **invite by email** can register; the event is hidden
   from *Browse Events*.
 
-> **Tip:** an event is visible in *Browse Events* only when it is **Published** *and* the public
-> registration link is on.
+> **Tip:** an event is visible in *Browse Events* only when it is **Published** or **Closed**
+> *and* the public registration link is on. Closed events show under the **Closed** tab and
+> can't be registered for.
 
 ### Sub-events (days / sessions)
 
@@ -454,7 +458,7 @@ Merchant accounts see only the **Meal Stub Scanner**:
 |----------|--------|
 | Someone registered but got no pass | Expected — passes go out when you **confirm**. Event → **Attendance** → select pending rows → **Confirm selected**. |
 | How do I reject / remove a registration? | **Attendance** → tick the **pending** rows → **Cancel selected**. Confirmed or checked-in registrations can't be cancelled by admins. |
-| An event is missing from *Browse Events* | It must be **Published** *and* have the public registration link on. |
+| An event is missing from *Browse Events* | It must be **Published** or **Closed** *and* have the public registration link on. |
 | The scanner says "Not confirmed" | Confirm the registration on **Attendance**, then scan again. |
 | How do I run an online / Teams event? | Set **Format** to **Online** (or **Hybrid**) and paste the Teams join link. Confirmed registrants get the link and a calendar invite automatically. |
 | I changed the meeting time — do I need to tell people? | No. Confirmed registrants get an updated calendar invite automatically. |

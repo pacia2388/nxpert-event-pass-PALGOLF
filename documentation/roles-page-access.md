@@ -44,10 +44,11 @@ registration), `/r/:token` (edit own guest registration by link).
 
 ## Mixed-access notes
 
-1. **Browse Events** — everyone can view published events and register themselves; nothing else
-   is editable.
+1. **Browse Events** — everyone can view published and closed public events and register
+   themselves for open ones; closed events can't be registered for. Nothing else is editable.
 2. **Calendar (Admin)** — sees all events plus admin-only controls (invitations). Confirmers see
-   all events read-only; Participants and Captains see only their own.
+   all events read-only; Participants and Captains see their own and invited events plus the
+   same published and closed public events as Browse Events.
 3. **My Team** — Captain: view own team **and** add members / send registration notices; cannot
    remove members, rename, or change category (Admin does that on `/admin/teams`). A Participant
    with *Can confirm* is still a Participant here: **view only**.

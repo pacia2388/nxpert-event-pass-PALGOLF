@@ -107,7 +107,7 @@ Null = column allows NULL.
 | StartsAt | datetime2 | | Wall-clock (server local time) |
 | EndsAt | datetime2 | | |
 | Venue | nvarchar(300) | | |
-| IsPublicLinkEnabled | bit | | Default true; must be on to appear in Browse Events |
+| IsPublicLinkEnabled | bit | | Default true; must be on to appear in Browse Events (Published or Closed) |
 | PublicSlug | nvarchar(100) | | **Unique**; public URL `/e/{slug}` |
 | CreatedByUserId | int | | User id (no FK) |
 | Status | nvarchar(20) | | **`Draft` · `Published` (default) · `Closed`** |
@@ -121,6 +121,7 @@ Null = column allows NULL.
 | NotifyOnKitClaim | bit | | Notify registrant when kit is claimed |
 | Format | nvarchar(10) | | **`InPerson` (default) · `Online` · `Hybrid`** |
 | MeetingUrl | nvarchar(1000) | ✓ | Online/Hybrid only; never shown publicly |
+| Category | nvarchar(10) | ✓ | **`Senior` (65+) · `Regular` · NULL (no category)**; a mismatched age gets a warning before registering, not a block |
 | InviteSequence | int | | iCalendar SEQUENCE; bumped on time/title/link change |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
 

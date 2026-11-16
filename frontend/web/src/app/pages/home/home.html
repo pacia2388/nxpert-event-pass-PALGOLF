@@ -1,11 +1,11 @@
 <div class="home">
   @if (categories().length > 1) {
-    <div class="module-tabs" role="tablist">
-      <button type="button" role="tab" class="module-tab" [class.active]="filter() === 'All'"
-              [attr.aria-selected]="filter() === 'All'" (click)="filter.set('All')">All</button>
+    <div class="pill-tabs" role="group" aria-label="Filter modules">
+      <button type="button" class="pill-tab" [class.active]="filter() === 'All'"
+              [attr.aria-pressed]="filter() === 'All'" (click)="filter.set('All')">All</button>
       @for (c of categories(); track c) {
-        <button type="button" role="tab" class="module-tab" [class.active]="filter() === c"
-                [attr.aria-selected]="filter() === c" (click)="filter.set(c)">{{ c }}</button>
+        <button type="button" class="pill-tab" [class.active]="filter() === c"
+                [attr.aria-pressed]="filter() === c" (click)="filter.set(c)">{{ c }}</button>
       }
     </div>
   }

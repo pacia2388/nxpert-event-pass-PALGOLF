@@ -34,8 +34,18 @@ public class DashboardController : ControllerBase
             .Take(5)
             .Select(e => new
             {
-                e.Id, e.Title, e.Description, e.StartsAt, e.EndsAt, e.Venue, e.IsPublicLinkEnabled,
-                e.PublicSlug, e.Status, e.Capacity, e.WelcomeMessage, e.RegistrationFees,
+                e.Id,
+                e.Title,
+                e.Description,
+                e.StartsAt,
+                e.EndsAt,
+                e.Venue,
+                e.IsPublicLinkEnabled,
+                e.PublicSlug,
+                e.Status,
+                e.Capacity,
+                e.WelcomeMessage,
+                e.RegistrationFees,
                 Registered = e.Registrations.Count(),
                 CheckedIn = e.Registrations.Count(r => r.CheckedInAt != null),
             })

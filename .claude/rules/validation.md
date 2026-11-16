@@ -25,6 +25,7 @@ Source: `validation-spec` skill. The server is authoritative; the client is UX o
 | Start / End | Both required; **End > Start**; new events Start ≥ today (warn, don't block, when editing past events) |
 | Capacity | Blank = unlimited, else integer ≥ 1; on edit ≥ current registration count |
 | Status | `Draft` \| `Published` \| `Closed` |
+| Event category | Optional: `Senior` \| `Regular` \| blank = none; trimmed, matched ignoring case, saved canonical |
 | Rating | Integer 1–5 |
 | Feedback comment | Optional, ≤ 1000 |
 | Token / slug | Tokens parse as GUID; slug `^[a-z0-9-]{1,100}$` |

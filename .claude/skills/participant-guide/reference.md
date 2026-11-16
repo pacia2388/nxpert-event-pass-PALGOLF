@@ -45,10 +45,14 @@ has **Edit account**, **Install app** and **Sign out**.
 
 ## 2. Browsing events (account holders)
 
-**Browse Events** shows every event open for registration as a card: the banner, date, a status
-tag (**Open**, **Full**, **Ended**, **Registered**), an **Online** / **Hybrid** tag when the
+**Browse Events** shows public events as cards: the banner, date, a status
+tag (**Open**, **Full**, **Closed**, **Ended**, **Registered**), an **Online** / **Hybrid** tag when the
 event is held online, the time and venue, and the start of the description.
 
+- Use the tabs to narrow the list: **All**, **Open** (upcoming events you haven't registered for),
+  **Registered** (upcoming events you registered for), **Closed** (upcoming events no longer
+  taking registrations) and **Ended** (past events). The chosen tab stays in the address, so
+  Back and reload keep it.
 - Use the **search** box to find an event by title, venue or description.
 - **Details** opens the full information: banner, description, registration fees, schedule of
   activities, sub-events and meal stubs.
@@ -66,6 +70,9 @@ it**, fees, schedule and meal stubs.
 
 - **Signed in:** your **name** and **ID No.** come from your account (read-only) — click
   **Register for this event**.
+  - On a **Senior** event (65 and older) when you're under 65, or a **Regular** event (under 65)
+    when you're 65 or older, a warning asks you to confirm — **Cancel** or **Register anyway**.
+    Your age comes from the birthdate in **My Account**; with no birthdate there is no warning.
 - **Not signed in (guest):** fill in
   - **Full name** and **ID No.**
   - **Send my pass via** — Email, Viber, or Both

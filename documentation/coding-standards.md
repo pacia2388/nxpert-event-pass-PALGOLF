@@ -23,3 +23,11 @@ Judgement calls a reviewer checks on every diff. Rules a tool can check belong i
 - **Re-selecting the same record resets explicitly.** Setting a signal to its current value
   notifies nobody, so a "New" or "Refresh" that lands on the same record (often `null`) must reset
   the form directly.
+
+## Tests
+
+- **A stated layout rule gets a Playwright spec.** When the user sets where elements sit at a
+  screen width ("tabs right of the search, below it on phones"), a spec in
+  `frontend/web/e2e/<role>/` asserts their relative positions with `boundingBox()` at each width.
+  A Vitest DOM-order test standing in for it is a finding. Styling with no stated rule needs no
+  test.
