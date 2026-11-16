@@ -28,7 +28,7 @@ test('an admin confirms a pending guest registration and the pass is sent', asyn
 
   await expect(row.getByText('Confirmed')).toBeVisible();
   await expect(page.getByText(/Confirmed 1/)).toBeVisible();
-  // Email is off in the e2e API, so the pass lands in the outbox with its QR code.
+  // The e2e API writes each email to the run's sent folder instead of sending it.
   await expect.poll(() => outboxFor(guest.email).some((m) => m.hasPass)).toBe(true);
 });
 

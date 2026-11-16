@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 🚧 In progress — steps 1–4, 3b, 7 implemented 2026-11-12; steps 8–9 (phone country table, strict mobile → email fallback) implemented 2026-11-13. Tests: 141/141 pass (2026-11-13) with `dotnet exec EventRegistration.Api.Tests.dll` (xUnit v3); see `documentation/notification-test-matrix.md` |
+| **Status** | ✅ Done (2026-11-13) — steps 1–4, 3b, 7 implemented 2026-11-12; steps 8–9 (phone country table, strict mobile → email fallback) implemented 2026-11-13. Tests: 141/141 pass (2026-11-13) with `dotnet exec EventRegistration.Api.Tests.dll` (xUnit v3); see `documentation/notification-test-matrix.md` |
 | **Last updated** | 2026-11-13 |
 | **Related** | `PassService`, `MobileMessenger`, `ViberService`, `SmsService`, `EmailService`, `MailPlanDispatcher`, `AttendanceController`, `PhPhone`, `shared/ph-phone.ts` |
 
@@ -198,7 +198,7 @@ mobile attempt fails (decision 10). Viber/SMS stay un-retried, as today.
       `PassEmailSentAt is null` early return: a pass that was `NotSent` (decision 6) gets no cancel
       notice on any channel — intended, nothing was received.
 
-### 5. Minor recommendations 🚧 In progress
+### 5. Minor recommendations ✅ Done (2026-11-13)
 
 - [x] **Settings wording:** "Mobile notification channel" note on the admin Settings page rewritten
       in plain words (full message list, SMS pass link, Viber picture; no provider or config terms).
@@ -209,7 +209,7 @@ mobile attempt fails (decision 10). Viber/SMS stay un-retried, as today.
       screens — no provider names. `GET /api/settings` is admin-only, so a new public
       `GET /api/settings/mobile-channel` feeds `MobileChannelService` in the frontend. Bulk confirm
       reports `fellBack` / `retrying` / `notSent` counts.
-- [ ] 🚧 **M2 Phone rule:** merge the three PH normalizers (`RegistrationsController.NormalizePhMobile`
+- [x] **M2 Phone rule:** merge the three PH normalizers (`RegistrationsController.NormalizePhMobile`
       `:617`, `ViberService.NormalizePhone`, `SmsService.NormalizePhone`) into one shared
       `PhPhone.Normalize` helper; use it there and in `UsersController` (create/edit) and CSV import so
       every stored phone is `+639XXXXXXXXX`. Change `user-form-panel` pattern to
@@ -407,3 +407,4 @@ mobile attempt fails (decision 10). Viber/SMS stay un-retried, as today.
 | 2026-11-13 | `PhoneCountries` reshaped to one row per code with `Viber` / `Sms` flags (migration `PhoneCountryChannelColumns` merges old rows per code). API: `POST {countryCode}` adds with both off, `PUT /{id} {viber, sms}`. Settings: channel toggle removed; table shows Code, Country, Viber, SMS checkboxes, delete. Tests 140/140 (in-process xunit runner), web 67/67. |
 | 2026-11-13 | Tests moved to xUnit v3 on Microsoft Testing Platform (`global.json` test runner, VS launch profile) so they run with `dotnet exec` where VSTest gets "Access is denied". Fixture blanks provider credentials; guard test checks own database, `Testing` environment and test-only send folders. 141/141. |
 | 2026-11-13 | Hot fix: organizer Viber broadcast counted every number as sent even when Infobip failed (e.g. 401). Now counts only delivered numbers and returns `failed`; event page shows success / warning / error. Decision: the broadcast stays **Viber only** (no email fallback, no phone-country check). Tests M28–M30; 144/144. |
+| 2026-11-13 | Plan closed: all steps done; M2 and step 6 superseded by steps 8 and 12. Open questions left are optional or need client input. Moved to `plans/completed/`. |

@@ -83,16 +83,23 @@ describe('User form panel', () => {
     expect(marker('email')).toBe('Enter a valid email address');
   });
 
-  it('marks the empty phone as soon as Viber is chosen', async () => {
+  it('requires the phone once mobile is chosen and says so after the field is left', async () => {
     const loader = TestbedHarnessEnvironment.loader(fixture);
     const channel = await loader.getHarness(
       MatSelectHarness.with({ selector: '[name="notificationChannel"]' }),
     );
     await channel.open();
-    await channel.clickOptions({ text: 'Viber' });
+    await channel.clickOptions({ text: 'Mobile (Viber)' });
     await settle();
 
-    expect(marker('phone')).toBe('Required for Viber');
+    const phone = root().querySelector<HTMLInputElement>('app-phone-field input[type="tel"]')!;
+    expect(phone.required).toBe(true);
+    phone.dispatchEvent(new Event('blur'));
+    await settle();
+
+    expect(root().querySelector('app-phone-field .phone-error')?.textContent?.trim()).toBe(
+      'A phone number is required for mobile.',
+    );
   });
 
   it('clears the markers when another user is opened', async () => {

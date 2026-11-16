@@ -1,8 +1,10 @@
 import { execFileSync } from 'node:child_process';
-import { DATABASE, SQL_SERVER } from './env';
+import fs from 'node:fs';
+import { DATABASE, SENT_DIR, SQL_SERVER } from './env';
 
 // Drops the run's throwaway database. ROLLBACK IMMEDIATE closes the API's open connections first.
 export default function globalTeardown(): void {
+  fs.rmSync(SENT_DIR, { recursive: true, force: true });
   const sql =
     `IF DB_ID(N'${DATABASE}') IS NOT NULL BEGIN ` +
     `ALTER DATABASE [${DATABASE}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; ` +

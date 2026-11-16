@@ -33,6 +33,16 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     public static readonly string SentRoot = Path.Combine(AppContext.BaseDirectory, "test", "sent");
     public static string SentDir(string channel) => Path.Combine(SentRoot, channel);
 
+    // Start each run with empty folders, once per process: fixtures run in parallel, and a later
+    // one must not delete files an earlier one is still writing (files only: an open folder must
+    // not fail the run).
+    private static readonly Lazy<bool> ClearSentOnce = new(() =>
+    {
+        if (Directory.Exists(SentRoot))
+            foreach (var file in Directory.GetFiles(SentRoot, "*", SearchOption.AllDirectories)) File.Delete(file);
+        return true;
+    });
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -48,9 +58,7 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         foreach (var key in new[] { "Email:Host", "Email:User", "Email:Password", "Viber:BaseUrl", "Viber:ApiKey",
                      "Sms:BaseUrl", "Sms:ApiKey", "Sms:ApiSecret", "FaceEngine:ApiKey" })
             builder.UseSetting(key, "");
-        // Start each run with empty folders (files only: an open folder must not fail the run).
-        if (Directory.Exists(SentRoot))
-            foreach (var file in Directory.GetFiles(SentRoot, "*", SearchOption.AllDirectories)) File.Delete(file);
+        _ = ClearSentOnce.Value;
         builder.UseSetting("Email:TestSendDir", SentDir("email"));
         builder.UseSetting("Viber:TestSendDir", SentDir("viber"));
         builder.UseSetting("Sms:TestSendDir", SentDir("sms"));

@@ -26,7 +26,9 @@ export const CONNECTION_STRING =
 export const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 export const API_PROJECT = path.join(REPO_ROOT, 'backend', 'EventRegistration.Api');
 // With email off the API writes every message here (EmailService), including QR passes.
-export const OUTBOX_DIR = path.join(API_PROJECT, 'outbox');
+// Email "sends" by writing each message here (API Email:TestSendDir); the outbox itself is
+// Development-only. Inside the (gitignored) outbox folder: the API may not write to %TEMP%.
+export const SENT_DIR = path.join(API_PROJECT, 'outbox', `e2e-${RUN_ID}`);
 
 // Seeded by DbSeeder on first start.
 export const ADMIN = { email: 'admin@demo.com', password: 'Admin123!' };

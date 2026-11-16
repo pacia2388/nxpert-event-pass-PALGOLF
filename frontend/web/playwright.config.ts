@@ -5,6 +5,7 @@ import {
   API_URL,
   CONNECTION_STRING,
   PARTICIPANT_STATE,
+  SENT_DIR,
   WEB_PORT,
   WEB_URL,
 } from './e2e/env';
@@ -49,7 +50,9 @@ export default defineConfig({
     {
       // Not Development: Program.cs loads appsettings.{env}.Local.json after env vars, so a local
       // Development override would win over the settings below.
-      command: `dotnet run --project "${API_PROJECT}" --no-launch-profile --urls ${API_URL}`,
+      // UseAppHost=false runs the API as `dotnet <dll>`: on some machines the .exe apphost cannot
+      // create the LocalDB automatic instance ("error 50 ... 0x89C50118") while dotnet.exe can.
+      command: `dotnet run --project "${API_PROJECT}" -p:UseAppHost=false --no-launch-profile --urls ${API_URL}`,
       // Any answer below 404 counts as ready; /api/auth/me answers 401 when signed out.
       url: `${API_URL}/api/auth/me`,
       timeout: 180_000,
@@ -60,10 +63,13 @@ export default defineConfig({
         ASPNETCORE_ENVIRONMENT: 'E2E',
         ConnectionStrings__Default: CONNECTION_STRING,
         Email__Enabled: 'false',
+        Email__TestSendDir: SENT_DIR,
         Viber__Enabled: 'false',
         Sms__Enabled: 'false',
         App__FrontendBaseUrl: WEB_URL,
         App__RequireEmailVerification: 'false',
+        // Off as in Development: a user without Event Log rights gets every warning as a dropped request.
+        Logging__EventLog__LogLevel__Default: 'None',
       },
     },
     {

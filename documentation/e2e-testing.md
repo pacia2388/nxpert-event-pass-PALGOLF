@@ -31,14 +31,17 @@ Run one file or one project with `npx playwright test anonymous/login` or
 
 | Server | Port | Notes |
 |---|---|---|
-| API | 5188 | `dotnet run`, environment `E2E`, database `EventPassE2E_<run id>` |
+| API | 5188 | `dotnet run` (as `dotnet <dll>`, no apphost: the .exe can fail to reach LocalDB), environment `E2E`, database `EventPassE2E_<run id>` |
 | Web | 4300 | `ng serve`; never reused, so free port 4300 first (the `web-alt` preview uses it) |
 
 - Your dev servers (5088 / 4200) and dev database are not touched, so both can run at once.
 - The API seeds a fresh database on start (`admin@demo.com`, `alice@example.com` …), and the
   global teardown drops it when the run ends.
-- Email, Viber and SMS are off. Messages are written to `backend/EventRegistration.Api/outbox/`,
-  which the tests read to check whether a pass was sent.
+- Email, Viber and SMS are off. Email is "sent" by writing each message as an `.eml` file to the
+  run's own folder `backend/EventRegistration.Api/outbox/e2e-<run id>/` (`Email:TestSendDir`), which the tests read to
+  check whether a pass was sent; the teardown deletes it. (The API's own outbox is Development-only.)
+- The Windows Event Log logger is off (as in Development): without Event Log rights, every request
+  that logs a warning would otherwise be dropped.
 - The environment is `E2E`, not Development, so `appsettings.Development.Local.json` is not loaded.
 - The browser is pointed at port 5188 by rewriting `appSettings.json` in each test
   (`e2e/fixtures.ts`), so no rebuild is needed.

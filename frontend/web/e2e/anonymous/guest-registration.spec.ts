@@ -9,6 +9,8 @@ test.describe('guest registration on the public event page', () => {
     event = await createPublishedEvent(adminApi);
     await page.goto(`/e/${event.publicSlug}`);
     await expect(page.getByRole('heading', { name: 'Register to attend' })).toBeVisible();
+    // Country codes load separately; typing a number before +63 is picked leaves no code.
+    await expect(page.getByLabel('Code')).toContainText('+63');
   });
 
   test('errors show only after a field is touched', async ({ page }) => {
@@ -29,7 +31,7 @@ test.describe('guest registration on the public event page', () => {
     await page.getByLabel('Mobile number').fill('12345');
     await page.getByLabel('Full name').focus();
     await expect(page.getByText('Enter a valid email address.')).toBeVisible();
-    await expect(page.getByText('Enter a valid PH mobile number: +63 9XX XXX XXXX.')).toBeVisible();
+    await expect(page.getByText('Use a mobile number: 9XX XXX XXXX.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Register to attend' })).toBeDisabled();
   });
 

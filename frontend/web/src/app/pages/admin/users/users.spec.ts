@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { of } from 'rxjs';
 import { ApiService } from '../../../core/api.service';
@@ -12,7 +14,16 @@ describe('Users page', () => {
     TestBed.configureTestingModule({
       providers: [
         provideNativeDateAdapter(),
-        { provide: ApiService, useValue: { listUsers: () => of([]) } },
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ApiService,
+          useValue: {
+            listUsers: () => of([]),
+            getPhoneCountries: () => of([]),
+            getMobileChannel: () => of({ mobileProvider: 'Viber' }),
+          },
+        },
         // "Discard" is chosen whenever the page asks.
         { provide: ConfirmService, useValue: { confirm: () => Promise.resolve(true) } },
       ],
