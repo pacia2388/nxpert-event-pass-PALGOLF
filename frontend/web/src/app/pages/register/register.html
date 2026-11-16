@@ -150,17 +150,13 @@
               [pattern]="passwordPattern"
               autocomplete="new-password"
             />
-            <mat-hint>{{ passwordHint }}</mat-hint>
             @if (pwdCtrl.hasError('required')) {
               <mat-error>Password is required.</mat-error>
-            }
-            @if (pwdCtrl.hasError('minlength')) {
-              <mat-error>Password must be at least 8 characters.</mat-error>
-            }
-            @if (!pwdCtrl.hasError('minlength') && pwdCtrl.hasError('pattern')) {
-              <mat-error>Include at least one letter, one number and one symbol.</mat-error>
+            } @else if (pwdCtrl.invalid) {
+              <mat-error>Password doesn't meet the requirements below.</mat-error>
             }
           </mat-form-field>
+          <app-password-requirements [password]="password" [email]="email" />
 
           <app-phone-field [(value)]="phone" label="Phone (optional)" />
 

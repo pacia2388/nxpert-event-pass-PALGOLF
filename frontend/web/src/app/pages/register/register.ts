@@ -14,11 +14,13 @@ import { AuthService, RegisterBody } from '../../core/auth.service';
 import { ApiService } from '../../core/api.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BIRTHDATE_MIN, birthdateMax, isValidBirthdate, toIsoDate } from '../../shared/birthdate';
-import { PASSWORD_HINT, PASSWORD_PATTERN } from '../../shared/password';
+import { PASSWORD_PATTERN } from '../../shared/password';
+import { PasswordRequirementsComponent } from '../../shared/password-requirements/password-requirements';
 
 @Component({
   selector: 'app-register',
   imports: [
+    PasswordRequirementsComponent,
     PhoneFieldComponent,
     FormsModule,
     RouterLink,
@@ -54,7 +56,6 @@ export class RegisterComponent implements OnInit {
   email = '';
   password = '';
   readonly passwordPattern = PASSWORD_PATTERN;
-  readonly passwordHint = PASSWORD_HINT;
   phone: string | null = null; // "+<code><number>" from the phone field (optional)
   protected countries = inject(PhoneCountryService);
   organization = '';

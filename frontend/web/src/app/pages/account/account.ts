@@ -19,7 +19,8 @@ import { AuthService } from '../../core/auth.service';
 import { NotificationChannel, ProfileUpdate } from '../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { isValidPassword, PASSWORD_HINT, PASSWORD_PATTERN } from '../../shared/password';
+import { isValidPassword, PASSWORD_PATTERN } from '../../shared/password';
+import { PasswordRequirementsComponent } from '../../shared/password-requirements/password-requirements';
 import {
   BIRTHDATE_MIN,
   birthdateMax,
@@ -31,6 +32,7 @@ import {
 @Component({
   selector: 'app-account',
   imports: [
+    PasswordRequirementsComponent,
     FormsModule,
     RouterLink,
     MatCardModule,
@@ -97,7 +99,6 @@ export class AccountComponent implements OnInit {
   currentPassword = '';
   newPassword = '';
   readonly passwordPattern = PASSWORD_PATTERN;
-  readonly passwordHint = PASSWORD_HINT;
 
   previewPhoto = () => this.newPhoto() ?? (this.clearPhoto() ? null : this.existingPhoto());
 

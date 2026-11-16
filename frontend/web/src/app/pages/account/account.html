@@ -190,15 +190,12 @@
               [pattern]="passwordPattern"
               autocomplete="new-password"
             />
-            <mat-hint>{{ passwordHint }}</mat-hint>
-            @if (newPwdCtrl.hasError('minlength')) {
-              <mat-error>Password must be at least 8 characters.</mat-error>
-            }
-            @if (!newPwdCtrl.hasError('minlength') && newPwdCtrl.hasError('pattern')) {
-              <mat-error>Include at least one letter, one number and one symbol.</mat-error>
+            @if (newPwdCtrl.invalid) {
+              <mat-error>Password doesn't meet the requirements below.</mat-error>
             }
           </mat-form-field>
         </div>
+        <app-password-requirements [password]="newPassword" [email]="email" />
 
         <div class="form-actions">
           <a mat-button routerLink="/my-events">Cancel</a>
