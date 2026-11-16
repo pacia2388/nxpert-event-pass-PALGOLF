@@ -13,7 +13,7 @@ Source: `security-assessment` skill. Apply to every change in `backend/` and `fr
   origin>)`; the app uses Bearer tokens, so omit `AllowCredentials`.
 - **Invite / verification tokens:** must be single-use and time-limited. Do not fully authenticate
   from a link alone.
-- **Passwords:** enforce policy server-side (min 8, letter + digit, not equal to email), not only in
+- **Passwords:** enforce policy server-side (min 8, letter + digit + symbol, not equal to email), not only in
   Angular.
 - **Throttle** `/api/auth/*` (login, register, verify, invite) and guest registration; add
   lockout/backoff on failed logins. Rate-limit emails per address/IP.
