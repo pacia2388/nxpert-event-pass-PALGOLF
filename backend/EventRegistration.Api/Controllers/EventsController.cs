@@ -135,6 +135,17 @@ public class EventsController : ControllerBase
             new List<MealDto>(), EventFormats.Normalize(e.Format), Category: e.Category);
     }
 
+    // Title 3–300 characters once trimmed; the event must end after it starts.
+    private static string? ValidateTitleAndSchedule(EventUpsertRequest req)
+    {
+        var title = (req.Title ?? "").Trim();
+        if (title.Length < 3 || title.Length > 300)
+            return "Title must be 3 to 300 characters.";
+        if (req.EndsAt <= req.StartsAt)
+            return "The event must end after it starts.";
+        return null;
+    }
+
     private static string? ValidateCategory(EventUpsertRequest req) =>
         EventCategories.IsValid(req.Category) ? null : "Category must be Senior, Regular, or none.";
 
@@ -445,7 +456,8 @@ public class EventsController : ControllerBase
     [HttpPost, Authorize(Roles = Roles.Admin + "," + Roles.SuperAdmin)]
     public async Task<ActionResult<EventDto>> Create(EventUpsertRequest req)
     {
-        var validationError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
+        var validationError = ValidateTitleAndSchedule(req)
+            ?? ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
             ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
         if (validationError is not null) return BadRequest(new { message = validationError });
 
@@ -488,7 +500,8 @@ public class EventsController : ControllerBase
             .FirstOrDefaultAsync(x => x.Id == id);
         if (e is null) return NotFound();
 
-        var validationError = ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
+        var validationError = ValidateTitleAndSchedule(req)
+            ?? ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
             ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
         if (validationError is not null) return BadRequest(new { message = validationError });
 
