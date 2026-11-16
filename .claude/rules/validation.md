@@ -19,7 +19,7 @@ Source: `validation-spec` skill. The server is authoritative; the client is UX o
 | Phone | Optional, 7–40 chars, `^[0-9+()\-\s]+$`; stored `+<code><number>` (8–15 digits; `+63` = `+639` + 9 digits). Every form (`app-phone-field`): code must be in the Phone country table. CSV: any valid number; no `+` = PH |
 | Birthdate | Required in UI/requests (DB nullable for legacy rows); `yyyy-MM-dd`, 1900-01-01 .. today; CSV also accepts `M/d/yyyy` |
 | Organization | Optional, ≤ 200 |
-| Event title | Required, trimmed, 3–300 |
+| Event title | Required, trimmed, 3–300 (an edit that keeps an older, shorter title is allowed) |
 | Description | Optional, ≤ 4000 |
 | Venue | Required, trimmed, ≤ 300 |
 | Start / End | Both required; **End > Start**; new events Start ≥ today (warn, don't block, when editing past events) |

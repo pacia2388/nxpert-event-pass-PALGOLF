@@ -1,5 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using EventRegistration.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EventRegistration.Api.Tests;
 
@@ -95,5 +98,23 @@ public class EventValidationTests(ApiFixture api)
 
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         Assert.Equal("Golf Cup", (await admin.GetFromJsonAsync<EventBody>($"/api/events/{id}"))!.Title);
+    }
+    [Fact]
+    public async Task An_older_event_with_a_short_title_can_still_be_edited_while_the_title_stays()
+    {
+        var admin = await api.AdminAsync();
+        var created = await admin.PostAsJsonAsync("/api/events", Event("Golf Cup", Start.AddHours(4)));
+        created.EnsureSuccessStatusCode();
+        var id = (await created.Content.ReadFromJsonAsync<EventBody>())!.Id;
+        // Saved before the title rule existed.
+        using (var scope = api.Services.CreateScope())
+            await scope.ServiceProvider.GetRequiredService<AppDbContext>().Events
+                .Where(e => e.Id == id).ExecuteUpdateAsync(s => s.SetProperty(e => e.Title, "QA"));
+
+        var keep = await admin.PutAsJsonAsync($"/api/events/{id}", Event("QA", Start.AddHours(5)));
+        var shorter = await admin.PutAsJsonAsync($"/api/events/{id}", Event("Q", Start.AddHours(5)));
+
+        Assert.Equal(HttpStatusCode.OK, keep.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, shorter.StatusCode);
     }
 }
