@@ -14,8 +14,13 @@ public class BrowseEventsTests(ApiFixture api)
         var start = DateTime.Today.AddDays(10).AddHours(7);
         var created = await admin.PostAsJsonAsync("/api/events", new
         {
-            title = $"Browse Cup {Guid.NewGuid():N}"[..22], description = "", startsAt = start,
-            endsAt = start.AddHours(8), venue = "Course", isPublicLinkEnabled = publicLink, status,
+            title = $"Browse Cup {Guid.NewGuid():N}"[..22],
+            description = "",
+            startsAt = start,
+            endsAt = start.AddHours(8),
+            venue = "Course",
+            isPublicLinkEnabled = publicLink,
+            status,
         });
         created.EnsureSuccessStatusCode();
         return (await created.Content.ReadFromJsonAsync<EventBody>())!.Id;

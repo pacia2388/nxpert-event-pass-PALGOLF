@@ -248,14 +248,21 @@ public class NotificationFallbackApiTests(ApiFixture api)
         var start = DateTime.Today.AddDays(10);
         var created = await admin.PostAsJsonAsync("/api/events", new
         {
-            title = $"Golf Day {Guid.NewGuid():N}"[..20], description = "", startsAt = start,
-            endsAt = start.AddHours(8), venue = "Course", isPublicLinkEnabled = true, status = "Published",
+            title = $"Golf Day {Guid.NewGuid():N}"[..20],
+            description = "",
+            startsAt = start,
+            endsAt = start.AddHours(8),
+            venue = "Course",
+            isPublicLinkEnabled = true,
+            status = "Published",
         });
         created.EnsureSuccessStatusCode();
         var ev = (await created.Content.ReadFromJsonAsync<EventBody>())!;
         (await api.Anonymous().PostAsJsonAsync($"/api/registrations/guest/{ev.PublicSlug}", new
         {
-            fullName = "Mia Santos", email = ApiFixture.NewEmail(), phone = "09171234567",
+            fullName = "Mia Santos",
+            email = ApiFixture.NewEmail(),
+            phone = "09171234567",
             senateNo = $"ID-{Guid.NewGuid():N}"[..10],
         })).EnsureSuccessStatusCode();
         int regId;
@@ -285,8 +292,14 @@ public class NotificationFallbackApiTests(ApiFixture api)
         var admin = await api.AdminAsync();
         object User(string email) => new
         {
-            firstName = "Ana", lastName = "Cruz", email, password = "Passw0rd!", role = "Participant",
-            phone = "+1 415 555 0100", notificationChannel = "Email", birthdate = "1990-01-01",
+            firstName = "Ana",
+            lastName = "Cruz",
+            email,
+            password = "Passw0rd!",
+            role = "Participant",
+            phone = "+1 415 555 0100",
+            notificationChannel = "Email",
+            birthdate = "1990-01-01",
         };
 
         var rejected = await admin.PostAsJsonAsync("/api/users", User(ApiFixture.NewEmail()));
@@ -384,7 +397,8 @@ public class NotificationFallbackApiTests(ApiFixture api)
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var row = new EmailRetry
         {
-            Kind = EmailRetryKinds.Message, NextAttemptAt = DateTimeOffset.UtcNow,
+            Kind = EmailRetryKinds.Message,
+            NextAttemptAt = DateTimeOffset.UtcNow,
             SnapshotJson = JsonSerializer.Serialize(new QueuedEmail(["mia@example.com"], [], "Hi", "<p>Hi</p>", null, null)),
         };
         db.EmailRetries.Add(row);
@@ -425,7 +439,9 @@ public class NotificationFallbackApiTests(ApiFixture api)
             "PAL GOLF", "events@example.com", "Mia Santos", "mia@example.com");
         var row = new EmailRetry
         {
-            RegistrationId = int.MaxValue - 1, Kind = EmailRetryKinds.MeetingCancel, NextAttemptAt = DateTimeOffset.UtcNow,
+            RegistrationId = int.MaxValue - 1,
+            Kind = EmailRetryKinds.MeetingCancel,
+            NextAttemptAt = DateTimeOffset.UtcNow,
             SnapshotJson = JsonSerializer.Serialize(new MeetingCancelSnapshot(invite, "Mia Santos", MeetingCancelReason.EventCancelled)),
         };
         db.EmailRetries.Add(row);

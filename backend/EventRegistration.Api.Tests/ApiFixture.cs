@@ -208,8 +208,15 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         var start = DateTime.Today.AddDays(10).AddHours(8);
         var res = await admin.PostAsJsonAsync("/api/events", new
         {
-            title, description = "", startsAt = start, endsAt = start.AddHours(8), venue = "Course",
-            isPublicLinkEnabled = true, status = "Published", format, notifyOnKitClaim = true,
+            title,
+            description = "",
+            startsAt = start,
+            endsAt = start.AddHours(8),
+            venue = "Course",
+            isPublicLinkEnabled = true,
+            status = "Published",
+            format,
+            notifyOnKitClaim = true,
             meetingUrl = format is null ? null : "https://meet.example.com/golf",
             meals = meal ? new[] { new { id = 0, name = "Lunch", denomination = 150m, quantity = 1, color = (string?)null, day = 1,
                 validFrom = (DateTime?)start, validTo = (DateTime?)start.AddHours(8) } } : null,
@@ -224,7 +231,10 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     {
         (await Anonymous().PostAsJsonAsync($"/api/registrations/guest/{slug}", new
         {
-            fullName = "Mia Santos", email, phone, notificationChannel = channel,
+            fullName = "Mia Santos",
+            email,
+            phone,
+            notificationChannel = channel,
             senateNo = $"ID-{Guid.NewGuid():N}"[..10],
         })).EnsureSuccessStatusCode();
         using var scope = Services.CreateScope();
