@@ -304,8 +304,9 @@ Click a row to load that user into the form.
 - Leaving a user with unsaved changes asks before discarding them.
 
 **Form fields:** **Profile photo**, **First name**, **M.I.**, **Last name** (required), **Email**
-(required), **Username** (auto-generated if blank), **Password** (min. 8 characters; when editing,
-leave blank to keep), **Birthdate** (required), **Role** (Participant / Admin / Merchant), **ID No.**, **Designation**
+(required), **Username** (auto-generated if blank), **Password** (at least 8 characters with a letter, a number and a
+symbol, and not the user's email; a checklist under the field ticks each rule as you type; when
+editing, leave blank to keep), **Birthdate** (required), **Role** (Participant / Admin / Merchant), **ID No.**, **Designation**
 (free text), **Chapter**, **Send pass via** (Email / Viber / Both), **Phone** (+63 format;
 required for Viber/Both), and **Can confirm registrations**. Required fields that are empty show a
 red **!**.

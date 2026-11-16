@@ -23,6 +23,8 @@ import { ToastService } from '../../../core/toast.service';
 import { AdminUserUpsert, NotificationChannel, UserDto } from '../../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../../shared/face-capture-dialog';
 import { PhoneFieldComponent } from '../../../shared/phone-field/phone-field';
+import { PasswordRequirementsComponent } from '../../../shared/password-requirements/password-requirements';
+import { isValidPassword, PASSWORD_PATTERN } from '../../../shared/password';
 import { PhoneCountryService } from '../../../core/phone-country.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
@@ -49,6 +51,7 @@ import {
     MatCheckboxModule,
     MatTooltipModule,
     PhoneFieldComponent,
+    PasswordRequirementsComponent,
   ],
   templateUrl: './user-form-panel.html',
   styleUrl: './user-form-panel.scss',
@@ -270,12 +273,22 @@ export class UserFormPanelComponent {
     return null;
   }
 
+  protected readonly passwordPattern = PASSWORD_PATTERN;
+
+  // Why the password can't be saved (shown on the field's marker), or null when it can. A blank
+  // password keeps the current one when editing.
+  get passwordProblem(): string | null {
+    if (!this.password) return this.isEdit ? null : 'Required';
+    const sameAsEmail = this.password.toLowerCase() === this.email.trim().toLowerCase();
+    return isValidPassword(this.password) && !sameAsEmail
+      ? null
+      : "Doesn't meet the requirements below";
+  }
+
   get valid(): boolean {
     const hasNames = !!this.firstName.trim() && !!this.lastName.trim();
     const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
-    const pwOk = this.isEdit
-      ? !this.password || this.password.length >= 8
-      : this.password.length >= 8;
+    const pwOk = this.isEdit ? !this.password || !this.passwordProblem : !this.passwordProblem;
     // A phone is optional unless mobile; when present it needs a listed code and a full number.
     const phoneOk = this.phone ? this.countries.isValid(this.phone) : !this.phoneRequired();
     return (
