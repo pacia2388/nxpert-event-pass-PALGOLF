@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -48,7 +57,14 @@ export class UsersComponent implements OnInit {
   users = signal<UserDto[]>([]);
   search = signal('');
   roleFilter = signal<RoleFilter>('All');
-  readonly roleFilters: RoleFilter[] = ['All', 'Admin', 'Participant', 'Captain', 'Merchant', 'Confirmers'];
+  readonly roleFilters: RoleFilter[] = [
+    'All',
+    'Admin',
+    'Participant',
+    'Captain',
+    'Merchant',
+    'Confirmers',
+  ];
 
   /** The row shown in the form; null = a new, unsaved record. */
   selected = signal<UserDto | null>(null);
@@ -60,9 +76,14 @@ export class UsersComponent implements OnInit {
     const q = this.search().trim().toLowerCase();
     const rf = this.roleFilter();
     return this.users().filter((u) => {
-      if (rf === 'Confirmers' && !(u.canConfirmRegistrations || u.role === 'Admin' || u.role === 'SuperAdmin')) return false;
+      if (
+        rf === 'Confirmers' &&
+        !(u.canConfirmRegistrations || u.role === 'Admin' || u.role === 'SuperAdmin')
+      )
+        return false;
       if (rf === 'Admin' && u.role !== 'Admin' && u.role !== 'SuperAdmin') return false;
-      if ((rf === 'Participant' || rf === 'Captain' || rf === 'Merchant') && u.role !== rf) return false;
+      if ((rf === 'Participant' || rf === 'Captain' || rf === 'Merchant') && u.role !== rf)
+        return false;
       if (!q) return true;
       return (
         u.fullName.toLowerCase().includes(q) ||
@@ -83,7 +104,9 @@ export class UsersComponent implements OnInit {
   });
 
   // Blank rows pad the grid to a full page so the list keeps its shape, as in the concept.
-  fillerRows = computed(() => Array.from({ length: Math.max(0, this.pageSize - this.paged().length) }));
+  fillerRows = computed(() =>
+    Array.from({ length: Math.max(0, this.pageSize - this.paged().length) }),
+  );
 
   constructor() {
     // A new search/filter shrinks the list, so jump back to the first page.
@@ -195,11 +218,36 @@ export class UsersComponent implements OnInit {
       this.toast.info('No users to export.');
       return;
     }
-    const header = ['Name', 'Username', 'Email', 'ID No.', 'Chapter', 'Role', 'Designation', 'Phone', 'Pass via', 'Can confirm', 'Birthdate'];
+    const header = [
+      'Name',
+      'Username',
+      'Email',
+      'ID No.',
+      'Chapter',
+      'Role',
+      'Designation',
+      'Phone',
+      'Pass via',
+      'Can confirm',
+      'Birthdate',
+    ];
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = rows.map((u) =>
-      [u.fullName, u.username, u.email, u.senateNo, u.organization, u.role, u.level, u.phone,
-        u.notificationChannel, u.canConfirmRegistrations ? 'Yes' : 'No', u.birthdate].map(esc).join(','),
+      [
+        u.fullName,
+        u.username,
+        u.email,
+        u.senateNo,
+        u.organization,
+        u.role,
+        u.level,
+        u.phone,
+        u.notificationChannel,
+        u.canConfirmRegistrations ? 'Yes' : 'No',
+        u.birthdate,
+      ]
+        .map(esc)
+        .join(','),
     );
     const blob = new Blob(['﻿' + [header.map(esc).join(','), ...lines].join('\r\n')], {
       type: 'text/csv;charset=utf-8',

@@ -1,5 +1,14 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard, confirmerGuard, merchantGuard, nonMerchantGuard, participantOrCaptainGuard, guestGuard, voucherGuard } from './core/guards';
+import {
+  authGuard,
+  adminGuard,
+  confirmerGuard,
+  merchantGuard,
+  nonMerchantGuard,
+  participantOrCaptainGuard,
+  guestGuard,
+  voucherGuard,
+} from './core/guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -26,7 +35,9 @@ export const routes: Routes = [
     // Public token magic-link: edit a registration's response without an account.
     path: 'r/:token',
     loadComponent: () =>
-      import('./pages/registration-edit/registration-edit').then((m) => m.RegistrationEditComponent),
+      import('./pages/registration-edit/registration-edit').then(
+        (m) => m.RegistrationEditComponent,
+      ),
   },
   {
     // Module launcher: role-based cards for every area the user can open.
@@ -134,7 +145,8 @@ export const routes: Routes = [
   {
     path: 'merchant/scan',
     canActivate: [merchantGuard],
-    loadComponent: () => import('./pages/merchant/meal-scanner').then((m) => m.MealScannerComponent),
+    loadComponent: () =>
+      import('./pages/merchant/meal-scanner').then((m) => m.MealScannerComponent),
   },
   {
     // Airline baggage vouchers (golf equipment), Participant and Captain only.

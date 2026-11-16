@@ -7,7 +7,9 @@ describe('event schedule lines', () => {
 
   it('formats with the locale it is given', () => {
     expect(scheduleWhen('2026-11-14T17:30:00', 'en-US')).toBe('Sat, Nov 14 2026, 5:30 PM');
-    expect(scheduleLines('2026-11-12T09:00:00', null, 'en-US')).toEqual(['Starts: Thu, Nov 12 2026, 9:00 AM']);
+    expect(scheduleLines('2026-11-12T09:00:00', null, 'en-US')).toEqual([
+      'Starts: Thu, Nov 12 2026, 9:00 AM',
+    ]);
   });
 
   it('shows the start and the end on their own lines', () => {
@@ -25,6 +27,8 @@ describe('event schedule lines', () => {
   });
 
   it('shows only the start when there is no end', () => {
-    expect(scheduleLines('2026-11-12T09:00:00', null)).toEqual(['Starts: Thu, Nov 12 2026, 9:00 AM']);
+    expect(scheduleLines('2026-11-12T09:00:00', null)).toEqual([
+      'Starts: Thu, Nov 12 2026, 9:00 AM',
+    ]);
   });
 });

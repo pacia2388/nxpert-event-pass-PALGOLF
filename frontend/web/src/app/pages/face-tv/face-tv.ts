@@ -144,7 +144,9 @@ interface FaceBox {
 }
 
 function smoothed(previous: number | null, value: number): number {
-  return previous === null ? value : FRAME_STATS_SMOOTHING * previous + (1 - FRAME_STATS_SMOOTHING) * value;
+  return previous === null
+    ? value
+    : FRAME_STATS_SMOOTHING * previous + (1 - FRAME_STATS_SMOOTHING) * value;
 }
 
 // The preview is mirrored like a selfie camera, so the boxes are too; the frames stay unmirrored.
@@ -172,7 +174,9 @@ function isNotRegistered(track: EngineTrack, frameWidth: number): boolean {
 
 // The backend's answer, or 'notregistered': a face that matches no registrant, which the TV
 // announces on its own.
-type TvResult = Omit<CheckInResult, 'status'> & { status: CheckInResult['status'] | 'notregistered' };
+type TvResult = Omit<CheckInResult, 'status'> & {
+  status: CheckInResult['status'] | 'notregistered';
+};
 
 // One person on the TV. Someone recognized is shown as soon as the engine reports them; result is
 // null until the backend has recorded (or refused) the check-in.
@@ -249,20 +253,29 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     { value: 'face', label: 'Face' },
     { value: 'auto', label: 'Auto' },
   ];
-  readonly idleTitle = computed(() =>
-    ({
-      qr: 'Show your QR pass to the camera',
-      face: 'Look at the camera to check in',
-      auto: 'Look at the camera or show your QR pass',
-    })[this.scanMode()],
+  readonly idleTitle = computed(
+    () =>
+      ({
+        qr: 'Show your QR pass to the camera',
+        face: 'Look at the camera to check in',
+        auto: 'Look at the camera or show your QR pass',
+      })[this.scanMode()],
   );
 
   // When faces are identified: once the person stands or moves a little (steady), or right
   // away even while walking quickly (continuous). Only matters when faces are scanned.
   readonly detectionMode = signal<EngineDetectionMode>(loadDetectionMode());
   readonly detectionModes: { value: EngineDetectionMode; label: string; hint: string }[] = [
-    { value: 'steady', label: 'Steady', hint: 'Detect once the person stands still or moves a little' },
-    { value: 'continuous', label: 'Continuous', hint: 'Detect right away, even people walking quickly' },
+    {
+      value: 'steady',
+      label: 'Steady',
+      hint: 'Detect once the person stands still or moves a little',
+    },
+    {
+      value: 'continuous',
+      label: 'Continuous',
+      hint: 'Detect right away, even people walking quickly',
+    },
   ];
   readonly idleHint = computed(() =>
     this.scanMode() !== 'qr' && this.detectionMode() === 'steady'
@@ -283,15 +296,29 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   readonly cameraSwitching = signal(false);
   readonly bannerFit = signal<BannerFit>(loadBannerFit());
   readonly bannerFits: { value: BannerFit; label: string; hint: string }[] = [
-    { value: 'cover', label: 'Fill screen', hint: 'Covers the whole screen without borders; edges may be cropped' },
-    { value: 'contain', label: 'Fit whole image', hint: 'Shows the whole image over a blurred copy of itself' },
-    { value: 'fill', label: 'Stretch', hint: 'Fills the screen and shows everything, but may distort the image' },
+    {
+      value: 'cover',
+      label: 'Fill screen',
+      hint: 'Covers the whole screen without borders; edges may be cropped',
+    },
+    {
+      value: 'contain',
+      label: 'Fit whole image',
+      hint: 'Shows the whole image over a blurred copy of itself',
+    },
+    {
+      value: 'fill',
+      label: 'Stretch',
+      hint: 'Fills the screen and shows everything, but may distort the image',
+    },
   ];
   // Custom TV banner, saved per event in this browser (IndexedDB).
   readonly customBanner = signal<TvBanner | null>(null);
   readonly bannerBusy = signal(false);
   readonly bannerNotice = signal<string | null>(null);
-  readonly canEditBanner = computed(() => !this.cameraOn() && !this.cameraSwitching() && !this.bannerBusy());
+  readonly canEditBanner = computed(
+    () => !this.cameraOn() && !this.cameraSwitching() && !this.bannerBusy(),
+  );
   readonly standbyImage = computed(() => this.customBanner()?.image ?? this.eventBanner());
 
   // Right-side list: every registration of the event, latest check-in first, then the rest by name.
@@ -325,7 +352,16 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     if (!item) return null;
     const r = item.result;
     // Nothing is promised until the backend answers.
-    if (!r) return { tone: 'info', kicker: null, badge: 'Checking…', note: null, chips: [], event: null, session: null };
+    if (!r)
+      return {
+        tone: 'info',
+        kicker: null,
+        badge: 'Checking…',
+        note: null,
+        chips: [],
+        event: null,
+        session: null,
+      };
     const at = r.checkedInAt ? `at ${this.formatTime(new Date(r.checkedInAt))}` : null;
     const chips = [r.level, r.senateNo ? `Senate No. ${r.senateNo}` : null, r.organization].filter(
       (c): c is string => !!c,
@@ -350,7 +386,13 @@ export class FaceTvComponent implements OnInit, OnDestroy {
           ...details,
         };
       case 'already':
-        return { tone: 'warn', kicker: 'Welcome back', badge: 'Already checked in', note: at, ...details };
+        return {
+          tone: 'warn',
+          kicker: 'Welcome back',
+          badge: 'Already checked in',
+          note: at,
+          ...details,
+        };
       case 'unconfirmed':
         return {
           tone: 'warn',
@@ -523,7 +565,12 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   private async openWebcam(run: number): Promise<boolean> {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 },
+        },
         audio: false,
       });
       if (run !== this.cameraRun) {
@@ -537,7 +584,9 @@ export class FaceTvComponent implements OnInit, OnDestroy {
       if (run !== this.cameraRun) return false;
       const failure: CameraFailure = cameraFailure(err);
       this.cameraProblem.set(
-        failure === 'other' ? 'Could not open the camera. Check that it is connected.' : CAMERA_FAILURE_MESSAGES[failure],
+        failure === 'other'
+          ? 'Could not open the camera. Check that it is connected.'
+          : CAMERA_FAILURE_MESSAGES[failure],
       );
       if (failure !== 'insecure') this.onCameraError();
       return false;
@@ -546,7 +595,9 @@ export class FaceTvComponent implements OnInit, OnDestroy {
 
   private stopLocalCamera(): void {
     this.cameraRun++;
-    this.cameraStream()?.getTracks().forEach((t) => t.stop());
+    this.cameraStream()
+      ?.getTracks()
+      .forEach((t) => t.stop());
     this.cameraStream.set(null);
     this.faceBoxes.set([]);
     this.faceZooms.set([]);
@@ -566,7 +617,9 @@ export class FaceTvComponent implements OnInit, OnDestroy {
       try {
         const frame = await this.grabFrame();
         if (frame && run === this.cameraRun) {
-          const snapshot = await firstValueFrom(this.engine.sendFrame(frame).pipe(timeout(FRAME_TIMEOUT_MS)));
+          const snapshot = await firstValueFrom(
+            this.engine.sendFrame(frame).pipe(timeout(FRAME_TIMEOUT_MS)),
+          );
           if (run !== this.cameraRun) return;
           this.onFrameAnswered(snapshot, performance.now() - startedAt);
         }
@@ -625,12 +678,18 @@ export class FaceTvComponent implements OnInit, OnDestroy {
       marked
         .filter((track) => track.head_pose.is_angled)
         .slice(0, MAX_ZOOMS)
-        .map((track) => ({ id: track.track_id, url: this.engine.zoomUrl(track, this.zoomVersion) })),
+        .map((track) => ({
+          id: track.track_id,
+          url: this.engine.zoomUrl(track, this.zoomVersion),
+        })),
     );
     if (processed > 0) {
       if (this.lastAnswerAt !== null) {
         // Smooth the time per frame, not the rate: answers arrive in bursts, which inflate a rate.
-        this.frameIntervalMs = smoothed(this.frameIntervalMs, (now - this.lastAnswerAt) / processed);
+        this.frameIntervalMs = smoothed(
+          this.frameIntervalMs,
+          (now - this.lastAnswerAt) / processed,
+        );
         this.framesPerSecond.set(1000 / this.frameIntervalMs);
       }
       this.lastAnswerAt = now;
@@ -641,14 +700,17 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   private announceNotRegistered(snapshot: EngineSnapshot): void {
     // Forget faces that have gone first, so one coming back in this frame counts as new.
     for (const [trackId, lastSeenFrame] of this.announcedTracks) {
-      if (snapshot.frame_index - lastSeenFrame >= NOT_REGISTERED_GONE_FRAMES) this.announcedTracks.delete(trackId);
+      if (snapshot.frame_index - lastSeenFrame >= NOT_REGISTERED_GONE_FRAMES)
+        this.announcedTracks.delete(trackId);
     }
     for (const track of snapshot.tracks) {
-      if (this.announcedTracks.has(track.track_id)) this.announcedTracks.set(track.track_id, snapshot.frame_index);
+      if (this.announcedTracks.has(track.track_id))
+        this.announcedTracks.set(track.track_id, snapshot.frame_index);
     }
     if (!this.galleryReady) return;
     const fresh = snapshot.tracks.filter(
-      (track) => !this.announcedTracks.has(track.track_id) && isNotRegistered(track, snapshot.frame_width),
+      (track) =>
+        !this.announcedTracks.has(track.track_id) && isNotRegistered(track, snapshot.frame_width),
     );
     if (!fresh.length) return;
     for (const track of fresh) {
@@ -659,7 +721,10 @@ export class FaceTvComponent implements OnInit, OnDestroy {
           sequence: --this.localSequence,
           name: 'Not Registered For This Event',
           photo: this.faceCrop(track),
-          result: { ...this.errorResult('Not Registered For This Event', ''), status: 'notregistered' },
+          result: {
+            ...this.errorResult('Not Registered For This Event', ''),
+            status: 'notregistered',
+          },
         },
       ]);
     }
@@ -689,7 +754,8 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   }
 
   onCameraMetadata(video: HTMLVideoElement): void {
-    if (video.videoWidth && video.videoHeight) this.cameraAspect.set(video.videoWidth / video.videoHeight);
+    if (video.videoWidth && video.videoHeight)
+      this.cameraAspect.set(video.videoWidth / video.videoHeight);
   }
 
   setScanMode(mode: EngineScanMode): void {
@@ -738,7 +804,9 @@ export class FaceTvComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.galleryError.set(true);
-        this.galleryMessage.set(err?.error?.detail ?? 'Could not load registered faces from the face engine.');
+        this.galleryMessage.set(
+          err?.error?.detail ?? 'Could not load registered faces from the face engine.',
+        );
         this.onGalleryLoaded();
       },
     });
@@ -765,12 +833,15 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   }
 
   loadAttendees(): void {
-    this.api.attendance(this.eventId).subscribe({ next: (list) => this.attendees.set(list), error: () => {} });
+    this.api
+      .attendance(this.eventId)
+      .subscribe({ next: (list) => this.attendees.set(list), error: () => {} });
   }
 
   @HostListener('document:keydown', ['$event'])
   onKey(event: KeyboardEvent): void {
-    if ((event.key === 'f' || event.key === 'F') && !event.ctrlKey && !event.metaKey) this.toggleFullscreen();
+    if ((event.key === 'f' || event.key === 'F') && !event.ctrlKey && !event.metaKey)
+      this.toggleFullscreen();
   }
 
   toggleFullscreen(): void {
@@ -808,12 +879,19 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   }
 
   onCameraResizeKey(event: KeyboardEvent): void {
-    const steps: Record<string, number> = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 };
+    const steps: Record<string, number> = {
+      ArrowUp: 1,
+      ArrowRight: 1,
+      ArrowDown: -1,
+      ArrowLeft: -1,
+    };
     const step = steps[event.key];
     if (!step) return;
     event.preventDefault();
     const preview = (event.currentTarget as HTMLElement).parentElement!;
-    this.cameraWidth.set(clampCameraWidth(preview.getBoundingClientRect().width + step * CAMERA_KEY_STEP));
+    this.cameraWidth.set(
+      clampCameraWidth(preview.getBoundingClientRect().width + step * CAMERA_KEY_STEP),
+    );
     this.saveCameraWidth();
   }
 
@@ -913,11 +991,15 @@ export class FaceTvComponent implements OnInit, OnDestroy {
       try {
         await this.tvBanners.save(banner);
       } catch {
-        this.showBannerNotice('Banner shown for this session only — browser storage is unavailable.');
+        this.showBannerNotice(
+          'Banner shown for this session only — browser storage is unavailable.',
+        );
       }
     } catch (error) {
       if (version === this.bannerVersion)
-        this.showBannerNotice(error instanceof Error ? error.message : 'Could not read the banner image.');
+        this.showBannerNotice(
+          error instanceof Error ? error.message : 'Could not read the banner image.',
+        );
     } finally {
       this.bannerBusy.set(false);
     }
@@ -950,7 +1032,9 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     if (this.isPolling) return;
     this.isPolling = true;
     try {
-      const data = await firstValueFrom(this.engine.checkIns(this.lastSequence).pipe(timeout(ENGINE_TIMEOUT_MS)));
+      const data = await firstValueFrom(
+        this.engine.checkIns(this.lastSequence).pipe(timeout(ENGINE_TIMEOUT_MS)),
+      );
       this.engineOnline.set(true);
       const isFirstLoad = this.sessionId === null;
       if (data.session_id !== this.sessionId) {
@@ -1004,13 +1088,23 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     const { person } = checkIn;
     let result: CheckInResult;
     try {
-      result = await firstValueFrom(this.checkInRequest(person.person_id).pipe(timeout(CHECK_IN_TIMEOUT_MS)));
+      result = await firstValueFrom(
+        this.checkInRequest(person.person_id).pipe(timeout(CHECK_IN_TIMEOUT_MS)),
+      );
     } catch {
-      result = this.errorResult(person.name, 'Could not record this check-in. Please see the registration desk.');
+      result = this.errorResult(
+        person.name,
+        'Could not record this check-in. Please see the registration desk.',
+      );
     }
     const answered = (item: TvItem): TvItem =>
       item.sequence === checkIn.sequence
-        ? { ...item, result, name: result.fullName || item.name, photo: item.photo || result.photoUrl || '' }
+        ? {
+            ...item,
+            result,
+            name: result.fullName || item.name,
+            photo: item.photo || result.photoUrl || '',
+          }
         : item;
     this.waiting.update((list) => list.map(answered));
     const current = this.current();
@@ -1021,7 +1115,8 @@ export class FaceTvComponent implements OnInit, OnDestroy {
   }
 
   private checkInRequest(personId: string) {
-    if (personId.startsWith('u')) return this.api.checkInUser(this.eventId, Number(personId.slice(1)));
+    if (personId.startsWith('u'))
+      return this.api.checkInUser(this.eventId, Number(personId.slice(1)));
     // "g{token}": a guest registration's face; "q{token}": a QR pass the camera read.
     return this.api.checkIn(personId.slice(1));
   }

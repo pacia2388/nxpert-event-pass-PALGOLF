@@ -310,11 +310,17 @@
   gap: 4px;
 }
 
-.attendance-total { text-align: left; }
+.attendance-total {
+  text-align: left;
+}
 .attendance-lines {
   display: inline-flex;
   flex-direction: column;
-  small { font-size: 0.8em; font-weight: 400; opacity: 0.8; }
+  small {
+    font-size: 0.8em;
+    font-weight: 400;
+    opacity: 0.8;
+  }
 }
 
 .count-chip {
@@ -333,8 +339,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .result-banner {
@@ -567,20 +578,38 @@
 }
 
 @keyframes pop-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes pop-bounce {
-  0% { transform: scale(0.6); opacity: 0; }
-  60% { transform: scale(1.05); opacity: 1; }
-  80% { transform: scale(0.98); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes pop-timer {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 @container scanner (max-width: 560px) {

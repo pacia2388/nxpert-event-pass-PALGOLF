@@ -21,34 +21,70 @@
             </button>
           </div>
         } @else {
-          <button mat-stroked-button type="button" class="banner-upload" (click)="bannerInput.click()">
+          <button
+            mat-stroked-button
+            type="button"
+            class="banner-upload"
+            (click)="bannerInput.click()"
+          >
             <mat-icon>add_photo_alternate</mat-icon> Upload banner image
           </button>
-          <span class="muted banner-help">Shown at the top of the registration page. Optional.</span>
+          <span class="muted banner-help"
+            >Shown at the top of the registration page. Optional.</span
+          >
         }
         @if (bannerError()) {
           <p class="error-text field-error">{{ bannerError() }}</p>
         }
-        <input #bannerInput type="file" accept="image/*" hidden (change)="onBannerSelected($event)" />
+        <input
+          #bannerInput
+          type="file"
+          accept="image/*"
+          hidden
+          (change)="onBannerSelected($event)"
+        />
       </div>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Title</mat-label>
-        <input matInput name="title" [(ngModel)]="title" #titleCtrl="ngModel"
-               required minlength="3" maxlength="300" />
-        @if (titleCtrl.hasError('required')) { <mat-error>Title is required.</mat-error> }
-        @if (titleCtrl.hasError('minlength')) { <mat-error>Title must be at least 3 characters.</mat-error> }
+        <input
+          matInput
+          name="title"
+          [(ngModel)]="title"
+          #titleCtrl="ngModel"
+          required
+          minlength="3"
+          maxlength="300"
+        />
+        @if (titleCtrl.hasError('required')) {
+          <mat-error>Title is required.</mat-error>
+        }
+        @if (titleCtrl.hasError('minlength')) {
+          <mat-error>Title must be at least 3 characters.</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Description</mat-label>
-        <textarea matInput name="description" [(ngModel)]="description" rows="3" maxlength="4000"></textarea>
+        <textarea
+          matInput
+          name="description"
+          [(ngModel)]="description"
+          rows="3"
+          maxlength="4000"
+        ></textarea>
       </mat-form-field>
 
       <div class="two-col">
         <mat-form-field appearance="outline">
           <mat-label>Start date</mat-label>
-          <input matInput [matDatepicker]="startPicker" name="startDate" [(ngModel)]="startDate" required />
+          <input
+            matInput
+            [matDatepicker]="startPicker"
+            name="startDate"
+            [(ngModel)]="startDate"
+            required
+          />
           <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
           <mat-datepicker #startPicker></mat-datepicker>
         </mat-form-field>
@@ -60,7 +96,13 @@
 
         <mat-form-field appearance="outline">
           <mat-label>End date</mat-label>
-          <input matInput [matDatepicker]="endPicker" name="endDate" [(ngModel)]="endDate" required />
+          <input
+            matInput
+            [matDatepicker]="endPicker"
+            name="endDate"
+            [(ngModel)]="endDate"
+            required
+          />
           <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
           <mat-datepicker #endPicker></mat-datepicker>
         </mat-form-field>
@@ -78,10 +120,16 @@
       <!-- ===== Format: in person / online / hybrid ===== -->
       <div class="format-block">
         <span class="format-label">Format</span>
-        <mat-button-toggle-group name="format" [(ngModel)]="format" class="format-toggle"
-                                 aria-label="Event format">
+        <mat-button-toggle-group
+          name="format"
+          [(ngModel)]="format"
+          class="format-toggle"
+          aria-label="Event format"
+        >
           @for (f of formats; track f.value) {
-            <mat-button-toggle [value]="f.value"><mat-icon>{{ f.icon }}</mat-icon> {{ f.label }}</mat-button-toggle>
+            <mat-button-toggle [value]="f.value"
+              ><mat-icon>{{ f.icon }}</mat-icon> {{ f.label }}</mat-button-toggle
+            >
           }
         </mat-button-toggle-group>
       </div>
@@ -89,8 +137,12 @@
       <!-- ===== Category: who the event is for ===== -->
       <div class="format-block">
         <span class="format-label">Category</span>
-        <mat-button-toggle-group name="category" [(ngModel)]="category" class="format-toggle"
-                                 aria-label="Event category">
+        <mat-button-toggle-group
+          name="category"
+          [(ngModel)]="category"
+          class="format-toggle"
+          aria-label="Event category"
+        >
           @for (c of categories; track c.value) {
             <mat-button-toggle [value]="c.value">{{ c.label }}</mat-button-toggle>
           }
@@ -100,8 +152,17 @@
       @if (hasVenue) {
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Venue</mat-label>
-          <input matInput name="venue" [(ngModel)]="venue" #venueCtrl="ngModel" required maxlength="300" />
-          @if (venueCtrl.hasError('required')) { <mat-error>Venue is required.</mat-error> }
+          <input
+            matInput
+            name="venue"
+            [(ngModel)]="venue"
+            #venueCtrl="ngModel"
+            required
+            maxlength="300"
+          />
+          @if (venueCtrl.hasError('required')) {
+            <mat-error>Venue is required.</mat-error>
+          }
         </mat-form-field>
       }
 
@@ -109,12 +170,21 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Online meeting link</mat-label>
           <mat-icon matPrefix class="field-prefix">videocam</mat-icon>
-          <input matInput name="meetingUrl" [(ngModel)]="meetingUrl" #meetCtrl="ngModel" maxlength="1000"
-                 inputmode="url" placeholder="https://teams.microsoft.com/l/meetup-join/…" />
+          <input
+            matInput
+            name="meetingUrl"
+            [(ngModel)]="meetingUrl"
+            #meetCtrl="ngModel"
+            maxlength="1000"
+            inputmode="url"
+            placeholder="https://teams.microsoft.com/l/meetup-join/…"
+          />
           @if (meetingUrl.trim() && !isUrl(meetingUrl)) {
             <mat-hint class="hint-error">Paste the full link, starting with https://</mat-hint>
           } @else {
-            <mat-hint>Create the meeting in Teams or Outlook, then paste its join link here.</mat-hint>
+            <mat-hint
+              >Create the meeting in Teams or Outlook, then paste its join link here.</mat-hint
+            >
           }
         </mat-form-field>
         <div class="online-note" [class.warn]="missingMeetingLink">
@@ -133,17 +203,31 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>TV welcome message</mat-label>
-        <input matInput name="welcomeMessage" [(ngModel)]="welcomeMessage" maxlength="200"
-               placeholder="e.g. Welcome, distinguished members!" />
-        <mat-hint>Shown on the check-in scanner's TV screen. Leave blank to use “Welcome”.</mat-hint>
+        <input
+          matInput
+          name="welcomeMessage"
+          [(ngModel)]="welcomeMessage"
+          maxlength="200"
+          placeholder="e.g. Welcome, distinguished members!"
+        />
+        <mat-hint
+          >Shown on the check-in scanner's TV screen. Leave blank to use “Welcome”.</mat-hint
+        >
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Registration fees</mat-label>
-        <textarea matInput name="registrationFees" [(ngModel)]="registrationFees" rows="4"
-                  maxlength="4000"
-                  placeholder="e.g. Members: ₱1,500 · Non-members: ₱2,500 · Includes lunch and materials"></textarea>
-        <mat-hint>Free text shown on the registration page. Leave blank if the event is free.</mat-hint>
+        <textarea
+          matInput
+          name="registrationFees"
+          [(ngModel)]="registrationFees"
+          rows="4"
+          maxlength="4000"
+          placeholder="e.g. Members: ₱1,500 · Non-members: ₱2,500 · Includes lunch and materials"
+        ></textarea>
+        <mat-hint
+          >Free text shown on the registration page. Leave blank if the event is free.</mat-hint
+        >
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
@@ -157,8 +241,14 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Max participants</mat-label>
-        <input matInput type="number" min="1" name="capacity" [(ngModel)]="capacity"
-               placeholder="Leave blank for unlimited" />
+        <input
+          matInput
+          type="number"
+          min="1"
+          name="capacity"
+          [(ngModel)]="capacity"
+          placeholder="Leave blank for unlimited"
+        />
         <mat-hint>Leave blank for unlimited capacity.</mat-hint>
         @if (capacity != null && capacity < 1) {
           <mat-error>Capacity must be at least 1 (or blank for unlimited).</mat-error>
@@ -173,14 +263,14 @@
       <mat-slide-toggle name="isPublicLinkEnabled" [(ngModel)]="isPublicLinkEnabled">
         Enable public registration link
       </mat-slide-toggle>
-      <br/>
-      <br/>
+      <br />
+      <br />
       <mat-slide-toggle name="notifyOnKitClaim" [(ngModel)]="notifyOnKitClaim">
         Notify registrants when their kit is claimed
       </mat-slide-toggle>
       <p class="muted field-hint">
-        When on, marking a kit claimed sends a message to the registrant's preferred channel
-        (email or Viber). Self-claimed kits get a generic notice; otherwise it names who claimed it.
+        When on, marking a kit claimed sends a message to the registrant's preferred channel (email
+        or Viber). Self-claimed kits get a generic notice; otherwise it names who claimed it.
       </p>
 
       <!-- ===== Sub-events (sessions) ===== -->
@@ -202,40 +292,73 @@
           <div class="session-row">
             <div class="session-row-head">
               <span class="session-num">Sub-event {{ i + 1 }}</span>
-              <button mat-icon-button type="button" color="warn" (click)="removeSession(i)"
-                      aria-label="Remove sub-event">
+              <button
+                mat-icon-button
+                type="button"
+                color="warn"
+                (click)="removeSession(i)"
+                aria-label="Remove sub-event"
+              >
                 <mat-icon>delete</mat-icon>
               </button>
             </div>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Title</mat-label>
-              <input matInput [name]="'sTitle' + i" [(ngModel)]="s.title" required maxlength="300"
-                     placeholder="e.g. Day 1 — Opening Plenary" />
+              <input
+                matInput
+                [name]="'sTitle' + i"
+                [(ngModel)]="s.title"
+                required
+                maxlength="300"
+                placeholder="e.g. Day 1 — Opening Plenary"
+              />
             </mat-form-field>
 
             <div class="two-col">
               <mat-form-field appearance="outline">
                 <mat-label>Start date</mat-label>
-                <input matInput [matDatepicker]="sStart" [name]="'sStartDate' + i"
-                       [(ngModel)]="s.startDate" required />
+                <input
+                  matInput
+                  [matDatepicker]="sStart"
+                  [name]="'sStartDate' + i"
+                  [(ngModel)]="s.startDate"
+                  required
+                />
                 <mat-datepicker-toggle matIconSuffix [for]="sStart"></mat-datepicker-toggle>
                 <mat-datepicker #sStart></mat-datepicker>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Start time</mat-label>
-                <input matInput type="time" [name]="'sStartTime' + i" [(ngModel)]="s.startTime" required />
+                <input
+                  matInput
+                  type="time"
+                  [name]="'sStartTime' + i"
+                  [(ngModel)]="s.startTime"
+                  required
+                />
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>End date</mat-label>
-                <input matInput [matDatepicker]="sEnd" [name]="'sEndDate' + i"
-                       [(ngModel)]="s.endDate" required />
+                <input
+                  matInput
+                  [matDatepicker]="sEnd"
+                  [name]="'sEndDate' + i"
+                  [(ngModel)]="s.endDate"
+                  required
+                />
                 <mat-datepicker-toggle matIconSuffix [for]="sEnd"></mat-datepicker-toggle>
                 <mat-datepicker #sEnd></mat-datepicker>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>End time</mat-label>
-                <input matInput type="time" [name]="'sEndTime' + i" [(ngModel)]="s.endTime" required />
+                <input
+                  matInput
+                  type="time"
+                  [name]="'sEndTime' + i"
+                  [(ngModel)]="s.endTime"
+                  required
+                />
               </mat-form-field>
             </div>
 
@@ -243,10 +366,18 @@
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Meeting link for this sub-event (optional)</mat-label>
                 <mat-icon matPrefix class="field-prefix">videocam</mat-icon>
-                <input matInput [name]="'sMeet' + i" [(ngModel)]="s.meetingUrl" maxlength="1000"
-                       inputmode="url" placeholder="Defaults to the event's meeting link" />
+                <input
+                  matInput
+                  [name]="'sMeet' + i"
+                  [(ngModel)]="s.meetingUrl"
+                  maxlength="1000"
+                  inputmode="url"
+                  placeholder="Defaults to the event's meeting link"
+                />
                 @if (s.meetingUrl.trim() && !isUrl(s.meetingUrl)) {
-                  <mat-hint class="hint-error">Paste the full link, starting with https://</mat-hint>
+                  <mat-hint class="hint-error"
+                    >Paste the full link, starting with https://</mat-hint
+                  >
                 }
               </mat-form-field>
             }
@@ -255,14 +386,25 @@
               @if (hasVenue) {
                 <mat-form-field appearance="outline">
                   <mat-label>Venue (optional)</mat-label>
-                  <input matInput [name]="'sVenue' + i" [(ngModel)]="s.venue" maxlength="300"
-                         placeholder="Defaults to the event venue" />
+                  <input
+                    matInput
+                    [name]="'sVenue' + i"
+                    [(ngModel)]="s.venue"
+                    maxlength="300"
+                    placeholder="Defaults to the event venue"
+                  />
                 </mat-form-field>
               }
               <mat-form-field appearance="outline">
                 <mat-label>Max participants (optional)</mat-label>
-                <input matInput type="number" min="1" [name]="'sCap' + i" [(ngModel)]="s.capacity"
-                       placeholder="Unlimited" />
+                <input
+                  matInput
+                  type="number"
+                  min="1"
+                  [name]="'sCap' + i"
+                  [(ngModel)]="s.capacity"
+                  placeholder="Unlimited"
+                />
               </mat-form-field>
             </div>
 
@@ -276,65 +418,113 @@
                 <span class="muted">Poster / image (optional) — shown to participants.</span>
                 <div>
                   <button mat-stroked-button type="button" (click)="posterInput.click()">
-                    <mat-icon>add_photo_alternate</mat-icon> {{ s.poster ? 'Change' : 'Upload poster' }}
+                    <mat-icon>add_photo_alternate</mat-icon>
+                    {{ s.poster ? 'Change' : 'Upload poster' }}
                   </button>
                   @if (s.poster) {
-                    <button mat-button type="button" (click)="removeSessionPoster(s)">Remove</button>
+                    <button mat-button type="button" (click)="removeSessionPoster(s)">
+                      Remove
+                    </button>
                   }
                 </div>
               </div>
-              <input #posterInput type="file" accept="image/*" hidden
-                     (change)="onSessionPosterSelected($event, s)" />
+              <input
+                #posterInput
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="onSessionPosterSelected($event, s)"
+              />
             </div>
 
             <!-- Meal stubs for this sub-event -->
             <div class="meal-block">
               <div class="meal-head">
-                <span class="meal-title"><mat-icon class="inline-icon">restaurant</mat-icon> Meal stubs</span>
+                <span class="meal-title"
+                  ><mat-icon class="inline-icon">restaurant</mat-icon> Meal stubs</span
+                >
                 <button mat-stroked-button type="button" (click)="addMeal(s)">
                   <mat-icon>add</mat-icon> Add stub
                 </button>
               </div>
               @if (s.meals.length === 0) {
-                <p class="muted meal-empty">No meal stubs. Add stubs with a name, denomination, and quantity per member.</p>
+                <p class="muted meal-empty">
+                  No meal stubs. Add stubs with a name, denomination, and quantity per member.
+                </p>
               } @else {
                 @for (m of s.meals; track m; let mi = $index) {
                   <div class="meal-row">
                     <mat-form-field appearance="outline" class="meal-name">
                       <mat-label>Stub name</mat-label>
-                      <input matInput [name]="'mName' + i + '_' + mi" [(ngModel)]="m.name"
-                             maxlength="100" placeholder="e.g. Lunch" />
+                      <input
+                        matInput
+                        [name]="'mName' + i + '_' + mi"
+                        [(ngModel)]="m.name"
+                        maxlength="100"
+                        placeholder="e.g. Lunch"
+                      />
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="meal-denom">
                       <mat-label>Denomination</mat-label>
                       <span matTextPrefix>₱&nbsp;</span>
-                      <input matInput type="number" min="0" step="0.01"
-                             [name]="'mDenom' + i + '_' + mi" [(ngModel)]="m.denomination" placeholder="0.00" />
+                      <input
+                        matInput
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        [name]="'mDenom' + i + '_' + mi"
+                        [(ngModel)]="m.denomination"
+                        placeholder="0.00"
+                      />
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="meal-qty">
                       <mat-label>Qty</mat-label>
-                      <input matInput type="number" min="1" step="1"
-                             [name]="'mQty' + i + '_' + mi" [(ngModel)]="m.quantity" placeholder="1" />
+                      <input
+                        matInput
+                        type="number"
+                        min="1"
+                        step="1"
+                        [name]="'mQty' + i + '_' + mi"
+                        [(ngModel)]="m.quantity"
+                        placeholder="1"
+                      />
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="meal-date">
                       <mat-label>Valid from</mat-label>
-                      <input matInput [matDatepicker]="mvf" [min]="startDate" [max]="endDate"
-                             [name]="'mVF' + i + '_' + mi" [(ngModel)]="m.validFrom" />
+                      <input
+                        matInput
+                        [matDatepicker]="mvf"
+                        [min]="startDate"
+                        [max]="endDate"
+                        [name]="'mVF' + i + '_' + mi"
+                        [(ngModel)]="m.validFrom"
+                      />
                       <mat-datepicker-toggle matIconSuffix [for]="mvf"></mat-datepicker-toggle>
                       <mat-datepicker #mvf></mat-datepicker>
                     </mat-form-field>
                     <mat-form-field appearance="outline" class="meal-date">
                       <mat-label>Valid to</mat-label>
-                      <input matInput [matDatepicker]="mvt" [min]="m.validFrom || startDate" [max]="endDate"
-                             [name]="'mVT' + i + '_' + mi" [(ngModel)]="m.validTo" />
+                      <input
+                        matInput
+                        [matDatepicker]="mvt"
+                        [min]="m.validFrom || startDate"
+                        [max]="endDate"
+                        [name]="'mVT' + i + '_' + mi"
+                        [(ngModel)]="m.validTo"
+                      />
                       <mat-datepicker-toggle matIconSuffix [for]="mvt"></mat-datepicker-toggle>
                       <mat-datepicker #mvt></mat-datepicker>
                     </mat-form-field>
                     <label class="meal-color" title="Stub colour">
                       <input type="color" [name]="'mColor' + i + '_' + mi" [(ngModel)]="m.color" />
                     </label>
-                    <button mat-icon-button type="button" color="warn" (click)="removeMeal(s, mi)"
-                            aria-label="Remove stub">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      color="warn"
+                      (click)="removeMeal(s, mi)"
+                      aria-label="Remove stub"
+                    >
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>
@@ -353,7 +543,8 @@
               <h3 class="builder-title">Meal stubs (per day)</h3>
               <p class="muted builder-sub">
                 Optional. Define meal stubs for each day — each stub has a denomination, a quantity
-                per member, and a colour. (For events with sub-events, define stubs under each sub-event.)
+                per member, and a colour. (For events with sub-events, define stubs under each
+                sub-event.)
               </p>
             </div>
             <button mat-stroked-button type="button" (click)="addEventDay()">
@@ -369,8 +560,13 @@
                   <mat-icon>add</mat-icon> Add stub
                 </button>
                 <span class="spacer"></span>
-                <button mat-icon-button type="button" color="warn" (click)="removeEventDay(day)"
-                        aria-label="Remove day">
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="warn"
+                  (click)="removeEventDay(day)"
+                  aria-label="Remove day"
+                >
                   <mat-icon>delete_sweep</mat-icon>
                 </button>
               </div>
@@ -378,39 +574,75 @@
                 <div class="meal-row">
                   <mat-form-field appearance="outline" class="meal-name">
                     <mat-label>Stub name</mat-label>
-                    <input matInput [name]="'emName' + day + '_' + mi" [(ngModel)]="m.name"
-                           maxlength="100" placeholder="e.g. Lunch" />
+                    <input
+                      matInput
+                      [name]="'emName' + day + '_' + mi"
+                      [(ngModel)]="m.name"
+                      maxlength="100"
+                      placeholder="e.g. Lunch"
+                    />
                   </mat-form-field>
                   <mat-form-field appearance="outline" class="meal-denom">
                     <mat-label>Denomination</mat-label>
                     <span matTextPrefix>₱&nbsp;</span>
-                    <input matInput type="number" min="0" step="0.01"
-                           [name]="'emDenom' + day + '_' + mi" [(ngModel)]="m.denomination" placeholder="0.00" />
+                    <input
+                      matInput
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      [name]="'emDenom' + day + '_' + mi"
+                      [(ngModel)]="m.denomination"
+                      placeholder="0.00"
+                    />
                   </mat-form-field>
                   <mat-form-field appearance="outline" class="meal-qty">
                     <mat-label>Qty</mat-label>
-                    <input matInput type="number" min="1" step="1"
-                           [name]="'emQty' + day + '_' + mi" [(ngModel)]="m.quantity" placeholder="1" />
+                    <input
+                      matInput
+                      type="number"
+                      min="1"
+                      step="1"
+                      [name]="'emQty' + day + '_' + mi"
+                      [(ngModel)]="m.quantity"
+                      placeholder="1"
+                    />
                   </mat-form-field>
                   <mat-form-field appearance="outline" class="meal-date">
                     <mat-label>Valid from</mat-label>
-                    <input matInput [matDatepicker]="emvf" [min]="startDate" [max]="endDate"
-                           [name]="'emVF' + day + '_' + mi" [(ngModel)]="m.validFrom" />
+                    <input
+                      matInput
+                      [matDatepicker]="emvf"
+                      [min]="startDate"
+                      [max]="endDate"
+                      [name]="'emVF' + day + '_' + mi"
+                      [(ngModel)]="m.validFrom"
+                    />
                     <mat-datepicker-toggle matIconSuffix [for]="emvf"></mat-datepicker-toggle>
                     <mat-datepicker #emvf></mat-datepicker>
                   </mat-form-field>
                   <mat-form-field appearance="outline" class="meal-date">
                     <mat-label>Valid to</mat-label>
-                    <input matInput [matDatepicker]="emvt" [min]="m.validFrom || startDate" [max]="endDate"
-                           [name]="'emVT' + day + '_' + mi" [(ngModel)]="m.validTo" />
+                    <input
+                      matInput
+                      [matDatepicker]="emvt"
+                      [min]="m.validFrom || startDate"
+                      [max]="endDate"
+                      [name]="'emVT' + day + '_' + mi"
+                      [(ngModel)]="m.validTo"
+                    />
                     <mat-datepicker-toggle matIconSuffix [for]="emvt"></mat-datepicker-toggle>
                     <mat-datepicker #emvt></mat-datepicker>
                   </mat-form-field>
                   <label class="meal-color" title="Stub colour">
                     <input type="color" [name]="'emColor' + day + '_' + mi" [(ngModel)]="m.color" />
                   </label>
-                  <button mat-icon-button type="button" color="warn" (click)="removeEventMeal(m)"
-                          aria-label="Remove stub">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    color="warn"
+                    (click)="removeEventMeal(m)"
+                    aria-label="Remove stub"
+                  >
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
@@ -426,7 +658,8 @@
           <div>
             <h3 class="builder-title">Schedule of activities</h3>
             <p class="muted builder-sub">
-              Optional agenda shown on the registration page. Cells are editable — add a row per activity.
+              Optional agenda shown on the registration page. Cells are editable — add a row per
+              activity.
             </p>
           </div>
           <button mat-flat-button color="primary" type="button" (click)="addScheduleRow()">
@@ -448,20 +681,40 @@
               @for (row of scheduleRows; track row; let i = $index) {
                 <tr>
                   <td>
-                    <input class="cell-input" [name]="'schedDay' + i" [(ngModel)]="row.day"
-                           placeholder="e.g. Day 1" maxlength="60" />
+                    <input
+                      class="cell-input"
+                      [name]="'schedDay' + i"
+                      [(ngModel)]="row.day"
+                      placeholder="e.g. Day 1"
+                      maxlength="60"
+                    />
                   </td>
                   <td>
-                    <input class="cell-input" [name]="'schedTime' + i" [(ngModel)]="row.time"
-                           placeholder="e.g. 9:00 AM" maxlength="60" />
+                    <input
+                      class="cell-input"
+                      [name]="'schedTime' + i"
+                      [(ngModel)]="row.time"
+                      placeholder="e.g. 9:00 AM"
+                      maxlength="60"
+                    />
                   </td>
                   <td>
-                    <input class="cell-input" [name]="'schedAct' + i" [(ngModel)]="row.activity"
-                           placeholder="Activity" maxlength="300" />
+                    <input
+                      class="cell-input"
+                      [name]="'schedAct' + i"
+                      [(ngModel)]="row.activity"
+                      placeholder="Activity"
+                      maxlength="300"
+                    />
                   </td>
                   <td class="fg-act">
-                    <button mat-icon-button type="button" color="warn"
-                            (click)="removeScheduleRow(i)" aria-label="Remove row">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      color="warn"
+                      (click)="removeScheduleRow(i)"
+                      aria-label="Remove row"
+                    >
                       <mat-icon>delete</mat-icon>
                     </button>
                   </td>
@@ -517,12 +770,23 @@
               @for (fld of builderFields; track fld.key; let i = $index) {
                 <tr>
                   <td>
-                    <input class="cell-input" [name]="'cat' + i" [(ngModel)]="fld.category"
-                           list="categoryOptions" placeholder="Category" maxlength="60" />
+                    <input
+                      class="cell-input"
+                      [name]="'cat' + i"
+                      [(ngModel)]="fld.category"
+                      list="categoryOptions"
+                      placeholder="Category"
+                      maxlength="60"
+                    />
                   </td>
                   <td>
-                    <input class="cell-input" [name]="'label' + i" [(ngModel)]="fld.label"
-                           placeholder="Field label" maxlength="120" />
+                    <input
+                      class="cell-input"
+                      [name]="'label' + i"
+                      [(ngModel)]="fld.label"
+                      placeholder="Field label"
+                      maxlength="120"
+                    />
                   </td>
                   <td>
                     <select class="cell-select" [name]="'type' + i" [(ngModel)]="fld.type">
@@ -532,24 +796,36 @@
                     </select>
                   </td>
                   <td>
-                    <input class="cell-input" [name]="'opts' + i" [(ngModel)]="fld.optionsText"
-                           [disabled]="!needsOptions(fld.type)"
-                           [placeholder]="needsOptions(fld.type) ? 'e.g. Air, Sea, Land' : '—'" />
+                    <input
+                      class="cell-input"
+                      [name]="'opts' + i"
+                      [(ngModel)]="fld.optionsText"
+                      [disabled]="!needsOptions(fld.type)"
+                      [placeholder]="needsOptions(fld.type) ? 'e.g. Air, Sea, Land' : '—'"
+                    />
                   </td>
                   <td>
                     @if (controllersBefore(i).length === 0) {
                       <span class="fg-cond-none">—</span>
                     } @else {
                       <div class="fg-cond">
-                        <select class="cell-select" [name]="'swk' + i" [(ngModel)]="fld.showWhenKey"
-                                (ngModelChange)="onShowWhenKeyChange(fld)">
+                        <select
+                          class="cell-select"
+                          [name]="'swk' + i"
+                          [(ngModel)]="fld.showWhenKey"
+                          (ngModelChange)="onShowWhenKeyChange(fld)"
+                        >
                           <option value="">Always show</option>
                           @for (c of controllersBefore(i); track c.key) {
                             <option [value]="c.key">{{ c.label || '(unnamed)' }}</option>
                           }
                         </select>
                         @if (fld.showWhenKey) {
-                          <select class="cell-select" [name]="'swv' + i" [(ngModel)]="fld.showWhenValue">
+                          <select
+                            class="cell-select"
+                            [name]="'swv' + i"
+                            [(ngModel)]="fld.showWhenValue"
+                          >
                             <option value="">Select value…</option>
                             @for (v of controllerValues(fld); track v) {
                               <option [value]="v">{{ v }}</option>
@@ -560,11 +836,21 @@
                     }
                   </td>
                   <td class="fg-req">
-                    <input type="checkbox" class="cell-check" [name]="'req' + i" [(ngModel)]="fld.required" />
+                    <input
+                      type="checkbox"
+                      class="cell-check"
+                      [name]="'req' + i"
+                      [(ngModel)]="fld.required"
+                    />
                   </td>
                   <td class="fg-act">
-                    <button mat-icon-button type="button" color="warn"
-                            (click)="removeField(i)" aria-label="Remove field">
+                    <button
+                      mat-icon-button
+                      type="button"
+                      color="warn"
+                      (click)="removeField(i)"
+                      aria-label="Remove field"
+                    >
                       <mat-icon>delete</mat-icon>
                     </button>
                   </td>
@@ -573,8 +859,8 @@
               @if (builderFields.length === 0) {
                 <tr>
                   <td colspan="7" class="fg-empty">
-                    No custom fields yet — click <strong>ADD</strong> to add a row.
-                    The standard form (name, email, phone) is always collected.
+                    No custom fields yet — click <strong>ADD</strong> to add a row. The standard
+                    form (name, email, phone) is always collected.
                   </td>
                 </tr>
               }
@@ -593,7 +879,10 @@
           [attr.aria-busy]="saving()"
         >
           @if (saving()) {
-            <mat-spinner diameter="18" style="display: inline-block; margin-right: 6px; vertical-align: middle"></mat-spinner>
+            <mat-spinner
+              diameter="18"
+              style="display: inline-block; margin-right: 6px; vertical-align: middle"
+            ></mat-spinner>
             {{ isEdit ? 'Saving…' : 'Creating…' }}
           } @else {
             {{ isEdit ? 'Save changes' : 'Create event' }}

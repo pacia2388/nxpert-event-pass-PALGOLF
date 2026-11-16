@@ -18,7 +18,11 @@ const COLUMNS: { header: string; field: keyof UserImportRow; alt?: string }[] = 
   { header: 'ID No (optional)', field: 'senateNo' },
   { header: 'Designation (optional)', field: 'level' },
   { header: 'Organization (optional)', field: 'organization' },
-  { header: 'Phone (optional; with country code e.g. +639171234567)', field: 'phone', alt: 'Phone (optional)' },
+  {
+    header: 'Phone (optional; with country code e.g. +639171234567)',
+    field: 'phone',
+    alt: 'Phone (optional)',
+  },
   { header: 'Role (optional)', field: 'role' },
   { header: 'Notification Channel (optional)', field: 'notificationChannel' },
   { header: 'Birthdate', field: 'birthdate' },
@@ -26,7 +30,7 @@ const COLUMNS: { header: string; field: keyof UserImportRow; alt?: string }[] = 
 
 const TEMPLATE_HEADERS = COLUMNS.map((c) => c.header).join(',');
 const TEMPLATE_SAMPLE =
-  'Juan,D,Dela Cruz,juan.delacruz@example.com,,12345,Senator,Acme Corp,\'+639171234567,Participant,Email,1990-01-31';
+  "Juan,D,Dela Cruz,juan.delacruz@example.com,,12345,Senator,Acme Corp,'+639171234567,Participant,Email,1990-01-31";
 
 // Case and surrounding spaces don't count as a difference; trim() also drops an Excel BOM (U+FEFF).
 function normalizeHeader(h: string): string {
@@ -99,7 +103,9 @@ function parseCsv(text: string): string[][] {
   templateUrl: './user-import-dialog.html',
   styles: [
     `
-      .import-body { min-width: min(520px, 82vw); }
+      .import-body {
+        min-width: min(520px, 82vw);
+      }
       .drop-hint {
         border: 1px dashed var(--mat-sys-outline);
         border-radius: 10px;
@@ -113,24 +119,76 @@ function parseCsv(text: string): string[][] {
         flex-wrap: wrap;
         margin-top: 10px;
       }
-      .file-name { font-weight: 600; }
-      .cols { font-size: 12.5px; color: var(--mat-sys-on-surface-variant); margin: 8px 0 0; }
-      .preview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 12px; }
-      .preview-table th, .preview-table td {
-        text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--mat-sys-outline-variant);
+      .file-name {
+        font-weight: 600;
+      }
+      .cols {
+        font-size: 12.5px;
+        color: var(--mat-sys-on-surface-variant);
+        margin: 8px 0 0;
+      }
+      .preview-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+        margin-top: 12px;
+      }
+      .preview-table th,
+      .preview-table td {
+        text-align: left;
+        padding: 4px 8px;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
         white-space: nowrap;
       }
-      .preview-wrap { overflow-x: auto; max-height: 220px; overflow-y: auto; }
-      .summary { display: flex; gap: 16px; flex-wrap: wrap; margin: 4px 0 8px; }
-      .summary .stat { font-weight: 700; font-size: 18px; }
-      .summary .stat small { display: block; font-weight: 500; font-size: 12px; color: var(--mat-sys-on-surface-variant); }
-      .stat.created { color: #1e8e3e; }
-      .stat.skipped { color: #b8860b; }
-      .stat.failed { color: var(--mat-sys-error); }
-      .err-list { margin: 6px 0 0; padding: 0; list-style: none; max-height: 200px; overflow-y: auto; }
-      .err-list li { font-size: 12.5px; padding: 3px 0; border-bottom: 1px solid var(--mat-sys-outline-variant); }
-      .err-list .err-row { color: var(--mat-sys-on-surface-variant); }
-      .note { font-size: 12.5px; color: var(--mat-sys-on-surface-variant); }
+      .preview-wrap {
+        overflow-x: auto;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+      .summary {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 4px 0 8px;
+      }
+      .summary .stat {
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .summary .stat small {
+        display: block;
+        font-weight: 500;
+        font-size: 12px;
+        color: var(--mat-sys-on-surface-variant);
+      }
+      .stat.created {
+        color: #1e8e3e;
+      }
+      .stat.skipped {
+        color: #b8860b;
+      }
+      .stat.failed {
+        color: var(--mat-sys-error);
+      }
+      .err-list {
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .err-list li {
+        font-size: 12.5px;
+        padding: 3px 0;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+      }
+      .err-list .err-row {
+        color: var(--mat-sys-on-surface-variant);
+      }
+      .note {
+        font-size: 12.5px;
+        color: var(--mat-sys-on-surface-variant);
+      }
     `,
   ],
 })

@@ -44,6 +44,7 @@ jobs:
       - run: npm ci
       # eslint.config.js; accessibility warnings are capped by maxWarnings in angular.json.
       - run: npx ng lint
+      - run: npm run format:check
       - run: npx ng test --watch=false
       - run: npx ng build
 

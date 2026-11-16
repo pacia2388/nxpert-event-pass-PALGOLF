@@ -1,5 +1,10 @@
 import { Component, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -17,9 +22,16 @@ export interface ScreenDisplayData {
       <mat-icon class="sd-icon">fit_screen</mat-icon>
       <div class="sd-titles">
         <h2 class="sd-title">Screen Display</h2>
-        @if (data.eventTitle) { <p class="sd-caption">{{ data.eventTitle }}</p> }
+        @if (data.eventTitle) {
+          <p class="sd-caption">{{ data.eventTitle }}</p>
+        }
       </div>
-      <button mat-icon-button class="sd-close" (click)="ref.close()" aria-label="Close screen display">
+      <button
+        mat-icon-button
+        class="sd-close"
+        (click)="ref.close()"
+        aria-label="Close screen display"
+      >
         <mat-icon>close</mat-icon>
       </button>
     </div>

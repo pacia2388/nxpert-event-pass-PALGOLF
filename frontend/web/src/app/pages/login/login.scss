@@ -24,7 +24,9 @@
   border-radius: 20px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 2px 6px rgba(2, 10, 40, 0.3), 0 30px 70px rgba(2, 10, 40, 0.45);
+  box-shadow:
+    0 2px 6px rgba(2, 10, 40, 0.3),
+    0 30px 70px rgba(2, 10, 40, 0.45);
   animation: login-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -152,7 +154,10 @@
   letter-spacing: 0.3px;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(15, 95, 184, 0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 
   mat-icon {
     font-size: 20px;
@@ -224,7 +229,9 @@
   font-weight: 500;
   font-size: 14.5px;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 
   mat-icon {
     font-size: 20px;

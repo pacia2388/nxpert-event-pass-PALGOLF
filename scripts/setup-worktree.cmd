@@ -42,5 +42,16 @@ for %%w in ("%MAIN%\%WEIGHTS%\*.onnx") do (
   if exist "%WT%\%WEIGHTS%\%%~nxw" (echo   skip  %WEIGHTS%\%%~nxw) else (mklink /H "%WT%\%WEIGHTS%\%%~nxw" "%%~fw" >nul && echo   link  %WEIGHTS%\%%~nxw)
 )
 
+rem The linked node_modules is the main checkout's: it can lag this worktree's package-lock.json.
+if exist "%WT%\frontend\web\node_modules" (
+  pushd "%WT%\frontend\web"
+  call npm ls --depth=0 >nul 2>&1
+  if errorlevel 1 (
+    echo   WARN  frontend\web\node_modules is missing packages or out of date.
+    echo         Run "npm ci" in %MAIN%\frontend\web, or "npm install" if this worktree changed package.json.
+  ) else (echo   ok    frontend\web\node_modules matches package.json)
+  popd
+)
+
 echo Done.
 endlocal

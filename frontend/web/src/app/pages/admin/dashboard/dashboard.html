@@ -47,7 +47,9 @@
         <mat-card class="clickable" [routerLink]="['/admin/events', e.id]">
           <mat-card-header>
             <mat-card-title>{{ e.title }}</mat-card-title>
-            <mat-card-subtitle><app-schedule [start]="e.startsAt" [end]="e.endsAt" /></mat-card-subtitle>
+            <mat-card-subtitle
+              ><app-schedule [start]="e.startsAt" [end]="e.endsAt"
+            /></mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
             <div class="attend-line">
@@ -68,13 +70,20 @@
     @if (events().length > 0) {
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="event-picker">
         <mat-label>Event</mat-label>
-        <mat-select [ngModel]="selectedEventId()" (ngModelChange)="onEventChange($event)"
-                    (openedChange)="onPanelToggle($event)">
+        <mat-select
+          [ngModel]="selectedEventId()"
+          (ngModelChange)="onEventChange($event)"
+          (openedChange)="onPanelToggle($event)"
+        >
           <div class="select-search">
             <mat-icon>search</mat-icon>
-            <input type="text" placeholder="Search events"
-                   [ngModel]="eventSearch()" (ngModelChange)="eventSearch.set($event)"
-                   (keydown)="$event.stopPropagation()" />
+            <input
+              type="text"
+              placeholder="Search events"
+              [ngModel]="eventSearch()"
+              (ngModelChange)="eventSearch.set($event)"
+              (keydown)="$event.stopPropagation()"
+            />
           </div>
           @for (ev of filteredEvents(); track ev.id) {
             <mat-option [value]="ev.id">{{ ev.title }}</mat-option>
@@ -95,41 +104,54 @@
     <div class="empty-state"><mat-spinner diameter="32"></mat-spinner></div>
   } @else if (breakdown(); as b) {
     <mat-card class="chapter-card">
-      <mat-card-header class="collapse-head" (click)="regChartOpen.set(!regChartOpen())"
-                       role="button" tabindex="0"
-                       (keydown.enter)="regChartOpen.set(!regChartOpen())"
-                       (keydown.space)="regChartOpen.set(!regChartOpen()); $event.preventDefault()">
+      <mat-card-header
+        class="collapse-head"
+        (click)="regChartOpen.set(!regChartOpen())"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="regChartOpen.set(!regChartOpen())"
+        (keydown.space)="regChartOpen.set(!regChartOpen()); $event.preventDefault()"
+      >
         <div class="collapse-titles">
           <mat-card-title>{{ b.eventTitle }}</mat-card-title>
           <mat-card-subtitle>
-            {{ b.startsAt | date: 'EEE, MMM d y' }} · {{ b.totalRegistrations }} registration{{ b.totalRegistrations === 1 ? '' : 's' }}
+            {{ b.startsAt | date: 'EEE, MMM d y' }} · {{ b.totalRegistrations }} registration{{
+              b.totalRegistrations === 1 ? '' : 's'
+            }}
           </mat-card-subtitle>
         </div>
-        <button mat-icon-button class="collapse-toggle" type="button"
-                [attr.aria-label]="regChartOpen() ? 'Collapse' : 'Expand'"
-                [attr.aria-expanded]="regChartOpen()" (click)="$event.stopPropagation(); regChartOpen.set(!regChartOpen())">
+        <button
+          mat-icon-button
+          class="collapse-toggle"
+          type="button"
+          [attr.aria-label]="regChartOpen() ? 'Collapse' : 'Expand'"
+          [attr.aria-expanded]="regChartOpen()"
+          (click)="$event.stopPropagation(); regChartOpen.set(!regChartOpen())"
+        >
           <mat-icon>{{ regChartOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
         </button>
       </mat-card-header>
       @if (regChartOpen()) {
-      <mat-card-content>
-        @if (b.chapters.length === 0) {
-          <p class="muted">No chapters defined in the user master yet.</p>
-        }
-        @for (c of b.chapters; track c.chapter) {
-          <div class="chapter-row" [class.zero]="c.count === 0">
-            <div class="chapter-line">
-              <span class="chapter-name">{{ c.chapter }}</span>
-              <span class="chapter-pct">{{ c.count }}</span>
+        <mat-card-content>
+          @if (b.chapters.length === 0) {
+            <p class="muted">No chapters defined in the user master yet.</p>
+          }
+          @for (c of b.chapters; track c.chapter) {
+            <div class="chapter-row" [class.zero]="c.count === 0">
+              <div class="chapter-line">
+                <span class="chapter-name">{{ c.chapter }}</span>
+                <span class="chapter-pct">{{ c.count }}</span>
+              </div>
+              <div class="chapter-track">
+                <div
+                  class="chapter-fill"
+                  [style.width.%]="barWidth(c.count)"
+                  [style.background]="chapterColor(c.chapter)"
+                ></div>
+              </div>
             </div>
-            <div class="chapter-track">
-              <div class="chapter-fill"
-                   [style.width.%]="barWidth(c.count)"
-                   [style.background]="chapterColor(c.chapter)"></div>
-            </div>
-          </div>
-        }
-      </mat-card-content>
+          }
+        </mat-card-content>
       }
     </mat-card>
 
@@ -180,48 +202,64 @@
       <div class="empty-state"><mat-spinner diameter="32"></mat-spinner></div>
     } @else {
       <mat-card class="chapter-card kit-card">
-        <mat-card-header class="collapse-head" (click)="subChartOpen.set(!subChartOpen())"
-                         role="button" tabindex="0"
-                         (keydown.enter)="subChartOpen.set(!subChartOpen())"
-                         (keydown.space)="subChartOpen.set(!subChartOpen()); $event.preventDefault()">
+        <mat-card-header
+          class="collapse-head"
+          (click)="subChartOpen.set(!subChartOpen())"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="subChartOpen.set(!subChartOpen())"
+          (keydown.space)="subChartOpen.set(!subChartOpen()); $event.preventDefault()"
+        >
           <div class="collapse-titles">
             <mat-card-title>Registrations per sub-event</mat-card-title>
             <mat-card-subtitle>
               {{ subTotal() }} sub-event registration{{ subTotal() === 1 ? '' : 's' }}
             </mat-card-subtitle>
           </div>
-          <button mat-icon-button class="collapse-toggle" type="button"
-                  [attr.aria-label]="subChartOpen() ? 'Collapse' : 'Expand'"
-                  [attr.aria-expanded]="subChartOpen()" (click)="$event.stopPropagation(); subChartOpen.set(!subChartOpen())">
+          <button
+            mat-icon-button
+            class="collapse-toggle"
+            type="button"
+            [attr.aria-label]="subChartOpen() ? 'Collapse' : 'Expand'"
+            [attr.aria-expanded]="subChartOpen()"
+            (click)="$event.stopPropagation(); subChartOpen.set(!subChartOpen())"
+          >
             <mat-icon>{{ subChartOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
           </button>
         </mat-card-header>
         @if (subChartOpen()) {
-        <mat-card-content>
-          @if (!subEvents() || subEvents()!.subEvents.length === 0) {
-            <p class="muted">This event has no sub-events.</p>
-          } @else {
-            @for (grp of subEventDays(); track grp.day) {
-              <p class="sub-day-label">{{ grp.startsAt | date: 'EEE, MMM d' }}</p>
-              @for (s of grp.items; track s.sessionId) {
-                <div class="chapter-row" [class.zero]="s.count === 0">
-                  <div class="chapter-line">
-                    <span class="chapter-name">{{ s.title }}</span>
-                    <span class="chapter-pct">
-                      {{ s.count }}@if (s.capacity) { / {{ s.capacity }} · {{ subPct(s) }}% }
-                      @if (subFull(s)) { <span class="full-tag">FULL</span> }
-                    </span>
+          <mat-card-content>
+            @if (!subEvents() || subEvents()!.subEvents.length === 0) {
+              <p class="muted">This event has no sub-events.</p>
+            } @else {
+              @for (grp of subEventDays(); track grp.day) {
+                <p class="sub-day-label">{{ grp.startsAt | date: 'EEE, MMM d' }}</p>
+                @for (s of grp.items; track s.sessionId) {
+                  <div class="chapter-row" [class.zero]="s.count === 0">
+                    <div class="chapter-line">
+                      <span class="chapter-name">{{ s.title }}</span>
+                      <span class="chapter-pct">
+                        {{ s.count }}
+                        @if (s.capacity) {
+                          / {{ s.capacity }} · {{ subPct(s) }}%
+                        }
+                        @if (subFull(s)) {
+                          <span class="full-tag">FULL</span>
+                        }
+                      </span>
+                    </div>
+                    <div class="chapter-track">
+                      <div
+                        class="chapter-fill"
+                        [style.width.%]="subBarWidth(s.count)"
+                        [style.background]="chapterColor(s.title)"
+                      ></div>
+                    </div>
                   </div>
-                  <div class="chapter-track">
-                    <div class="chapter-fill"
-                         [style.width.%]="subBarWidth(s.count)"
-                         [style.background]="chapterColor(s.title)"></div>
-                  </div>
-                </div>
+                }
               }
             }
-          }
-        </mat-card-content>
+          </mat-card-content>
         }
       </mat-card>
     }

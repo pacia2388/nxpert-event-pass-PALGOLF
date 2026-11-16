@@ -233,8 +233,14 @@ export class EventFormComponent implements OnInit {
   addMeal(s: BuilderSession): void {
     // Default a sub-event stub's validity to the sub-event's own dates.
     s.meals.push({
-      id: 0, name: '', denomination: null, quantity: 1, color: MEAL_COLORS[0], day: 0,
-      validFrom: s.startDate, validTo: s.endDate,
+      id: 0,
+      name: '',
+      denomination: null,
+      quantity: 1,
+      color: MEAL_COLORS[0],
+      day: 0,
+      validFrom: s.startDate,
+      validTo: s.endDate,
     });
   }
 
@@ -260,7 +266,16 @@ export class EventFormComponent implements OnInit {
     // Default a per-day stub's validity to that day's date (event start + day-1).
     const b = this.startDate;
     const d = b ? new Date(b.getFullYear(), b.getMonth(), b.getDate() + (day - 1)) : null;
-    this.eventMeals.push({ id: 0, name: '', denomination: null, quantity: 1, color, day, validFrom: d, validTo: d });
+    this.eventMeals.push({
+      id: 0,
+      name: '',
+      denomination: null,
+      quantity: 1,
+      color,
+      day,
+      validFrom: d,
+      validTo: d,
+    });
   }
   removeEventMeal(m: BuilderMeal): void {
     this.eventMeals = this.eventMeals.filter((x) => x !== m);
@@ -356,7 +371,10 @@ export class EventFormComponent implements OnInit {
   }
 
   private optionsOf(b: BuilderField): string[] {
-    return b.optionsText.split(',').map((s) => s.trim()).filter(Boolean);
+    return b.optionsText
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
   // ---- Conditional visibility (a field can be shown only when a radio field above it has a value) ----
@@ -376,7 +394,10 @@ export class EventFormComponent implements OnInit {
 
   // When the controller changes, reset a value that no longer belongs to it.
   onShowWhenKeyChange(b: BuilderField): void {
-    if (!b.showWhenKey) { b.showWhenValue = ''; return; }
+    if (!b.showWhenKey) {
+      b.showWhenValue = '';
+      return;
+    }
     if (!this.controllerValues(b).includes(b.showWhenValue)) b.showWhenValue = '';
   }
 
@@ -447,7 +468,14 @@ export class EventFormComponent implements OnInit {
 
   get isValid(): boolean {
     return (
-      !!(this.title && (this.venue.trim() || !this.hasVenue) && this.startDate && this.startTime && this.endDate && this.endTime) &&
+      !!(
+        this.title &&
+        (this.venue.trim() || !this.hasVenue) &&
+        this.startDate &&
+        this.startTime &&
+        this.endDate &&
+        this.endTime
+      ) &&
       this.endAfterStart &&
       this.capacityValid &&
       this.builderValid &&

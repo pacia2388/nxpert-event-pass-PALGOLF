@@ -14,9 +14,15 @@ export interface ToastData {
   selector: 'app-toast',
   imports: [MatIconModule],
   template: `
-    <div class="alert-card tone-{{ data.tone }}" role="status"
-         (mouseenter)="pause()" (mouseleave)="resume()">
-      <span class="alert-icon"><mat-icon>{{ meta.icon }}</mat-icon></span>
+    <div
+      class="alert-card tone-{{ data.tone }}"
+      role="status"
+      (mouseenter)="pause()"
+      (mouseleave)="resume()"
+    >
+      <span class="alert-icon"
+        ><mat-icon>{{ meta.icon }}</mat-icon></span
+      >
       <div class="alert-body">
         <span class="alert-title">{{ meta.title }}</span>
         <span class="alert-msg">{{ data.message }}</span>
@@ -24,8 +30,11 @@ export interface ToastData {
       <button type="button" class="alert-close" (click)="close()" aria-label="Dismiss">
         <mat-icon>close</mat-icon>
       </button>
-      <span class="alert-timer" [class.paused]="paused"
-            [style.animation-duration.ms]="data.duration"></span>
+      <span
+        class="alert-timer"
+        [class.paused]="paused"
+        [style.animation-duration.ms]="data.duration"
+      ></span>
     </div>
   `,
 })

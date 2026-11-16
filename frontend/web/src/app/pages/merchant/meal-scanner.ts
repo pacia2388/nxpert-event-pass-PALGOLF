@@ -112,7 +112,9 @@ export class MealScannerComponent implements OnInit, OnDestroy {
       );
       this.scanning.set(true);
     } catch {
-      this.cameraError.set('Could not open the camera. Grant permission and use HTTPS (or localhost).');
+      this.cameraError.set(
+        'Could not open the camera. Grant permission and use HTTPS (or localhost).',
+      );
     }
   }
 
@@ -168,7 +170,12 @@ export class MealScannerComponent implements OnInit, OnDestroy {
   }
 
   private show(res: MealStubScanResult): void {
-    const map: Record<string, Banner> = { valid: 'valid', already: 'already', invalid: 'invalid', notvalid: 'notvalid' };
+    const map: Record<string, Banner> = {
+      valid: 'valid',
+      already: 'already',
+      invalid: 'invalid',
+      notvalid: 'notvalid',
+    };
     this.banner.set(map[res.status] ?? 'error');
     this.resultName.set(res.fullName ?? (res.status === 'invalid' ? 'Not a meal stub' : null));
     this.resultLabel.set(res.label);

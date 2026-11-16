@@ -210,7 +210,10 @@ export class FaceCaptureDialogComponent implements OnInit, OnDestroy {
   // Grab a still as a square headshot centered on the detected face, so the saved photo is
   // framed the same way the user lined it up in the oval — not the raw (often off-center,
   // letterboxed) full sensor frame.
-  private grabStill(v: HTMLVideoElement, box?: { x: number; y: number; width: number; height: number }): string {
+  private grabStill(
+    v: HTMLVideoElement,
+    box?: { x: number; y: number; width: number; height: number },
+  ): string {
     const vw = v.videoWidth || 640;
     const vh = v.videoHeight || 480;
     const out = 480;

@@ -32,16 +32,47 @@ import { ConfirmService } from '../../../core/confirm.service';
   templateUrl: './settings.html',
   styles: [
     `
-      .settings-body { max-width: 640px; }
-      .settings-card { overflow: hidden; }
-      .section-sub { margin: 4px 0 16px; font-size: 13px; }
-      .full-width { width: 100%; }
-      .mobile-head { margin-top: 24px; }
-      .mobile-note { margin-top: 12px; margin-bottom: 0; }
-      .pc-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-      .pc-table th, .pc-table td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--mat-sys-outline-variant); }
-      .pc-actions { text-align: right; width: 48px; }
-      .pc-add { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+      .settings-body {
+        max-width: 640px;
+      }
+      .settings-card {
+        overflow: hidden;
+      }
+      .section-sub {
+        margin: 4px 0 16px;
+        font-size: 13px;
+      }
+      .full-width {
+        width: 100%;
+      }
+      .mobile-head {
+        margin-top: 24px;
+      }
+      .mobile-note {
+        margin-top: 12px;
+        margin-bottom: 0;
+      }
+      .pc-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 12px;
+      }
+      .pc-table th,
+      .pc-table td {
+        text-align: left;
+        padding: 4px 8px;
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+      }
+      .pc-actions {
+        text-align: right;
+        width: 48px;
+      }
+      .pc-add {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 12px;
+      }
       .pc-code {
         width: 260px;
         /* Same height as the Add button (40px). */
@@ -85,7 +116,10 @@ export class SettingsComponent implements OnInit {
 
   // Add one or more addresses (the chip input may deliver a comma/space separated paste).
   add(event: MatChipInputEvent): void {
-    const parts = (event.value ?? '').split(/[,;\s]+/).map((p) => p.trim()).filter(Boolean);
+    const parts = (event.value ?? '')
+      .split(/[,;\s]+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
     let added = false;
     for (const p of parts) {
       if (!SettingsComponent.EMAIL_RE.test(p)) {
@@ -122,7 +156,8 @@ export class SettingsComponent implements OnInit {
 
   setChannels(r: PhoneCountry, viber: boolean, sms: boolean, box: MatCheckbox): void {
     this.api.setPhoneCountryChannels(r.id, viber, sms).subscribe({
-      next: (saved) => this.countries.rows.update((rows) => rows.map((x) => (x.id === saved.id ? saved : x))),
+      next: (saved) =>
+        this.countries.rows.update((rows) => rows.map((x) => (x.id === saved.id ? saved : x))),
       error: (err) => {
         box.checked = !box.checked;
         this.toast.error(err?.error?.message ?? 'Could not save the channels.');
@@ -130,7 +165,7 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-   addCountry(): void {
+  addCountry(): void {
     const code = this.newCode();
     if (!code) return;
     this.api.addPhoneCountry(code).subscribe({
@@ -154,7 +189,9 @@ export class SettingsComponent implements OnInit {
     this.api.removePhoneCountry(r.id).subscribe({
       next: () => {
         this.countries.reload();
-        this.toast.success(`(+${r.countryCode}) ${this.countries.countryName(r.countryCode)} removed.`);
+        this.toast.success(
+          `(+${r.countryCode}) ${this.countries.countryName(r.countryCode)} removed.`,
+        );
       },
       error: (err) => this.toast.error(err?.error?.message ?? 'Could not remove the country code.'),
     });

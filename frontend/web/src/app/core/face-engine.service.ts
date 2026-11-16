@@ -79,7 +79,10 @@ export class FaceEngineService {
 
   /** Load the event's registrants (their backend photos) as the engine's gallery. */
   loadGallery(eventId: number): Observable<EngineGallerySummary> {
-    return this.http.post<EngineGallerySummary>(this.url(`/faces/reload?event_id=${eventId}`), null);
+    return this.http.post<EngineGallerySummary>(
+      this.url(`/faces/reload?event_id=${eventId}`),
+      null,
+    );
   }
 
   /** People recognized after `afterSequence`. Polling this is what keeps camera check-ins on. */

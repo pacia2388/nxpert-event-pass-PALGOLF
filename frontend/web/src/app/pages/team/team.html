@@ -12,9 +12,14 @@
           <strong>{{ t.memberCount }}</strong> / {{ t.maxMembers }} members
         </div>
         @if (canEdit()) {
-          <button mat-stroked-button color="primary" type="button" (click)="sendNotice()"
-                  [disabled]="sending() || !noticeIds().length"
-                  matTooltip="Goes to the checked members who are not registered yet">
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="sendNotice()"
+            [disabled]="sending() || !noticeIds().length"
+            matTooltip="Goes to the checked members who are not registered yet"
+          >
             <mat-icon>mail</mat-icon> Send registration notice ({{ noticeIds().length }})
           </button>
         }
@@ -26,8 +31,14 @@
         <h2 class="tp-card-title">
           <mat-icon>groups</mat-icon> Members
           @if (canEdit() && t.members.length) {
-            <button mat-stroked-button color="warn" type="button" class="tp-remove" (click)="removeSelected()"
-                    [disabled]="removing() || !selected().size">
+            <button
+              mat-stroked-button
+              color="warn"
+              type="button"
+              class="tp-remove"
+              (click)="removeSelected()"
+              [disabled]="removing() || !selected().size"
+            >
               <mat-icon>person_remove</mat-icon> Remove ({{ selected().size }})
             </button>
           }
@@ -38,12 +49,16 @@
               <thead>
                 <tr>
                   @if (canEdit()) {
-                  <th class="col-check">
-                    <mat-checkbox aria-label="Select all members"
-                                  [checked]="allChecked()" [indeterminate]="someChecked()"
-                                  [disabled]="removing()" (change)="toggleAll($event.checked)">
-                    </mat-checkbox>
-                  </th>
+                    <th class="col-check">
+                      <mat-checkbox
+                        aria-label="Select all members"
+                        [checked]="allChecked()"
+                        [indeterminate]="someChecked()"
+                        [disabled]="removing()"
+                        (change)="toggleAll($event.checked)"
+                      >
+                      </mat-checkbox>
+                    </th>
                   }
                   <th>Name</th>
                   <th>Email</th>
@@ -55,12 +70,15 @@
                 @for (m of t.members; track m.userId) {
                   <tr>
                     @if (canEdit()) {
-                    <td class="col-check">
-                      <mat-checkbox [attr.aria-label]="'Select ' + m.fullName"
-                                    [checked]="isChecked(m)" [disabled]="removing()"
-                                    (change)="toggle(m, $event.checked)">
-                      </mat-checkbox>
-                    </td>
+                      <td class="col-check">
+                        <mat-checkbox
+                          [attr.aria-label]="'Select ' + m.fullName"
+                          [checked]="isChecked(m)"
+                          [disabled]="removing()"
+                          (change)="toggle(m, $event.checked)"
+                        >
+                        </mat-checkbox>
+                      </td>
                     }
                     <td class="m-name">{{ m.fullName }}</td>
                     <td>{{ m.email }}</td>
@@ -80,71 +98,111 @@
             </table>
           </div>
         } @else {
-          <p class="tp-empty">No members yet.@if (canEdit()) { Add the first one with the form.}</p>
+          <p class="tp-empty">
+            No members yet.
+            @if (canEdit()) {
+              Add the first one with the form.
+            }
+          </p>
         }
       </section>
 
       @if (canEdit()) {
-      <section class="tp-card" aria-label="Add a member">
-        <h2 class="tp-card-title"><mat-icon>person_add</mat-icon> Add a member</h2>
+        <section class="tp-card" aria-label="Add a member">
+          <h2 class="tp-card-title"><mat-icon>person_add</mat-icon> Add a member</h2>
 
-        @if (isFull()) {
-          <p class="tp-full">
-            <mat-icon>block</mat-icon>
-            This team is full. A {{ t.category }} team holds {{ t.maxMembers }} members.
-          </p>
-        }
-
-        <form #f="ngForm" class="tp-form" (ngSubmit)="add()" autocomplete="off">
-          <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" name="email" [(ngModel)]="email" required maxlength="256"
-                   [disabled]="isFull()" [matAutocomplete]="candidateAuto"
-                   (ngModelChange)="onEmailChange($event)" />
-            <mat-autocomplete #candidateAuto="matAutocomplete" [displayWith]="candidateEmail" (optionSelected)="pick($event.option.value)">
-              @for (c of candidates(); track c.userId) {
-                <mat-option [value]="c" class="cand-option">
-                  <span class="cand-name">{{ c.firstName }}{{ c.middleInitial ? ' ' + c.middleInitial + '.' : '' }} {{ c.lastName }}</span>
-                  <span class="cand-email">{{ c.email }}</span>
-                </mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>First name</mat-label>
-            <input matInput name="firstName" [(ngModel)]="firstName" required maxlength="100"
-                   [disabled]="isFull()" [readonly]="!!picked()" />
-          </mat-form-field>
-
-          <div class="tp-pair">
-            <mat-form-field appearance="outline" class="mi">
-              <mat-label>M.I.</mat-label>
-              <input matInput name="middleInitial" [(ngModel)]="middleInitial" maxlength="5"
-                     [disabled]="isFull()" [readonly]="!!picked()" />
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Last name</mat-label>
-              <input matInput name="lastName" [(ngModel)]="lastName" required maxlength="100"
-                     [disabled]="isFull()" [readonly]="!!picked()" />
-            </mat-form-field>
-          </div>
-
-          <button mat-flat-button color="primary" type="submit" [disabled]="saving() || isFull()">
-            <mat-icon>person_add</mat-icon> Add to team
-          </button>
-          @if (saving()) {
-            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          @if (isFull()) {
+            <p class="tp-full">
+              <mat-icon>block</mat-icon>
+              This team is full. A {{ t.category }} team holds {{ t.maxMembers }} members.
+            </p>
           }
-        </form>
 
-        <p class="tp-hint">
-          Start with the email: Participants who are not in a team yet appear as you type, and
-          picking one fills in their name. They join the team and keep their password. If the
-          email is new, a Participant account is created and signs in with the temporary
-          password <strong>char</strong>.
-        </p>
-      </section>
+          <form #f="ngForm" class="tp-form" (ngSubmit)="add()" autocomplete="off">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input
+                matInput
+                type="email"
+                name="email"
+                [(ngModel)]="email"
+                required
+                maxlength="256"
+                [disabled]="isFull()"
+                [matAutocomplete]="candidateAuto"
+                (ngModelChange)="onEmailChange($event)"
+              />
+              <mat-autocomplete
+                #candidateAuto="matAutocomplete"
+                [displayWith]="candidateEmail"
+                (optionSelected)="pick($event.option.value)"
+              >
+                @for (c of candidates(); track c.userId) {
+                  <mat-option [value]="c" class="cand-option">
+                    <span class="cand-name"
+                      >{{ c.firstName }}{{ c.middleInitial ? ' ' + c.middleInitial + '.' : '' }}
+                      {{ c.lastName }}</span
+                    >
+                    <span class="cand-email">{{ c.email }}</span>
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>First name</mat-label>
+              <input
+                matInput
+                name="firstName"
+                [(ngModel)]="firstName"
+                required
+                maxlength="100"
+                [disabled]="isFull()"
+                [readonly]="!!picked()"
+              />
+            </mat-form-field>
+
+            <div class="tp-pair">
+              <mat-form-field appearance="outline" class="mi">
+                <mat-label>M.I.</mat-label>
+                <input
+                  matInput
+                  name="middleInitial"
+                  [(ngModel)]="middleInitial"
+                  maxlength="5"
+                  [disabled]="isFull()"
+                  [readonly]="!!picked()"
+                />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Last name</mat-label>
+                <input
+                  matInput
+                  name="lastName"
+                  [(ngModel)]="lastName"
+                  required
+                  maxlength="100"
+                  [disabled]="isFull()"
+                  [readonly]="!!picked()"
+                />
+              </mat-form-field>
+            </div>
+
+            <button mat-flat-button color="primary" type="submit" [disabled]="saving() || isFull()">
+              <mat-icon>person_add</mat-icon> Add to team
+            </button>
+            @if (saving()) {
+              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            }
+          </form>
+
+          <p class="tp-hint">
+            Start with the email: Participants who are not in a team yet appear as you type, and
+            picking one fills in their name. They join the team and keep their password. If the
+            email is new, a Participant account is created and signs in with the temporary password
+            <strong>char</strong>.
+          </p>
+        </section>
       }
     </div>
   </div>

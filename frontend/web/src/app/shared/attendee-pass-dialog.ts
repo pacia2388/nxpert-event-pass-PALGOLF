@@ -29,8 +29,13 @@ interface AttendeePassData {
       }
       <div class="qr-wrap">
         @if (qrDataUrl()) {
-          <img [src]="qrDataUrl()" [alt]="'QR pass for ' + data.attendee.fullName"
-               width="260" height="260" (load)="onQrRendered()" />
+          <img
+            [src]="qrDataUrl()"
+            [alt]="'QR pass for ' + data.attendee.fullName"
+            width="260"
+            height="260"
+            (load)="onQrRendered()"
+          />
         } @else if (qrError()) {
           <div role="alert">
             <p>{{ qrError() }}</p>
@@ -43,7 +48,9 @@ interface AttendeePassData {
       <p class="muted pass-hint">Present this code at the door for check-in.</p>
       <p class="email no-print">{{ registeredEmail() || 'No registered email address.' }}</p>
       @if (!confirmedAt()) {
-        <p class="muted no-print">Confirm this registration in Attendance before emailing the pass.</p>
+        <p class="muted no-print">
+          Confirm this registration in Attendance before emailing the pass.
+        </p>
       }
       @if (emailStatus()) {
         <p role="status" class="no-print">{{ emailStatus() }}</p>
@@ -54,8 +61,11 @@ interface AttendeePassData {
       <button mat-stroked-button (click)="print()" [disabled]="!qrDataUrl()">
         <mat-icon>print</mat-icon> Print
       </button>
-      <button mat-stroked-button (click)="resend()"
-              [disabled]="sending() || !registeredEmail() || !confirmedAt()">
+      <button
+        mat-stroked-button
+        (click)="resend()"
+        [disabled]="sending() || !registeredEmail() || !confirmedAt()"
+      >
         <mat-icon>email</mat-icon> {{ sending() ? 'Sending…' : 'Resend email' }}
       </button>
       <button mat-flat-button (click)="download()" [disabled]="!qrDataUrl() || downloading()">
@@ -63,14 +73,33 @@ interface AttendeePassData {
       </button>
     </mat-dialog-actions>
   `,
-  styles: [`
-    h3 { margin: 0 0 8px; }
-    p { margin: 8px 0; }
-    .qr-wrap { min-height: 260px; display: flex; align-items: center; justify-content: center; }
-    .qr-wrap img { max-width: 100%; height: auto; }
-    .email { overflow-wrap: anywhere; }
-    mat-dialog-actions { gap: 8px; flex-wrap: wrap; }
-  `],
+  styles: [
+    `
+      h3 {
+        margin: 0 0 8px;
+      }
+      p {
+        margin: 8px 0;
+      }
+      .qr-wrap {
+        min-height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .qr-wrap img {
+        max-width: 100%;
+        height: auto;
+      }
+      .email {
+        overflow-wrap: anywhere;
+      }
+      mat-dialog-actions {
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+    `,
+  ],
 })
 export class AttendeePassDialogComponent implements OnInit {
   readonly data = inject<AttendeePassData>(MAT_DIALOG_DATA);
@@ -106,9 +135,11 @@ export class AttendeePassDialogComponent implements OnInit {
       this.qrDataUrl.set(await passQrDataUrl(this.token));
     } catch (error) {
       const status = (error as { status?: number })?.status;
-      this.qrError.set(status === 404
-        ? 'Pass unavailable. The attendee may have been removed, or the API needs the QR pass update. Refresh Attendance after updating the backend.'
-        : 'Could not load the QR pass. Please try again.');
+      this.qrError.set(
+        status === 404
+          ? 'Pass unavailable. The attendee may have been removed, or the API needs the QR pass update. Refresh Attendance after updating the backend.'
+          : 'Could not load the QR pass. Please try again.',
+      );
     }
   }
 
@@ -126,7 +157,9 @@ export class AttendeePassDialogComponent implements OnInit {
   print(): void {
     if (!this.qrDataUrl()) return;
     document.body.classList.add('printing-pass');
-    window.addEventListener('afterprint', () => document.body.classList.remove('printing-pass'), { once: true });
+    window.addEventListener('afterprint', () => document.body.classList.remove('printing-pass'), {
+      once: true,
+    });
     window.print();
   }
 
@@ -134,8 +167,11 @@ export class AttendeePassDialogComponent implements OnInit {
     if (!this.token || !this.qrDataUrl() || this.downloading()) return;
     this.downloading.set(true);
     try {
-      const fileBase = [fileSlug(this.data.eventTitle), fileSlug(this.data.attendee.fullName),
-        this.data.attendee.registrationId].join('-');
+      const fileBase = [
+        fileSlug(this.data.eventTitle),
+        fileSlug(this.data.attendee.fullName),
+        this.data.attendee.registrationId,
+      ].join('-');
       await downloadPass(this.token, fileBase);
     } catch {
       this.toast.error('Could not download the QR pass. Please try again.');

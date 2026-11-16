@@ -26,7 +26,11 @@ export class BeepService {
     if (!ctx) return;
     if (ctx.state === 'running') this.play(ctx);
     // Still waking up (or waiting for a gesture): play once it's allowed, otherwise skip.
-    else void ctx.resume().then(() => ctx.state === 'running' && this.play(ctx), () => {});
+    else
+      void ctx.resume().then(
+        () => ctx.state === 'running' && this.play(ctx),
+        () => {},
+      );
   }
 
   /** Create the audio context early (e.g. when the scanner opens) so the first beep isn't late. */
@@ -63,7 +67,9 @@ export class BeepService {
   private ensureContext(): AudioContext | null {
     try {
       if (!this.ctx) {
-        const Ctor = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        const Ctor =
+          window.AudioContext ??
+          (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (!Ctor) return null;
         this.ctx = new Ctor();
       }

@@ -85,7 +85,9 @@ export class TeamsComponent implements OnInit {
   });
 
   // Participants who are not in any team yet (a user belongs to at most one team).
-  candidates = computed(() => this.users().filter((u) => u.role === 'Participant' && u.teamId == null));
+  candidates = computed(() =>
+    this.users().filter((u) => u.role === 'Participant' && u.teamId == null),
+  );
 
   isFull = computed(() => {
     const t = this.selected();
@@ -258,7 +260,11 @@ export class TeamsComponent implements OnInit {
   // unsaved header edits.
   private afterMembersChanged(teamId: number): void {
     this.memberToAdd = null;
-    forkJoin({ team: this.api.getTeam(teamId), teams: this.api.listTeams(), users: this.api.listUsers() }).subscribe({
+    forkJoin({
+      team: this.api.getTeam(teamId),
+      teams: this.api.listTeams(),
+      users: this.api.listUsers(),
+    }).subscribe({
       next: ({ team, teams, users }) => {
         this.teams.set(teams);
         this.users.set(users);

@@ -20,7 +20,11 @@ export function uniqueEmail(): string {
 /** Creates a published, public in-person event with no sub-events or custom fields. */
 export async function createPublishedEvent(
   adminApi: APIRequestContext,
-  overrides: Partial<{ title: string; capacity: number | null; category: 'Senior' | 'Regular' | null }> = {},
+  overrides: Partial<{
+    title: string;
+    capacity: number | null;
+    category: 'Senior' | 'Regular' | null;
+  }> = {},
 ): Promise<CreatedEvent> {
   const startsAt = new Date(Date.now() + 7 * 24 * 3600_000);
   startsAt.setUTCHours(1, 0, 0, 0);
@@ -87,11 +91,21 @@ export interface CreatedUser {
 }
 
 /** Creates an account with the given role through the admin Users API. */
-async function createUser(adminApi: APIRequestContext, role: 'Participant' | 'Captain'): Promise<CreatedUser> {
+async function createUser(
+  adminApi: APIRequestContext,
+  role: 'Participant' | 'Captain',
+): Promise<CreatedUser> {
   const email = uniqueEmail();
   const password = 'Passw0rd!';
   const res = await adminApi.post('/api/users', {
-    data: { firstName: 'Pat', lastName: unique('Cruz'), email, password, role, birthdate: '1980-06-15' },
+    data: {
+      firstName: 'Pat',
+      lastName: unique('Cruz'),
+      email,
+      password,
+      role,
+      birthdate: '1980-06-15',
+    },
   });
   expect(res.ok(), `create user: ${res.status()} ${await res.text()}`).toBeTruthy();
   const { id } = (await res.json()) as { id: number };
@@ -116,7 +130,9 @@ export async function createTeamMember(
   const { id: teamId } = (await team.json()) as { id: number };
 
   const member = await createParticipant(adminApi);
-  const added = await adminApi.post(`/api/teams/${teamId}/members`, { data: { userId: member.id } });
+  const added = await adminApi.post(`/api/teams/${teamId}/members`, {
+    data: { userId: member.id },
+  });
   expect(added.ok(), `add member: ${added.status()} ${await added.text()}`).toBeTruthy();
   return member;
 }

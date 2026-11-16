@@ -5,11 +5,16 @@ const digitsOf = (v: string | null | undefined) => (v ?? '').replace(/\D/g, '');
 
 /** Splits a stored number into a listed code and the formatted rest. An unlisted number keeps
  *  its digits with no code, so the form asks for a code before it can be saved. */
-export function splitPhone(stored: string | null | undefined, codes: string[]): { code: string; number: string } {
+export function splitPhone(
+  stored: string | null | undefined,
+  codes: string[],
+): { code: string; number: string } {
   const d = digitsOf(stored);
   if (!d) return { code: codes[0] ?? '', number: '' };
   const code = codes.find((c) => d.startsWith(c));
-  return code ? { code, number: formatPhoneNumber(code, d.slice(code.length)) } : { code: '', number: '+' + d };
+  return code
+    ? { code, number: formatPhoneNumber(code, d.slice(code.length)) }
+    : { code: '', number: '+' + d };
 }
 
 /** Live-format the number part. +63: "9XX XXX XXXX" (a leading 0 or 63 is dropped). Others: digits. */

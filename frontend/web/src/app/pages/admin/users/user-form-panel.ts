@@ -1,4 +1,13 @@
-import { Component, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { MobileChannelService } from '../../../core/mobile-channel.service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -16,7 +25,13 @@ import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../../shared/f
 import { PhoneFieldComponent } from '../../../shared/phone-field/phone-field';
 import { PhoneCountryService } from '../../../core/phone-country.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { BIRTHDATE_MIN, birthdateMax, fromIsoDate, isValidBirthdate, toIsoDate } from '../../../shared/birthdate';
+import {
+  BIRTHDATE_MIN,
+  birthdateMax,
+  fromIsoDate,
+  isValidBirthdate,
+  toIsoDate,
+} from '../../../shared/birthdate';
 
 // Right-hand form of the User Master screen. Shows the selected user (edit) or a blank
 // record (new); the page toolbar drives it through save() / isDirty().
@@ -107,7 +122,14 @@ export class UserFormPanelComponent {
 
   /** True when the admin has changed anything since the record was loaded. */
   isDirty(): boolean {
-    return !!this.form()?.dirty || this.phone !== this.storedPhone || !!this.newPhoto() || this.clearPhoto() || !!this.newFace() || this.clearFace();
+    return (
+      !!this.form()?.dirty ||
+      this.phone !== this.storedPhone ||
+      !!this.newPhoto() ||
+      this.clearPhoto() ||
+      !!this.newFace() ||
+      this.clearFace()
+    );
   }
 
   /** Puts the current record back in the form, dropping edits and touched markers. */
@@ -173,7 +195,6 @@ export class UserFormPanelComponent {
       birthdate: this.birthdate,
     };
   }
-
 
   onPhotoSelected(event: Event): void {
     const el = event.target as HTMLInputElement;
@@ -252,10 +273,14 @@ export class UserFormPanelComponent {
   get valid(): boolean {
     const hasNames = !!this.firstName.trim() && !!this.lastName.trim();
     const hasEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim());
-    const pwOk = this.isEdit ? !this.password || this.password.length >= 8 : this.password.length >= 8;
+    const pwOk = this.isEdit
+      ? !this.password || this.password.length >= 8
+      : this.password.length >= 8;
     // A phone is optional unless mobile; when present it needs a listed code and a full number.
     const phoneOk = this.phone ? this.countries.isValid(this.phone) : !this.phoneRequired();
-    return hasNames && hasEmail && pwOk && !!this.role && phoneOk && isValidBirthdate(this.birthdate);
+    return (
+      hasNames && hasEmail && pwOk && !!this.role && phoneOk && isValidBirthdate(this.birthdate)
+    );
   }
 
   save(): void {

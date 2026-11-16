@@ -17,7 +17,9 @@ export interface ImageViewerData {
     <div class="iv-head">
       <div class="iv-titles">
         <h2 mat-dialog-title>{{ data.title }}</h2>
-        @if (data.caption) { <p class="iv-caption">{{ data.caption }}</p> }
+        @if (data.caption) {
+          <p class="iv-caption">{{ data.caption }}</p>
+        }
       </div>
       <button mat-icon-button (click)="ref.close()" aria-label="Close">
         <mat-icon>close</mat-icon>
@@ -42,8 +44,14 @@ export interface ImageViewerData {
         gap: 8px;
         padding: 8px 8px 0 24px;
       }
-      .iv-titles h2 { margin: 0; }
-      .iv-caption { margin: 2px 0 0; font-size: 13px; color: var(--mat-sys-on-surface-variant); }
+      .iv-titles h2 {
+        margin: 0;
+      }
+      .iv-caption {
+        margin: 2px 0 0;
+        font-size: 13px;
+        color: var(--mat-sys-on-surface-variant);
+      }
       .iv-body {
         display: flex;
         justify-content: center;

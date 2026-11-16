@@ -16,7 +16,12 @@ describe('App shell', () => {
     if (signedIn) {
       localStorage.setItem(
         'evt_auth',
-        JSON.stringify({ token: `x.${btoa('{}')}.x`, userId: 1, fullName: 'Test User', role: 'Admin' }),
+        JSON.stringify({
+          token: `x.${btoa('{}')}.x`,
+          userId: 1,
+          fullName: 'Test User',
+          role: 'Admin',
+        }),
       );
     }
     TestBed.configureTestingModule({
@@ -52,7 +57,9 @@ describe('App shell', () => {
     // Boot the way main.ts does: read appSettings.json, then start the app.
     async function boot(settings: Record<string, unknown>): Promise<void> {
       globalThis.fetch = (async () =>
-        new Response(JSON.stringify({ apiBaseUrl: '', faceEngineBaseUrl: '', ...settings }))) as typeof fetch;
+        new Response(
+          JSON.stringify({ apiBaseUrl: '', faceEngineBaseUrl: '', ...settings }),
+        )) as typeof fetch;
       await loadAppSettings();
     }
 

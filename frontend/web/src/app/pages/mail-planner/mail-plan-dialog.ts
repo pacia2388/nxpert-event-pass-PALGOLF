@@ -1,4 +1,12 @@
-import { Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -146,11 +154,15 @@ export class MailPlanDialogComponent {
   event = this.data.plan?.event ?? '';
   channel: MailChannel = this.data.plan?.channel ?? 'Email';
   readonly savedEvents = signal<string[]>([...this.data.savedEvents]);
-  readonly eventOptions = computed(() => [...new Set([...this.data.events, ...this.savedEvents()])]);
+  readonly eventOptions = computed(() => [
+    ...new Set([...this.data.events, ...this.savedEvents()]),
+  ]);
 
   // ---- Step 2: days & messages ----
   // Days that have gone out are kept as-is; only Scheduled days can be edited.
-  readonly lockedSends: PlanSend[] = sortedSends(this.data.plan?.sends ?? []).filter((s) => s.status !== 'Scheduled');
+  readonly lockedSends: PlanSend[] = sortedSends(this.data.plan?.sends ?? []).filter(
+    (s) => s.status !== 'Scheduled',
+  );
   readonly entries = signal<DayEntry[]>(this.initialEntries());
   readonly viewMonth = signal(this.monthOf(this.entries()[0]?.date ?? this.data.defaultDay));
 
@@ -165,7 +177,13 @@ export class MailPlanDialogComponent {
       const date = new Date(first.getFullYear(), first.getMonth(), d);
       const key = dayKey(date);
       const t = date.getTime();
-      cells.push({ date, key, past: t < today, today: t === today, locked: this.lockedKeys.has(key) });
+      cells.push({
+        date,
+        key,
+        past: t < today,
+        today: t === today,
+        locked: this.lockedKeys.has(key),
+      });
     }
     return cells;
   });
@@ -179,7 +197,9 @@ export class MailPlanDialogComponent {
   ccDraft = '';
   private readonly ccInput = viewChild<ElementRef<HTMLInputElement>>('ccInput');
 
-  readonly resolved = computed(() => resolveReceivers(this.groups, { groupIds: this.groupIds(), emails: this.emails() }));
+  readonly resolved = computed(() =>
+    resolveReceivers(this.groups, { groupIds: this.groupIds(), emails: this.emails() }),
+  );
   readonly totalSends = computed(() => this.entries().length * this.resolved().length);
 
   // ---- Init helpers ----
@@ -193,7 +213,13 @@ export class MailPlanDialogComponent {
     return [this.entry(this.data.defaultDay, this.defaultTime(this.data.defaultDay))];
   }
 
-  private entry(date: Date, time: string, subject = '', body = '', id: number | null = null): DayEntry {
+  private entry(
+    date: Date,
+    time: string,
+    subject = '',
+    body = '',
+    id: number | null = null,
+  ): DayEntry {
     return { uid: nextUid++, id, date, time, subject, body };
   }
 
@@ -226,11 +252,14 @@ export class MailPlanDialogComponent {
     const name = this.event.trim().replace(/\s+/g, ' ').slice(0, EVENT_NAME_MAX);
     if (!name || !this.canSaveEvent()) return;
     this.event = name;
-    this.api.saveMailEventName(name).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ name: saved }) => {
-      this.savedEvents.update((list) => [...list, saved]);
-      this.data.onSaveEvent(saved);
-      this.toast.success(`"${saved}" saved to your event list.`);
-    });
+    this.api
+      .saveMailEventName(name)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ name: saved }) => {
+        this.savedEvents.update((list) => [...list, saved]);
+        this.data.onSaveEvent(saved);
+        this.toast.success(`"${saved}" saved to your event list.`);
+      });
   }
 
   pickEvent(value: string): void {
@@ -243,7 +272,8 @@ export class MailPlanDialogComponent {
     const list: string[] = [];
     if (!e.subject.trim()) list.push('add a subject');
     if (!this.hasBody(e)) list.push('write the message');
-    if (richTextInfo(e.body).text.length > BODY_MAX) list.push(`keep the message under ${BODY_MAX} characters`);
+    if (richTextInfo(e.body).text.length > BODY_MAX)
+      list.push(`keep the message under ${BODY_MAX} characters`);
     if (!e.time) list.push('set a send time');
     else if (this.sendTime(e).getTime() <= Date.now()) list.push('pick a time that has not passed');
     return list;
@@ -350,7 +380,9 @@ export class MailPlanDialogComponent {
       date = shift(date, delta);
     }
     if (!this.isFree(date, e)) return;
-    this.entries.update((list) => this.sortEntries(list.map((x) => (x === e ? { ...x, date } : x))));
+    this.entries.update((list) =>
+      this.sortEntries(list.map((x) => (x === e ? { ...x, date } : x))),
+    );
     this.viewMonth.set(this.monthOf(date));
   }
 
@@ -367,7 +399,9 @@ export class MailPlanDialogComponent {
 
   applyTimeToAll(e: DayEntry): void {
     this.entries().forEach((x) => (x.time = e.time));
-    this.toast.info(`All days set to ${this.sendTime(e).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.`);
+    this.toast.info(
+      `All days set to ${this.sendTime(e).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.`,
+    );
   }
 
   copyPrevious(index: number): void {
@@ -409,7 +443,8 @@ export class MailPlanDialogComponent {
   pickWeekdays(): void {
     // Remaining Mon–Fri of this week from tomorrow, or next week's if none are left.
     let start = shift(startOfToday(), 1);
-    if (start.getDay() === 6 || start.getDay() === 0) start = shift(start, (8 - start.getDay()) % 7);
+    if (start.getDay() === 6 || start.getDay() === 0)
+      start = shift(start, (8 - start.getDay()) % 7);
     const dates: Date[] = [];
     for (let d = start; d.getDay() >= 1 && d.getDay() <= 5; d = shift(d, 1)) dates.push(d);
     this.addDates(dates);
@@ -427,7 +462,6 @@ export class MailPlanDialogComponent {
     return at;
   }
 
-
   // ---- Receivers ----
   removeGroup(id: string): void {
     this.groupIds.update((ids) => ids.filter((x) => x !== id));
@@ -435,14 +469,22 @@ export class MailPlanDialogComponent {
 
   /** Adds every valid address in the draft; invalid ones stay in the box to be fixed. Also runs on blur, Next and save. */
   addEmails(): boolean {
-    const parts = this.emailDraft.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const parts = this.emailDraft
+      .split(/[\s,;]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
     if (!parts.length) return true;
     const invalid = parts.filter((e) => !EMAIL_PATTERN.test(e) || e.length > 256);
-    const valid = [...new Set(parts.filter((e) => !invalid.includes(e)))].filter((e) => !this.emails().includes(e));
+    const valid = [...new Set(parts.filter((e) => !invalid.includes(e)))].filter(
+      (e) => !this.emails().includes(e),
+    );
     const room = EXTRA_EMAILS_MAX - this.emails().length;
     if (valid.length > room) this.toast.warning(`Up to ${EXTRA_EMAILS_MAX} addresses per plan.`);
     this.emails.update((list) => [...list, ...valid.slice(0, Math.max(0, room))]);
-    if (invalid.length) this.toast.warning(`Check ${invalid.length === 1 ? 'this address' : 'these addresses'}: ${invalid.join(', ')}`);
+    if (invalid.length)
+      this.toast.warning(
+        `Check ${invalid.length === 1 ? 'this address' : 'these addresses'}: ${invalid.join(', ')}`,
+      );
     this.emailDraft = invalid.join(', ');
     return !invalid.length;
   }
@@ -451,7 +493,9 @@ export class MailPlanDialogComponent {
   /** Saved addresses matching what's typed, not yet on this plan's CC. */
   ccSuggestions(): string[] {
     const q = this.ccDraft.trim().toLowerCase();
-    return this.savedCc().filter((e) => !this.cc().includes(e) && (!q || e.includes(q))).slice(0, 20);
+    return this.savedCc()
+      .filter((e) => !this.cc().includes(e) && (!q || e.includes(q)))
+      .slice(0, 20);
   }
 
   isSavedCc(email: string): boolean {
@@ -460,13 +504,21 @@ export class MailPlanDialogComponent {
 
   /** Adds every valid address in the text; invalid ones stay in the box to be fixed. */
   addCc(value: string): boolean {
-    const parts = value.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const parts = value
+      .split(/[\s,;]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
     const invalid = parts.filter((e) => !EMAIL_PATTERN.test(e) || e.length > 256);
-    const valid = [...new Set(parts.filter((e) => !invalid.includes(e)))].filter((e) => !this.cc().includes(e));
+    const valid = [...new Set(parts.filter((e) => !invalid.includes(e)))].filter(
+      (e) => !this.cc().includes(e),
+    );
     const room = CC_MAX - this.cc().length;
     if (valid.length > room) this.toast.warning(`Up to ${CC_MAX} CC addresses per plan.`);
     this.cc.update((list) => [...list, ...valid.slice(0, Math.max(0, room))]);
-    if (invalid.length) this.toast.warning(`Check ${invalid.length === 1 ? 'this CC address' : 'these CC addresses'}: ${invalid.join(', ')}`);
+    if (invalid.length)
+      this.toast.warning(
+        `Check ${invalid.length === 1 ? 'this CC address' : 'these CC addresses'}: ${invalid.join(', ')}`,
+      );
     this.ccDraft = invalid.join(', ');
     // Write the box directly too: with the autocomplete as value accessor, ngModel doesn't always
     // repaint the input after Enter, leaving the added address visible next to its chip.
@@ -509,11 +561,14 @@ export class MailPlanDialogComponent {
   saveCc(emails: string[]): void {
     const fresh = emails.filter((e) => !this.isSavedCc(e));
     for (const email of fresh) {
-      this.api.saveMailCc(email).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ email: saved }) => {
-        if (!this.isSavedCc(saved)) this.savedCc.update((list) => [...list, saved].sort());
-        this.data.onSavedCcChange(this.savedCc());
-        if (fresh.length === 1) this.toast.success(`${saved} saved to your CC list.`);
-      });
+      this.api
+        .saveMailCc(email)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(({ email: saved }) => {
+          if (!this.isSavedCc(saved)) this.savedCc.update((list) => [...list, saved].sort());
+          this.data.onSavedCcChange(this.savedCc());
+          if (fresh.length === 1) this.toast.success(`${saved} saved to your CC list.`);
+        });
     }
     if (fresh.length > 1) this.toast.success(`${fresh.length} addresses saved to your CC list.`);
   }
@@ -521,10 +576,13 @@ export class MailPlanDialogComponent {
   forgetCc(email: string, event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-    this.api.forgetMailCc(email).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.savedCc.update((list) => list.filter((e) => e !== email));
-      this.data.onSavedCcChange(this.savedCc());
-    });
+    this.api
+      .forgetMailCc(email)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.savedCc.update((list) => list.filter((e) => e !== email));
+        this.data.onSavedCcChange(this.savedCc());
+      });
   }
 
   unsavedCc(): string[] {
@@ -586,7 +644,12 @@ export class MailPlanDialogComponent {
         error: (error) => {
           this.saving.set(false);
           const message = (error?.error as { message?: unknown } | null)?.message;
-          this.toast.error(typeof message === 'string' && message ? message : 'The plan could not be saved. Try again.', 8000);
+          this.toast.error(
+            typeof message === 'string' && message
+              ? message
+              : 'The plan could not be saved. Try again.',
+            8000,
+          );
         },
       });
   }

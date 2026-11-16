@@ -7,7 +7,9 @@
 <mat-dialog-content class="import-body">
   @if (result(); as r) {
     <!-- Result summary -->
-    <p class="note">Import finished. New accounts use the default password <strong>12345</strong>.</p>
+    <p class="note">
+      Import finished. New accounts use the default password <strong>12345</strong>.
+    </p>
     <div class="summary">
       <div class="stat created">{{ r.created }}<small>created</small></div>
       <div class="stat skipped">{{ r.skipped }}<small>skipped (already exist)</small></div>
@@ -17,7 +19,9 @@
       <p class="note">Rows that couldn't be imported:</p>
       <ul class="err-list">
         @for (e of r.errors; track $index) {
-          <li><span class="err-row">Row {{ e.row }} ({{ e.name }}):</span> {{ e.message }}</li>
+          <li>
+            <span class="err-row">Row {{ e.row }} ({{ e.name }}):</span> {{ e.message }}
+          </li>
         }
       </ul>
     }
@@ -37,7 +41,8 @@
       <p class="cols">
         Use the template: its header row must stay exactly as downloaded (same columns, same order).
         Required: <strong>First Name</strong>, <strong>Last Name</strong>, <strong>Email</strong>,
-        <strong>Birthdate</strong> (yyyy-MM-dd or M/d/yyyy). Columns marked "(optional)" may be left blank.
+        <strong>Birthdate</strong> (yyyy-MM-dd or M/d/yyyy). Columns marked "(optional)" may be left
+        blank.
       </p>
       <p class="cols">
         <strong>Phone:</strong> write the full mobile number with <strong>+</strong> and the country
@@ -55,7 +60,9 @@
         <mat-icon>description</mat-icon>
         <span class="file-name">{{ fileName() }}</span>
         @if (rows().length) {
-          <span class="note">— {{ rows().length }} row{{ rows().length === 1 ? '' : 's' }} ready</span>
+          <span class="note"
+            >— {{ rows().length }} row{{ rows().length === 1 ? '' : 's' }} ready</span
+          >
         }
       </div>
     }
@@ -68,7 +75,14 @@
       <div class="preview-wrap">
         <table class="preview-table">
           <thead>
-            <tr><th>First</th><th>Last</th><th>Email</th><th>Role</th><th>Phone</th><th>Birthdate</th></tr>
+            <tr>
+              <th>First</th>
+              <th>Last</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Birthdate</th>
+            </tr>
           </thead>
           <tbody>
             @for (u of preview(); track $index) {
@@ -96,9 +110,13 @@
     <button mat-flat-button color="primary" (click)="done()">Done</button>
   } @else {
     <button mat-button (click)="cancel()">Cancel</button>
-    <button mat-flat-button color="primary" (click)="runImport()"
-            [disabled]="importing() || rows().length === 0">
-      <mat-icon>group_add</mat-icon> Import {{ rows().length ? '(' + rows().length + ')'  : '' }}
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="runImport()"
+      [disabled]="importing() || rows().length === 0"
+    >
+      <mat-icon>group_add</mat-icon> Import {{ rows().length ? '(' + rows().length + ')' : '' }}
     </button>
   }
 </mat-dialog-actions>

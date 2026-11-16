@@ -28,15 +28,25 @@ const PAGE_SIZE_KEY = 'nxpass.events.pageSize';
 
 // Per-viewer conveniences only; storage can be blocked (private mode), so fall back quietly.
 function readPref(key: string): string | null {
-  try { return localStorage.getItem(key); } catch { return null; }
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 function writePref(key: string, value: string): void {
-  try { localStorage.setItem(key, value); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* ignore */
+  }
 }
 
 @Component({
   selector: 'app-events-list',
-  imports: [CategoryPillComponent, ScheduleComponent, 
+  imports: [
+    CategoryPillComponent,
+    ScheduleComponent,
     DatePipe,
     NgTemplateOutlet,
     FormsModule,
@@ -81,7 +91,14 @@ export class EventsListComponent implements OnInit {
   ];
 
   counts = computed(() => {
-    const c: Record<EventFilter, number> = { all: 0, live: 0, upcoming: 0, past: 0, draft: 0, closed: 0 };
+    const c: Record<EventFilter, number> = {
+      all: 0,
+      live: 0,
+      upcoming: 0,
+      past: 0,
+      draft: 0,
+      closed: 0,
+    };
     for (const e of this.events()) {
       c.all++;
       c[this.phase(e)]++;
@@ -103,16 +120,23 @@ export class EventsListComponent implements OnInit {
     const time = (d: string) => new Date(d).getTime();
     const rank: Record<Phase, number> = { live: 0, upcoming: 1, past: 2 };
     switch (this.sort()) {
-      case 'newest': return rows.sort((a, b) => time(b.startsAt) - time(a.startsAt));
-      case 'oldest': return rows.sort((a, b) => time(a.startsAt) - time(b.startsAt));
-      case 'title': return rows.sort((a, b) => a.title.localeCompare(b.title));
-      case 'registrations': return rows.sort((a, b) => b.registeredCount - a.registeredCount);
+      case 'newest':
+        return rows.sort((a, b) => time(b.startsAt) - time(a.startsAt));
+      case 'oldest':
+        return rows.sort((a, b) => time(a.startsAt) - time(b.startsAt));
+      case 'title':
+        return rows.sort((a, b) => a.title.localeCompare(b.title));
+      case 'registrations':
+        return rows.sort((a, b) => b.registeredCount - a.registeredCount);
       default:
         // Live first, then upcoming (soonest first), then past (most recent first).
         return rows.sort((a, b) => {
-          const pa = this.phase(a), pb = this.phase(b);
+          const pa = this.phase(a),
+            pb = this.phase(b);
           if (pa !== pb) return rank[pa] - rank[pb];
-          return pa === 'past' ? time(b.startsAt) - time(a.startsAt) : time(a.startsAt) - time(b.startsAt);
+          return pa === 'past'
+            ? time(b.startsAt) - time(a.startsAt)
+            : time(a.startsAt) - time(b.startsAt);
         });
     }
   });

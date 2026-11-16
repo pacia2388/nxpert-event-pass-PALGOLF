@@ -73,7 +73,9 @@ export class RegisterComponent implements OnInit {
         this.teamState.set('ready');
       },
       error: (err) => {
-        this.teamError.set(err?.error?.message ?? 'This registration link is invalid, expired or already used.');
+        this.teamError.set(
+          err?.error?.message ?? 'This registration link is invalid, expired or already used.',
+        );
         this.teamState.set('invalid');
       },
     });
@@ -132,33 +134,37 @@ export class RegisterComponent implements OnInit {
     }
     this.loading.set(true);
     const body: RegisterBody = {
-        firstName: this.firstName.trim(),
-        middleInitial: this.middleInitial.trim() || undefined,
-        lastName: this.lastName.trim(),
-        senateNo: this.senateNo.trim(),
-        level: this.level,
-        email: this.email.trim(),
-        password: this.password,
-        phone: this.phone || undefined,
-        organization: this.organization || undefined,
-        photo: this.photo,
-        birthdate: toIsoDate(this.birthdate)!,
-      };
-    (this.teamToken ? this.auth.completeTeamRegistration(this.teamToken, body) : this.auth.register(body))
-      .subscribe({
-        next: () => {
-          this.loading.set(false);
-          // Demo: activate immediately (no email verification). Fake the confirmation.
-          this.toast.success(
-            this.teamToken ? 'Registration complete.' : 'Account created — confirmation email sent (demo).',
-          );
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-          this.router.navigateByUrl(returnUrl ?? '/my-events');
-        },
-        error: (err) => {
-          this.loading.set(false);
-          this.toast.error(err?.error?.message ?? 'Registration failed. Please try again.');
-        },
-      });
+      firstName: this.firstName.trim(),
+      middleInitial: this.middleInitial.trim() || undefined,
+      lastName: this.lastName.trim(),
+      senateNo: this.senateNo.trim(),
+      level: this.level,
+      email: this.email.trim(),
+      password: this.password,
+      phone: this.phone || undefined,
+      organization: this.organization || undefined,
+      photo: this.photo,
+      birthdate: toIsoDate(this.birthdate)!,
+    };
+    (this.teamToken
+      ? this.auth.completeTeamRegistration(this.teamToken, body)
+      : this.auth.register(body)
+    ).subscribe({
+      next: () => {
+        this.loading.set(false);
+        // Demo: activate immediately (no email verification). Fake the confirmation.
+        this.toast.success(
+          this.teamToken
+            ? 'Registration complete.'
+            : 'Account created — confirmation email sent (demo).',
+        );
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        this.router.navigateByUrl(returnUrl ?? '/my-events');
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.toast.error(err?.error?.message ?? 'Registration failed. Please try again.');
+      },
+    });
   }
 }

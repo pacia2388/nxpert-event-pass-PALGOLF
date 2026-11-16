@@ -18,7 +18,8 @@ import { ScheduleComponent } from '../../shared/schedule';
 
 @Component({
   selector: 'app-my-events',
-  imports: [ScheduleComponent, 
+  imports: [
+    ScheduleComponent,
     DatePipe,
     MatButtonModule,
     MatIconModule,

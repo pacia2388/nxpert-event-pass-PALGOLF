@@ -17,9 +17,12 @@
       <article class="ev-card">
         @if (reg.sessionPosterImage) {
           <div class="ev-media">
-            <img class="zoomable" [src]="reg.sessionPosterImage"
-                 [alt]="(reg.sessionTitle || reg.eventTitle) + ' poster'"
-                 (click)="viewImage(reg.sessionPosterImage)" />
+            <img
+              class="zoomable"
+              [src]="reg.sessionPosterImage"
+              [alt]="(reg.sessionTitle || reg.eventTitle) + ' poster'"
+              (click)="viewImage(reg.sessionPosterImage)"
+            />
           </div>
         }
         <div class="ev-body">
@@ -30,27 +33,43 @@
             </span>
             <div class="ev-heading">
               <h2 class="ev-name">{{ reg.eventTitle }}</h2>
-              @if (reg.sessionTitle) { <p class="ev-session">{{ reg.sessionTitle }}</p> }
+              @if (reg.sessionTitle) {
+                <p class="ev-session">{{ reg.sessionTitle }}</p>
+              }
               <div class="ev-tags">
                 @if (reg.checkedInAt) {
                   <span class="ev-tag ok"><mat-icon>check_circle</mat-icon> Checked in</span>
                 } @else if (reg.confirmedAt) {
                   <span class="ev-tag brand"><mat-icon>verified</mat-icon> Confirmed</span>
                 } @else {
-                  <span class="ev-tag warn"><mat-icon>hourglass_empty</mat-icon> Pending confirmation</span>
+                  <span class="ev-tag warn"
+                    ><mat-icon>hourglass_empty</mat-icon> Pending confirmation</span
+                  >
                 }
               </div>
             </div>
           </div>
           <div class="ev-meta">
-            <p class="ev-line"><mat-icon>schedule</mat-icon>
-              <app-schedule [start]="reg.startsAt" [end]="reg.endsAt" /></p>
+            <p class="ev-line">
+              <mat-icon>schedule</mat-icon>
+              <app-schedule [start]="reg.startsAt" [end]="reg.endsAt" />
+            </p>
             @if (reg.format !== 'Online') {
-              <p class="ev-line"><mat-icon>place</mat-icon> <span>{{ reg.venue }}</span></p>
+              <p class="ev-line">
+                <mat-icon>place</mat-icon> <span>{{ reg.venue }}</span>
+              </p>
             }
             @if (reg.format === 'Online' || reg.format === 'Hybrid') {
-              <p class="ev-line"><mat-icon>videocam</mat-icon>
-                <span>{{ reg.meetingUrl ? 'Online meeting' : (reg.confirmedAt ? 'Online meeting — link coming soon' : 'Online meeting — link available once confirmed') }}</span></p>
+              <p class="ev-line">
+                <mat-icon>videocam</mat-icon>
+                <span>{{
+                  reg.meetingUrl
+                    ? 'Online meeting'
+                    : reg.confirmedAt
+                      ? 'Online meeting — link coming soon'
+                      : 'Online meeting — link available once confirmed'
+                }}</span>
+              </p>
             }
           </div>
         </div>
@@ -68,7 +87,11 @@
               [class.solid]="!reg.meetingUrl"
               (click)="showPass(reg)"
               [disabled]="!reg.confirmedAt && !reg.checkedInAt"
-              [matTooltip]="(!reg.confirmedAt && !reg.checkedInAt) ? 'Your pass will be available once your registration is confirmed' : ''"
+              [matTooltip]="
+                !reg.confirmedAt && !reg.checkedInAt
+                  ? 'Your pass will be available once your registration is confirmed'
+                  : ''
+              "
             >
               <mat-icon>qr_code_2</mat-icon> Show pass
             </button>
@@ -76,7 +99,12 @@
           <!-- <button mat-button (click)="leaveFeedback(reg)">
             <mat-icon>star_rate</mat-icon> Rate
           </button> -->
-          <button mat-icon-button class="ev-more" [matMenuTriggerFor]="menu" aria-label="More actions">
+          <button
+            mat-icon-button
+            class="ev-more"
+            [matMenuTriggerFor]="menu"
+            aria-label="More actions"
+          >
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu="matMenu">
