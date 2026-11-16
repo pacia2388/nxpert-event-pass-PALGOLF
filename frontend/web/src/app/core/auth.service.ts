@@ -40,6 +40,11 @@ export class AuthService {
     const r = this._auth()?.role;
     return r === 'Participant' || r === 'Captain';
   });
+  // Participants and Captains can belong to a team (the roles GET /api/teams/mine/category allows).
+  readonly canHaveTeam = computed(() => {
+    const r = this._auth()?.role;
+    return r === 'Participant' || r === 'Captain';
+  });
   // Can this user confirm event registrations? Admins always can; others need the grant.
   readonly canConfirmRegistrations = computed(() => !!this._auth()?.canConfirmRegistrations);
   readonly canConfirm = computed(() => this.isAdmin() || this.canConfirmRegistrations());
@@ -89,9 +94,9 @@ export class AuthService {
   // Fetched on each call so a team change shows up without signing in again. null = not on a team,
   // a role without teams, signed out, or unavailable.
   myTeamCategory(): Promise<TeamCategory | null> {
-    if (!this.canUseVoucher()) return Promise.resolve(null);
+    if (!this.canHaveTeam()) return Promise.resolve(null);
     return firstValueFrom(
-      this.http.get<{ category: TeamCategory } | null>(`${API_BASE}/api/teams/mine`),
+      this.http.get<{ category: TeamCategory } | null>(`${API_BASE}/api/teams/mine/category`),
     ).then(
       (t) => t?.category ?? null,
       () => null,

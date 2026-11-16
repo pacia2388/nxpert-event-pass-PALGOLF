@@ -30,7 +30,7 @@ describe("the signed-in player's team category", () => {
   it.each(['Participant', 'Captain'])("is the category of a %s's team", async (role) => {
     const auth = signInAs(role);
     const category = auth.myTeamCategory();
-    http.expectOne((r) => r.url.endsWith('/api/teams/mine')).flush({ category: 'Senior' });
+    http.expectOne((r) => r.url.endsWith('/api/teams/mine/category')).flush({ category: 'Senior' });
 
     expect(await category).toBe('Senior');
   });
@@ -39,7 +39,7 @@ describe("the signed-in player's team category", () => {
     const auth = signInAs('Participant');
     const category = auth.myTeamCategory();
     http
-      .expectOne((r) => r.url.endsWith('/api/teams/mine'))
+      .expectOne((r) => r.url.endsWith('/api/teams/mine/category'))
       .flush(null, { status: 204, statusText: 'No Content' });
 
     expect(await category).toBeNull();
@@ -49,7 +49,7 @@ describe("the signed-in player's team category", () => {
     const auth = signInAs('Participant');
     const category = auth.myTeamCategory();
     http
-      .expectOne((r) => r.url.endsWith('/api/teams/mine'))
+      .expectOne((r) => r.url.endsWith('/api/teams/mine/category'))
       .flush(null, { status: 0, statusText: 'offline' });
 
     expect(await category).toBeNull();

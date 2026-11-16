@@ -16,7 +16,7 @@ does not match the event category gets a warning before registering.
 | Message | "This is a Senior event, but your team is in the Regular category." Title "Different category". No age wording |
 | Warning | Confirm dialog on **Register** (account flow); safe option **Cancel** pre-selected; "Register anyway" continues. Not enforced on the server |
 | No team | Guests, admins/merchants, and players not on a team: no warning |
-| Team lookup | The page reads the player's own team via `GET /api/teams/mine` (Captain or Participant) on each event page visit, so team changes apply without signing in again |
+| Team lookup | On each **Register** click the page reads only the player's team category via `GET /api/teams/mine/category` (Captain or Participant; 204 = no team), so a sign-in by invite link or a team change after the page loaded is seen |
 | Pill | Admin Events list cards and Browse Events cards: "Senior" / "Regular" (no age range on the label) |
 | Event form | Category toggle: No category / Senior / Regular |
 
@@ -30,7 +30,8 @@ does not match the event category gets a warning before registering.
 | Backend | `Controllers/EventsController.cs` | Validate + save on create/update; map in DTO projections |
 | Frontend | `core/models.ts` | `category?: EventCategory \| null` |
 | Frontend | `core/event-category.ts` | `categoryTeamWarning(eventCategory, teamCategory)` + label |
-| Frontend | `core/auth.service.ts` | `myTeamCategory()` (replaces `myBirthdate()`) |
+| Backend | `Controllers/TeamsController.cs` | `GET /api/teams/mine/category` → `TeamCategoryDto` |
+| Frontend | `core/auth.service.ts` | `myTeamCategory()` (replaces `myBirthdate()`), `canHaveTeam` |
 | Frontend | `pages/admin/event-form` | Category toggle |
 | Frontend | `pages/admin/events-list`, `pages/events-browse` | Category pill |
 | Frontend | `pages/public-event` | Confirm dialog before account registration |
@@ -63,3 +64,4 @@ does not match the event category gets a warning before registering.
 | 2026-11-13 | Label shortened from "Senior (65+)" to "Senior" on the pill and form toggle |
 | 2026-11-13 | Plan corrected: form uses a toggle; `.claude/` guides and rules were updated |
 | 2026-11-16 | Warning now compares the event category with the player's team category, not age; message names categories only; no team = no warning. 6 + 6 unit, 4 e2e tests |
+| 2026-11-16 | Review fixes: category-only endpoint, lookup on Register (not page load), own role check, `TeamCategory` type. +1 API test |

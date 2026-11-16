@@ -1,3 +1,5 @@
+import type { TeamCategory } from './models';
+
 // Who an event is for. null = no category (everyone).
 export type EventCategory = 'Senior' | 'Regular';
 
@@ -12,7 +14,7 @@ export const EVENT_CATEGORY_LABELS: Record<EventCategory, string> = {
  */
 export function categoryTeamWarning(
   eventCategory: EventCategory | null | undefined,
-  teamCategory: EventCategory | null | undefined,
+  teamCategory: TeamCategory | null | undefined,
 ): string | null {
   if (!eventCategory || !teamCategory || eventCategory === teamCategory) return null;
   return `This is a ${eventCategory} event, but your team is in the ${teamCategory} category.`;
