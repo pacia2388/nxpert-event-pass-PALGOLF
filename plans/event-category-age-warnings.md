@@ -1,10 +1,10 @@
 # Event Category & Age Warnings
 
-Status: ✅ Done (2026-11-13) — implemented and tested (API, unit, e2e).
+Status: ✅ Done (2026-11-16) — implemented and tested (API, unit, e2e). Warning switched from age to team category on 2026-11-16.
 
 Each event has an optional **category**: **Senior**, **Regular**, or none. The category shows as a
-pill next to the status pill (e.g. "Open") on event cards. A signed-in participant whose age does
-not match the category gets a warning before registering.
+pill next to the status pill (e.g. "Open") on event cards. A signed-in player whose team category
+does not match the event category gets a warning before registering.
 
 ## Decisions
 
@@ -12,11 +12,11 @@ not match the category gets a warning before registering.
 |------|----------|
 | DB column | `Events.Category` — `nvarchar(10)`, **NULL** = no category |
 | Values | `Senior` \| `Regular` \| null; anything else is a 400 with a `message` |
-| Senior age | 65 or older on the day of registering (`today`, local time) |
-| Mismatch | Senior event + age < 65, or Regular event + age ≥ 65 |
+| Mismatch | Event category ≠ the player's team category (Senior / Regular). Age is not used |
+| Message | "This is a Senior event, but your team is in the Regular category." Title "Different category". No age wording |
 | Warning | Confirm dialog on **Register** (account flow); safe option **Cancel** pre-selected; "Register anyway" continues. Not enforced on the server |
-| Unknown age | Guests and users with no birthdate: no warning |
-| Privacy | Birthdate stays out of event DTOs; the page reads the user's own birthdate via `GET /api/auth/me` |
+| No team | Guests, admins/merchants, and players not on a team: no warning |
+| Team lookup | The page reads the player's own team via `GET /api/teams/mine` (Captain or Participant) on each event page visit, so team changes apply without signing in again |
 | Pill | Admin Events list cards and Browse Events cards: "Senior" / "Regular" (no age range on the label) |
 | Event form | Category toggle: No category / Senior / Regular |
 
@@ -29,7 +29,8 @@ not match the category gets a warning before registering.
 | Backend | `Models/Dtos.cs` | `Category` on `EventUpsertRequest`, `EventDto` |
 | Backend | `Controllers/EventsController.cs` | Validate + save on create/update; map in DTO projections |
 | Frontend | `core/models.ts` | `category?: EventCategory \| null` |
-| Frontend | `core/event-category.ts` | `categoryAgeWarning(category, birthdate, today)` + label |
+| Frontend | `core/event-category.ts` | `categoryTeamWarning(eventCategory, teamCategory)` + label |
+| Frontend | `core/auth.service.ts` | `myTeamCategory()` (replaces `myBirthdate()`) |
 | Frontend | `pages/admin/event-form` | Category toggle |
 | Frontend | `pages/admin/events-list`, `pages/events-browse` | Category pill |
 | Frontend | `pages/public-event` | Confirm dialog before account registration |
@@ -38,13 +39,15 @@ not match the category gets a warning before registering.
 ## Test seams
 
 - API (xUnit): create/update/read category; invalid value rejected.
-- `categoryAgeWarning` (Vitest): category + birthdate + today → warning or none.
-- Playwright: participant under 65 sees the warning on a Senior event; admin card shows the pill.
+- `categoryTeamWarning` (Vitest): event category + team category → warning or none.
+- `AuthService.myTeamCategory` (Vitest): team category, or null for no team / failure / other roles.
+- Playwright: Regular-team player warned on a Senior event (and vice versa); matching team and no team register without a warning; admin card shows the pill.
 
 ## Steps ✅ Done (2026-11-13)
 
 - [x] Backend: field, migration, DTOs, validation (API test first)
 - [x] Frontend: age-check function (unit test first)
+- [x] Frontend: team-category check replaces the age check (unit + e2e first)
 - [x] Frontend: event form toggle + card pills
 - [x] Frontend: confirm dialog on register
 - [x] Playwright e2e
@@ -59,3 +62,4 @@ not match the category gets a warning before registering.
 | 2026-11-13 | Implemented: category column, form toggle, card pills, register warning; 7 API, 7 unit, 4 e2e tests |
 | 2026-11-13 | Label shortened from "Senior (65+)" to "Senior" on the pill and form toggle |
 | 2026-11-13 | Plan corrected: form uses a toggle; `.claude/` guides and rules were updated |
+| 2026-11-16 | Warning now compares the event category with the player's team category, not age; message names categories only; no team = no warning. 6 + 6 unit, 4 e2e tests |
