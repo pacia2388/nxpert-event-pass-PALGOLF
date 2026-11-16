@@ -52,7 +52,7 @@ Define once; reuse everywhere. Lengths align with the EF `[MaxLength]` columns.
 |-----|------|
 | **Name** | Required. Trimmed. 2–200 chars. Not only whitespace. |
 | **Email** | Required (where noted). Trimmed, lower-cased. Valid RFC 5322 format. ≤ 256 chars. |
-| **Password** | Required. 8–128 chars. Must contain at least one letter, one digit and one symbol (not a letter, digit or space). Not equal to email. |
+| **Password** | Required. 8–128 chars. Must contain at least one letter, one digit and one symbol (not a letter, digit or space). Not equal to email. Checked and hashed in Unicode NFC, so "ñ" typed as one character or as "n" + combining tilde is the same letter and the same password; hashes saved before still verify. |
 | **Phone** | Optional. 7–40 chars. Pattern `^[0-9+()\-\s]+$`. Digits count ≥ 7. |
 | **Organization** | Optional. ≤ 200 chars. |
 | **Event title** | Required. Trimmed. 3–300 chars. |

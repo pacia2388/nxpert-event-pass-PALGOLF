@@ -15,7 +15,7 @@ Source: `validation-spec` skill. The server is authoritative; the client is UX o
 |-------|------|
 | Name | Required, trimmed, 2–200 chars, not whitespace-only |
 | Email | Trimmed, lower-cased, RFC 5322 format, ≤ 256 |
-| Password | 8–128 chars, ≥ 1 letter, ≥ 1 digit and ≥ 1 symbol (not a letter, digit or space), not equal to email |
+| Password | 8–128 chars, ≥ 1 letter, ≥ 1 digit and ≥ 1 symbol (not a letter, digit or space), not equal to email; checked and hashed in Unicode NFC |
 | Phone | Optional, 7–40 chars, `^[0-9+()\-\s]+$`; stored `+<code><number>` (8–15 digits; `+63` = `+639` + 9 digits). Every form (`app-phone-field`): code must be in the Phone country table. CSV: any valid number; no `+` = PH |
 | Birthdate | Required in UI/requests (DB nullable for legacy rows); `yyyy-MM-dd`, 1900-01-01 .. today; CSV also accepts `M/d/yyyy` |
 | Organization | Optional, ≤ 200 |
