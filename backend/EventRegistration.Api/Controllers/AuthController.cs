@@ -107,7 +107,7 @@ public class AuthController : ControllerBase
             return "Email and password are required.";
         if (BirthdateRules.Validate(req.Birthdate) is { } birthdateError)
             return birthdateError;
-        return null;
+        return PasswordRules.Validate(req.Password, email);
     }
 
     // ---- Team registration link: a Captain created the account; the member completes it ----
@@ -139,10 +139,6 @@ public class AuthController : ControllerBase
 
         if (ValidateRegistration(req, u.Email) is { } error)
             return BadRequest(new { message = error });
-        if (req.Password.Length < 8 || req.Password.Length > 128
-            || !req.Password.Any(char.IsLetter) || !req.Password.Any(char.IsDigit)
-            || string.Equals(req.Password, u.Email, StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { message = "Password must be 8 to 128 characters with a letter and a digit, and not your email." });
         var photoError = ValidatePhoto(req.Photo);
         if (photoError is not null) return BadRequest(new { message = photoError });
 
@@ -221,8 +217,8 @@ public class AuthController : ControllerBase
         // Optional password change — requires the correct current password.
         if (!string.IsNullOrWhiteSpace(req.NewPassword))
         {
-            if (req.NewPassword.Length < 8)
-                return BadRequest(new { message = "New password must be at least 8 characters." });
+            if (PasswordRules.Validate(req.NewPassword, u.Email) is { } passwordError)
+                return BadRequest(new { message = passwordError });
             if (string.IsNullOrEmpty(req.CurrentPassword) ||
                 !PasswordHasher.Verify(req.CurrentPassword, u.PasswordHash))
                 return BadRequest(new { message = "Your current password is incorrect." });

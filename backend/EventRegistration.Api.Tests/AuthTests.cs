@@ -8,14 +8,15 @@ namespace EventRegistration.Api.Tests;
 [Collection("api")]
 public class AuthTests(ApiFixture api)
 {
-    private static object SignUp(string email, string senateNo = "ID-1001", string? birthdate = "1990-05-01") => new
+    private static object SignUp(string email, string senateNo = "ID-1001", string? birthdate = "1990-05-01",
+        string password = "Passw0rd!") => new
     {
         firstName = "Mia",
         middleInitial = (string?)null,
         lastName = "Santos",
         senateNo,
         email,
-        password = "Passw0rd!",
+        password,
         phone = (string?)null,
         organization = (string?)null,
         level = "Member",
@@ -90,6 +91,23 @@ public class AuthTests(ApiFixture api)
         Assert.Equal(HttpStatusCode.Unauthorized, signIn.StatusCode);
     }
 
+    [Theory]
+    [InlineData("abcdefgh")] // no digit
+    [InlineData("12345678")] // no letter
+    [InlineData("abc1234")] // under 8 characters
+    [InlineData("")] // the email address itself (filled in below)
+    public async Task Sign_up_with_a_weak_password_is_refused(string password)
+    {
+        var email = ApiFixture.NewEmail();
+        if (password == "") password = email;
+
+        var res = await api.Anonymous().PostAsJsonAsync("/api/auth/register", SignUp(email, password: password));
+
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        var signIn = await api.Anonymous().PostAsJsonAsync("/api/auth/login", new { email, password });
+        Assert.Equal(HttpStatusCode.Unauthorized, signIn.StatusCode);
+    }
+
     private static object Profile(string? currentPassword, string newPassword) => new
     {
         firstName = "Test",
@@ -116,7 +134,9 @@ public class AuthTests(ApiFixture api)
     [InlineData("Wrong123!", "N3wPassword")] // wrong current password
     [InlineData(null, "N3wPassword")] // no current password
     [InlineData(ApiFixture.UserPassword, "short1")] // new password under 8 characters
-    public async Task A_password_change_is_refused_without_the_current_password_or_with_a_short_one(
+    [InlineData(ApiFixture.UserPassword, "abcdefgh")] // no digit
+    [InlineData(ApiFixture.UserPassword, "12345678")] // no letter
+    public async Task A_password_change_is_refused_without_the_current_password_or_with_a_weak_one(
         string? currentPassword, string newPassword)
     {
         var admin = await api.AdminAsync();
