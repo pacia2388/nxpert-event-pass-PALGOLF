@@ -24,7 +24,10 @@ jobs:
           sqllocaldb create MSSQLLocalDB -s
       # Formatting follows backend/.editorconfig; fix locally with `dotnet format whitespace`.
       - run: dotnet format whitespace backend/EventRegistration.Api.slnx --verify-no-changes
-      - run: dotnet test backend/EventRegistration.Api.Tests
+      # dotnet test reads global.json from the working directory; backend/global.json opts in to
+      # Microsoft.Testing.Platform (the VSTest path fails on the .NET 10 SDK).
+      - run: dotnet test EventRegistration.Api.Tests
+        working-directory: backend
 
   web:
     runs-on: ubuntu-latest

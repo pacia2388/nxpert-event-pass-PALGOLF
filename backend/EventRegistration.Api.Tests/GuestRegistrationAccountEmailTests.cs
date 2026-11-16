@@ -16,8 +16,13 @@ public class GuestRegistrationAccountEmailTests(ApiFixture api)
         var start = DateTime.Today.AddDays(10);
         var res = await admin.PostAsJsonAsync("/api/events", new
         {
-            title = $"Golf Day {Guid.NewGuid():N}"[..20], description = "", startsAt = start,
-            endsAt = start.AddHours(8), venue = "Course", isPublicLinkEnabled = true, status = "Published",
+            title = $"Golf Day {Guid.NewGuid():N}"[..20],
+            description = "",
+            startsAt = start,
+            endsAt = start.AddHours(8),
+            venue = "Course",
+            isPublicLinkEnabled = true,
+            status = "Published",
         });
         res.EnsureSuccessStatusCode();
         return (await res.Content.ReadFromJsonAsync<EventBody>())!;
@@ -26,7 +31,10 @@ public class GuestRegistrationAccountEmailTests(ApiFixture api)
     private static Task<HttpResponseMessage> GuestAsync(HttpClient anon, string slug, string email) =>
         anon.PostAsJsonAsync($"/api/registrations/guest/{slug}", new
         {
-            fullName = "Mia Santos", email, phone = "09171234567", senateNo = $"ID-{Guid.NewGuid():N}"[..10],
+            fullName = "Mia Santos",
+            email,
+            phone = "09171234567",
+            senateNo = $"ID-{Guid.NewGuid():N}"[..10],
         });
 
     [Fact]
@@ -50,8 +58,13 @@ public class GuestRegistrationAccountEmailTests(ApiFixture api)
         var token = await api.RegistrationTokenAsync(member.UserId);
         var done = await api.Anonymous().PostAsJsonAsync($"/api/auth/team-registration/{token}", new
         {
-            firstName = "Mia", lastName = "Santos", senateNo = "ID-777", level = "Member",
-            email, password = "NewPass123", birthdate = "1990-05-01",
+            firstName = "Mia",
+            lastName = "Santos",
+            senateNo = "ID-777",
+            level = "Member",
+            email,
+            password = "NewPass123",
+            birthdate = "1990-05-01",
         });
         Assert.Equal(HttpStatusCode.OK, done.StatusCode);
         var client = await api.SignInAsync(email, "NewPass123");

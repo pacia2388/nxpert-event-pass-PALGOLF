@@ -24,8 +24,14 @@ public class TeamRegistrationNoticeTests(ApiFixture api)
 
     private static object Completion(string password = "NewPass123") => new
     {
-        firstName = "Mia", middleInitial = "R", lastName = "Santos", senateNo = "ID-001",
-        level = "Member", email = "ignored@example.com", password, birthdate = "1990-05-01",
+        firstName = "Mia",
+        middleInitial = "R",
+        lastName = "Santos",
+        senateNo = "ID-001",
+        level = "Member",
+        email = "ignored@example.com",
+        password,
+        birthdate = "1990-05-01",
     };
 
     [Fact]

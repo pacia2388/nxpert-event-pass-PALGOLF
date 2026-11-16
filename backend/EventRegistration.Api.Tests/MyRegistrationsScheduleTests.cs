@@ -22,8 +22,13 @@ public class MyRegistrationsScheduleTests(ApiFixture api)
         var end = start.AddDays(2).AddHours(10);
         var created = await admin.PostAsJsonAsync("/api/events", new
         {
-            title = $"Golf Cup {Guid.NewGuid():N}"[..20], description = "", startsAt = start,
-            endsAt = end, venue = "Course", isPublicLinkEnabled = true, status = "Published",
+            title = $"Golf Cup {Guid.NewGuid():N}"[..20],
+            description = "",
+            startsAt = start,
+            endsAt = end,
+            venue = "Course",
+            isPublicLinkEnabled = true,
+            status = "Published",
         });
         created.EnsureSuccessStatusCode();
         var ev = (await created.Content.ReadFromJsonAsync<EventBody>())!;

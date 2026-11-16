@@ -173,7 +173,11 @@ public class AdminManagesTeamsTests(ApiFixture api)
 
     private static object UserEdit(TestUser user, string role) => new
     {
-        firstName = "Test", lastName = "User", email = user.Email, role, canConfirmRegistrations = false,
+        firstName = "Test",
+        lastName = "User",
+        email = user.Email,
+        role,
+        canConfirmRegistrations = false,
     };
 
     [Fact]

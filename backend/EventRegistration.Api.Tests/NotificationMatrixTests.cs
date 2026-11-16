@@ -402,13 +402,17 @@ public class NotificationMatrixTests(ApiFixture api)
             var adminId = await db.Users.Where(u => u.Email == ApiFixture.AdminEmail).Select(u => u.Id).SingleAsync();
             var plan = new MailPlan
             {
-                Channel = planChannel, CreatedByUserId = adminId,
+                Channel = planChannel,
+                CreatedByUserId = adminId,
                 EmailsJson = JsonSerializer.Serialize(new[] { address }),
             };
             plan.Sends.Add(new MailPlanSend
             {
-                Subject = $"Plan {Guid.NewGuid():N}"[..13], BodyHtml = "<p>Tee times</p>",
-                Status = MailSendStatus.Scheduled, SendAt = DateTimeOffset.UtcNow, NextAttemptAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+                Subject = $"Plan {Guid.NewGuid():N}"[..13],
+                BodyHtml = "<p>Tee times</p>",
+                Status = MailSendStatus.Scheduled,
+                SendAt = DateTimeOffset.UtcNow,
+                NextAttemptAt = DateTimeOffset.UtcNow.AddMinutes(-1),
             });
             db.MailPlans.Add(plan);
             await db.SaveChangesAsync();
