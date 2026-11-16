@@ -14,7 +14,12 @@
   gap: 14px;
   min-height: 84px;
   padding: 12px 40px;
-  background: linear-gradient(90deg, var(--pg-navy) 0%, var(--pg-navy-mid) 55%, var(--pg-blue) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--pg-navy) 0%,
+    var(--pg-navy-mid) 55%,
+    var(--pg-blue) 100%
+  );
   color: #fff;
   box-shadow: 0 2px 10px rgba(15, 95, 184, 0.18);
 }

@@ -3,21 +3,30 @@
 <mat-dialog-content>
   @if (e.bannerImage) {
     <div class="dlg-banner">
-      <img class="zoomable" [src]="e.bannerImage" [alt]="e.title + ' banner'"
-           (click)="viewImage(e.bannerImage)" />
+      <img
+        class="zoomable"
+        [src]="e.bannerImage"
+        [alt]="e.title + ' banner'"
+        (click)="viewImage(e.bannerImage)"
+      />
     </div>
   }
-  <p class="ev-row"><mat-icon class="inline-icon">schedule</mat-icon>
+  <p class="ev-row">
+    <mat-icon class="inline-icon">schedule</mat-icon>
     <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
   </p>
   @if (e.format === 'Online') {
-    <p class="ev-row"><mat-icon class="inline-icon">videocam</mat-icon>
-      Online meeting — the join link is sent once your registration is confirmed</p>
+    <p class="ev-row">
+      <mat-icon class="inline-icon">videocam</mat-icon> Online meeting — the join link is sent once
+      your registration is confirmed
+    </p>
   } @else {
     <p class="ev-row"><mat-icon class="inline-icon">place</mat-icon> {{ e.venue }}</p>
     @if (e.format === 'Hybrid') {
-      <p class="ev-row"><mat-icon class="inline-icon">videocam</mat-icon>
-        Also online — the join link is sent once your registration is confirmed</p>
+      <p class="ev-row">
+        <mat-icon class="inline-icon">videocam</mat-icon> Also online — the join link is sent once
+        your registration is confirmed
+      </p>
     }
   }
   @if (registered) {
@@ -26,21 +35,33 @@
       You're already registered for this event.
     </p>
   }
-  @if (e.description) { <p class="dlg-desc">{{ e.description }}</p> }
+  @if (e.description) {
+    <p class="dlg-desc">{{ e.description }}</p>
+  }
 
   @if (e.registrationFees) {
     <div class="info-block">
-      <h3 class="info-heading"><mat-icon class="inline-icon">payments</mat-icon> Registration fees</h3>
+      <h3 class="info-heading">
+        <mat-icon class="inline-icon">payments</mat-icon> Registration fees
+      </h3>
       <p class="fees-text">{{ e.registrationFees }}</p>
     </div>
   }
 
   @if (e.schedule.length > 0) {
     <div class="info-block">
-      <h3 class="info-heading"><mat-icon class="inline-icon">event_note</mat-icon> Schedule of activities</h3>
+      <h3 class="info-heading">
+        <mat-icon class="inline-icon">event_note</mat-icon> Schedule of activities
+      </h3>
       <div class="schedule-table-wrap">
         <table class="schedule-table">
-          <thead><tr><th>Day</th><th>Time</th><th>Activity</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Time</th>
+              <th>Activity</th>
+            </tr>
+          </thead>
           <tbody>
             @for (row of e.schedule; track $index) {
               <tr>
@@ -57,13 +78,19 @@
 
   @if (e.sessions.length > 0) {
     <div class="info-block">
-      <h3 class="info-heading"><mat-icon class="inline-icon">calendar_view_day</mat-icon> Sub-events</h3>
+      <h3 class="info-heading">
+        <mat-icon class="inline-icon">calendar_view_day</mat-icon> Sub-events
+      </h3>
       <div class="dsc-list">
         @for (s of e.sessions; track s.id) {
           <div class="dsc-card">
             @if (s.posterImage) {
-              <img class="dsc-poster zoomable" [src]="s.posterImage" [alt]="s.title + ' poster'"
-                   (click)="viewImage(s.posterImage)" />
+              <img
+                class="dsc-poster zoomable"
+                [src]="s.posterImage"
+                [alt]="s.title + ' poster'"
+                (click)="viewImage(s.posterImage)"
+              />
             } @else {
               <div class="dsc-poster placeholder"><mat-icon>calendar_view_day</mat-icon></div>
             }
@@ -76,13 +103,16 @@
                   <span class="status-pill ok">{{ s.capacity - s.registeredCount }} left</span>
                 }
               </div>
-              <p class="dsc-meta"><mat-icon class="inline-icon">schedule</mat-icon>
+              <p class="dsc-meta">
+                <mat-icon class="inline-icon">schedule</mat-icon>
                 <app-schedule [start]="s.startsAt" [end]="s.endsAt" />
               </p>
               @if (s.venue) {
                 <p class="dsc-meta"><mat-icon class="inline-icon">place</mat-icon> {{ s.venue }}</p>
               }
-              @if (s.description) { <p class="dsc-desc">{{ s.description }}</p> }
+              @if (s.description) {
+                <p class="dsc-desc">{{ s.description }}</p>
+              }
             </div>
           </div>
         }
@@ -100,7 +130,7 @@
   } @else {
     <button mat-flat-button color="primary" (click)="register()">
       <mat-icon>{{ canRegister() ? 'how_to_reg' : 'visibility' }}</mat-icon>
-      {{ !canRegister() ? 'View details' : (registered ? 'Add sub-event' : 'Register') }}
+      {{ !canRegister() ? 'View details' : registered ? 'Add sub-event' : 'Register' }}
     </button>
   }
 </mat-dialog-actions>

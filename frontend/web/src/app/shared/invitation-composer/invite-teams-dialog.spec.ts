@@ -7,13 +7,30 @@ import { TeamDetailDto, TeamDto } from '../../core/models';
 import { InviteTeamsDialogComponent } from './invite-teams-dialog';
 
 function team(id: number, description: string, memberCount: number): TeamDto {
-  return { id, description, category: 'Regular', teamLeadUserId: 100 + id, teamLeadName: `Lead ${id}`,
-    memberCount, maxMembers: 10, createdAt: '2026-11-10T00:00:00Z' };
+  return {
+    id,
+    description,
+    category: 'Regular',
+    teamLeadUserId: 100 + id,
+    teamLeadName: `Lead ${id}`,
+    memberCount,
+    maxMembers: 10,
+    createdAt: '2026-11-10T00:00:00Z',
+  };
 }
 
 function detail(base: TeamDto, emails: string[]): TeamDetailDto {
-  return { ...base, members: emails.map((email, i) => ({ userId: base.id * 10 + i, fullName: `Member ${email.split('@')[0]}`,
-    email, addedAt: '2026-11-10T00:00:00Z', notificationFlag: false, registered: true })) };
+  return {
+    ...base,
+    members: emails.map((email, i) => ({
+      userId: base.id * 10 + i,
+      fullName: `Member ${email.split('@')[0]}`,
+      email,
+      addedAt: '2026-11-10T00:00:00Z',
+      notificationFlag: false,
+      registered: true,
+    })),
+  };
 }
 
 const eagles = team(1, 'Eagles', 2);
@@ -35,7 +52,15 @@ describe('Invite teams picker', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: MAT_DIALOG_DATA, useValue: { alreadyInTo } },
-        { provide: MatDialogRef, useValue: { close: (value?: unknown) => { closed = true; closedWith = value; } } },
+        {
+          provide: MatDialogRef,
+          useValue: {
+            close: (value?: unknown) => {
+              closed = true;
+              closedWith = value;
+            },
+          },
+        },
       ],
     });
     fixture = TestBed.createComponent(InviteTeamsDialogComponent);
@@ -58,7 +83,9 @@ describe('Invite teams picker', () => {
   }
 
   function teamRow(name: string): HTMLElement {
-    const row = Array.from(root().querySelectorAll<HTMLElement>('[data-team]')).find((el) => el.textContent?.includes(name));
+    const row = Array.from(root().querySelectorAll<HTMLElement>('[data-team]')).find((el) =>
+      el.textContent?.includes(name),
+    );
     if (!row) throw new Error(`No team row for ${name}`);
     return row;
   }
@@ -68,10 +95,13 @@ describe('Invite teams picker', () => {
     settle();
   }
 
-  const teamBox = (name: string) => teamRow(name).querySelector<HTMLInputElement>('.team-head input[type=checkbox]')!;
+  const teamBox = (name: string) =>
+    teamRow(name).querySelector<HTMLInputElement>('.team-head input[type=checkbox]')!;
 
   function memberBox(email: string): HTMLInputElement {
-    const row = Array.from(root().querySelectorAll<HTMLElement>('[data-member]')).find((el) => el.textContent?.includes(email));
+    const row = Array.from(root().querySelectorAll<HTMLElement>('[data-member]')).find((el) =>
+      el.textContent?.includes(email),
+    );
     if (!row) throw new Error(`No member row for ${email}`);
     return row.querySelector<HTMLInputElement>('input[type=checkbox]')!;
   }
@@ -85,7 +115,7 @@ describe('Invite teams picker', () => {
 
   afterEach(() => http.verify());
 
-  it('lists the teams and loads a team\'s members only when it is opened', () => {
+  it("lists the teams and loads a team's members only when it is opened", () => {
     open();
     serveTeams([eagles, birdies]);
     expect(text()).toContain('added to the To field');
@@ -225,7 +255,9 @@ describe('Invite teams picker', () => {
 
   it('offers a retry when the teams cannot be loaded', () => {
     open();
-    http.expectOne((r) => r.url.endsWith('/api/teams')).flush('', { status: 500, statusText: 'Server Error' });
+    http
+      .expectOne((r) => r.url.endsWith('/api/teams'))
+      .flush('', { status: 500, statusText: 'Server Error' });
     settle();
     expect(text()).toContain('Could not load teams');
 

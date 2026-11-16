@@ -146,7 +146,9 @@ body {
 .mat-mdc-unelevated-button:not(:disabled):not(.mat-warn) {
   color: #fff !important;
   box-shadow: 0 4px 12px rgba(15, 95, 184, 0.26);
-  transition: box-shadow 0.15s ease, background-color 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
 
   &:hover {
     background-color: var(--pg-blue-deep);
@@ -164,7 +166,10 @@ body {
 .mat-mdc-outlined-button:not(:disabled) {
   border-width: 1.5px !important;
   color: #334155 !important;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
     border-color: var(--pg-blue) !important;
@@ -176,7 +181,10 @@ body {
   }
   &.mat-warn {
     color: #dc2626 !important;
-    &:hover { border-color: #dc2626 !important; background: #fdecec; }
+    &:hover {
+      border-color: #dc2626 !important;
+      background: #fdecec;
+    }
   }
 }
 
@@ -421,7 +429,12 @@ body {
   align-items: center;
   justify-content: center;
   padding: 32px 20px;
-  background: linear-gradient(180deg, var(--pg-sky) 0%, var(--pg-navy-mid) 44%, var(--pg-navy) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--pg-sky) 0%,
+    var(--pg-navy-mid) 44%,
+    var(--pg-navy) 100%
+  );
 }
 
 // Floating white card with the brand gradient strip across the top.
@@ -431,13 +444,20 @@ body {
   max-width: 460px;
   border: none !important;
   border-radius: 24px !important;
-  box-shadow: 0 2px 6px rgba(2, 10, 40, 0.3), 0 30px 70px rgba(2, 10, 40, 0.45) !important;
+  box-shadow:
+    0 2px 6px rgba(2, 10, 40, 0.3),
+    0 30px 70px rgba(2, 10, 40, 0.45) !important;
 
   &::before {
     content: '';
     display: block;
     height: 6px;
-    background: linear-gradient(90deg, var(--pg-navy) 0%, var(--pg-navy-mid) 55%, var(--pg-blue) 100%);
+    background: linear-gradient(
+      90deg,
+      var(--pg-navy) 0%,
+      var(--pg-navy-mid) 55%,
+      var(--pg-blue) 100%
+    );
   }
 
   .mat-mdc-card-header {
@@ -617,7 +637,9 @@ body {
 }
 
 @media (max-width: 640px) {
-  .schedule-grid-head { display: none; }
+  .schedule-grid-head {
+    display: none;
+  }
   .schedule-grid-row {
     grid-template-columns: 1fr 1fr;
     border: 1px solid var(--mat-sys-outline-variant);
@@ -625,7 +647,9 @@ body {
     padding: 8px;
     margin-bottom: 8px;
   }
-  .schedule-grid-row > mat-form-field:nth-child(3) { grid-column: 1 / -1; }
+  .schedule-grid-row > mat-form-field:nth-child(3) {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Full-screen busy overlay (e.g. sending invites / confirming registrations) */
@@ -982,9 +1006,9 @@ mat-card-actions {
 
   .event-banner.has-image img {
     width: 100%;
-    height: auto;          // grow to full image height
-    max-height: 60vw;      // cap so a huge image doesn't push content off-screen
-    object-fit: contain;   // show the whole image, no cropping
+    height: auto; // grow to full image height
+    max-height: 60vw; // cap so a huge image doesn't push content off-screen
+    object-fit: contain; // show the whole image, no cropping
   }
 }
 
@@ -1080,7 +1104,9 @@ mat-card-actions {
     border-color: rgba(240, 173, 78, 0.5);
   }
 
-  .spacer { flex: 1; }
+  .spacer {
+    flex: 1;
+  }
 
   .net-chip,
   .queue-chip {
@@ -1092,10 +1118,20 @@ mat-card-actions {
     padding: 3px 8px;
     border-radius: 999px;
   }
-  .net-chip.online { color: #2f9e44; background: rgba(47, 158, 68, 0.12); }
-  .net-chip.offline { color: #b8860b; }
-  .queue-chip { color: var(--pg-blue); background: rgba(15, 95, 184, 0.1); }
-  .sync-msg { font-size: 13px; }
+  .net-chip.online {
+    color: #2f9e44;
+    background: rgba(47, 158, 68, 0.12);
+  }
+  .net-chip.offline {
+    color: #b8860b;
+  }
+  .queue-chip {
+    color: var(--pg-blue);
+    background: rgba(15, 95, 184, 0.1);
+  }
+  .sync-msg {
+    font-size: 13px;
+  }
 
   .inline-icon {
     font-size: 18px;
@@ -1122,8 +1158,13 @@ mat-card-actions {
   display: block;
   transition: transform 0.1s ease;
 }
-.ff-thumb-btn:hover .ff-thumb { transform: scale(1.06); }
-.ff-thumb-btn:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: 2px; }
+.ff-thumb-btn:hover .ff-thumb {
+  transform: scale(1.06);
+}
+.ff-thumb-btn:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
 
 /* Searchable dropdown (custom form 'select' fields). The panel renders in a CDK overlay, so its
    search box must be styled globally via the mat-select panelClass. */
@@ -1262,8 +1303,12 @@ mat-card-actions {
     padding: 6px 6px 6px 16px;
     border-bottom: 1px solid var(--mat-sys-outline-variant);
   }
-  .notif-heading { font-weight: 600; }
-  .notif-head .spacer { flex: 1; }
+  .notif-heading {
+    font-weight: 600;
+  }
+  .notif-head .spacer {
+    flex: 1;
+  }
 
   .notif-empty {
     display: flex;
@@ -1287,15 +1332,23 @@ mat-card-actions {
     flex-direction: column;
     white-space: normal;
   }
-  .notif-line { font-size: 13px; }
+  .notif-line {
+    font-size: 13px;
+  }
   .notif-time {
     font-size: 11px;
     color: var(--mat-sys-on-surface-variant);
     margin-top: 2px;
   }
-  .notif-item.unread { background: var(--tint-primary); }
-  .notif-item mat-icon.approved { color: #2f9e44; }
-  .notif-item mat-icon.kit { color: var(--pg-blue); }
+  .notif-item.unread {
+    background: var(--tint-primary);
+  }
+  .notif-item mat-icon.approved {
+    color: #2f9e44;
+  }
+  .notif-item mat-icon.kit {
+    color: var(--pg-blue);
+  }
 }
 
 .fine-print {
@@ -1306,7 +1359,10 @@ mat-card-actions {
 
 .clickable {
   cursor: pointer;
-  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .clickable:hover {
@@ -1411,9 +1467,9 @@ mat-card-actions {
 
 .banner-preview img {
   width: 100%;
-  height: auto;           /* grow to the image's natural height */
-  max-height: 320px;      /* cap so a portrait image doesn't dominate the form */
-  object-fit: contain;    /* show the whole image — no cropping */
+  height: auto; /* grow to the image's natural height */
+  max-height: 320px; /* cap so a portrait image doesn't dominate the form */
+  object-fit: contain; /* show the whole image — no cropping */
   display: block;
 }
 
@@ -1846,10 +1902,22 @@ mat-card-actions {
    Both share one card language: white surface, tone-coloured icon badge, bold
    title, muted message. Tones: success = green, error = red, warning = amber,
    info = brand blue. */
-.tone-success { --tone: #16a34a; --tone-soft: #e8f7ee; }
-.tone-error   { --tone: #dc2626; --tone-soft: #fdecec; }
-.tone-warning { --tone: #d97706; --tone-soft: #fef4e2; }
-.tone-info    { --tone: var(--pg-blue); --tone-soft: #e8f0fb; }
+.tone-success {
+  --tone: #16a34a;
+  --tone-soft: #e8f7ee;
+}
+.tone-error {
+  --tone: #dc2626;
+  --tone-soft: #fdecec;
+}
+.tone-warning {
+  --tone: #d97706;
+  --tone-soft: #fef4e2;
+}
+.tone-info {
+  --tone: var(--pg-blue);
+  --tone-soft: #e8f0fb;
+}
 
 // Strip MatSnackBar's own dark surface so only our card shows.
 .app-toast-panel {
@@ -1883,7 +1951,9 @@ mat-card-actions {
   color: #0f172a;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-left: 4px solid var(--tone);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16), 0 2px 6px rgba(15, 23, 42, 0.06);
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.16),
+    0 2px 6px rgba(15, 23, 42, 0.06);
   overflow: hidden;
   animation: alert-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
@@ -1971,13 +2041,23 @@ mat-card-actions {
 }
 
 @keyframes alert-in {
-  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes alert-countdown {
-  from { transform: scaleX(1); }
-  to   { transform: scaleX(0); }
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 // ---- Confirm dialog ----
@@ -2053,14 +2133,19 @@ mat-card-actions {
   font-size: 14.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
 
   &.ghost {
     border: 1.5px solid #cbd5e1;
     background: #fff;
     color: #334155;
 
-    &:hover { background: #f8fafc; }
+    &:hover {
+      background: #f8fafc;
+    }
   }
 
   &.solid {
@@ -2069,7 +2154,9 @@ mat-card-actions {
     color: #fff;
     box-shadow: 0 6px 16px color-mix(in srgb, var(--tone) 35%, transparent);
 
-    &:hover { filter: brightness(0.93); }
+    &:hover {
+      filter: brightness(0.93);
+    }
   }
 
   &:focus-visible {
@@ -2128,7 +2215,9 @@ mat-card-actions {
   text-decoration: none;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 
   &.is-link {
     cursor: pointer;
@@ -2320,10 +2409,22 @@ mat-card-actions {
     height: 15px;
   }
 
-  &.ok { background: #e8f7ee; color: #15803d; }
-  &.warn { background: #fef4e2; color: #b45309; }
-  &.bad { background: #fdecec; color: #b91c1c; }
-  &.brand { background: #e8f0fb; color: var(--pg-blue-deep); }
+  &.ok {
+    background: #e8f7ee;
+    color: #15803d;
+  }
+  &.warn {
+    background: #fef4e2;
+    color: #b45309;
+  }
+  &.bad {
+    background: #fdecec;
+    color: #b91c1c;
+  }
+  &.brand {
+    background: #e8f0fb;
+    color: var(--pg-blue-deep);
+  }
 }
 
 // Chips overlaid on the media strip.
@@ -2412,7 +2513,11 @@ mat-card-actions {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
 
   mat-icon {
     font-size: 18px;
@@ -2470,7 +2575,9 @@ mat-card-actions {
   background: var(--brand-grad);
   color: #fff;
   opacity: 0.85;
-  transition: transform 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
 
   mat-icon {
     font-size: 20px;
@@ -2620,7 +2727,9 @@ mat-card-actions {
     background: #fef4e2;
     color: #8a4b07;
 
-    mat-icon { color: #d97706; }
+    mat-icon {
+      color: #d97706;
+    }
   }
 }
 
@@ -2670,7 +2779,9 @@ mat-card-actions {
   margin-bottom: 26px;
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px rgba(15, 23, 42, 0.05);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 14px rgba(15, 23, 42, 0.05);
   max-width: 100%;
 }
 
@@ -2684,7 +2795,9 @@ mat-card-actions {
   font-weight: 600;
   color: #334155;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 
   &:hover:not(.active) {
     background: var(--tint-primary);

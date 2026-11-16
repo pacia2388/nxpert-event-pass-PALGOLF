@@ -26,7 +26,9 @@ const DEFAULT_ICONS: Record<AlertTone, string> = {
   imports: [MatDialogModule, MatIconModule],
   template: `
     <div class="confirm-card tone-{{ tone }}">
-      <span class="confirm-icon"><mat-icon>{{ data.icon ?? defaultIcon }}</mat-icon></span>
+      <span class="confirm-icon"
+        ><mat-icon>{{ data.icon ?? defaultIcon }}</mat-icon></span
+      >
       <h2 class="confirm-title">{{ data.title }}</h2>
       <p class="confirm-msg">{{ data.message }}</p>
       <div class="confirm-actions">

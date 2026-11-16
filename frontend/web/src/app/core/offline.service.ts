@@ -60,7 +60,11 @@ export class OfflineService {
     return this.dbp;
   }
 
-  private async tx<T>(store: string, mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest): Promise<T> {
+  private async tx<T>(
+    store: string,
+    mode: IDBTransactionMode,
+    fn: (s: IDBObjectStore) => IDBRequest,
+  ): Promise<T> {
     const db = await this.db();
     return new Promise<T>((resolve, reject) => {
       const t = db.transaction(store, mode);
@@ -76,9 +80,7 @@ export class OfflineService {
 
   // ---- Bundle ----
   async saveBundle(bundle: OfflineBundle): Promise<void> {
-    await this.tx(STORE_BUNDLES, 'readwrite', (s) =>
-      s.put({ eventId: bundle.event.id, bundle }),
-    );
+    await this.tx(STORE_BUNDLES, 'readwrite', (s) => s.put({ eventId: bundle.event.id, bundle }));
   }
 
   async getBundle(eventId: number): Promise<OfflineBundle | null> {
@@ -128,7 +130,10 @@ export class OfflineService {
   }
 
   // ---- Local (offline) check-in ----
-  private windowOf(bundle: OfflineBundle, sessionId: number | null): { start: string; end: string; title: string | null } {
+  private windowOf(
+    bundle: OfflineBundle,
+    sessionId: number | null,
+  ): { start: string; end: string; title: string | null } {
     const s = sessionId != null ? bundle.sessions.find((x) => x.id === sessionId) : null;
     return {
       start: s ? s.startsAt : bundle.event.startsAt,
@@ -138,7 +143,11 @@ export class OfflineService {
   }
 
   /** Pick the registration token for a recognized member for today's sub-event. */
-  resolveFaceToken(bundle: OfflineBundle, userId: number, sessionId: number | null = null): string | null {
+  resolveFaceToken(
+    bundle: OfflineBundle,
+    userId: number,
+    sessionId: number | null = null,
+  ): string | null {
     const regs = bundle.registrations.filter(
       (r) => r.userId === userId && (sessionId == null || r.sessionId === sessionId),
     );
@@ -151,7 +160,11 @@ export class OfflineService {
     const pick =
       regs.find((r) => !r.checkedInAt && r.confirmed && inWindow(r)) ??
       regs.find(inWindow) ??
-      [...regs].sort((a, b) => startOfDay(this.windowOf(bundle, a.sessionId).start) - startOfDay(this.windowOf(bundle, b.sessionId).start))[0];
+      [...regs].sort(
+        (a, b) =>
+          startOfDay(this.windowOf(bundle, a.sessionId).start) -
+          startOfDay(this.windowOf(bundle, b.sessionId).start),
+      )[0];
     return pick?.token ?? null;
   }
 
@@ -165,7 +178,11 @@ export class OfflineService {
     opts: { sessionId?: number | null; verify?: boolean } = {},
   ): Promise<CheckInResult> {
     const bundle = await this.getBundle(eventId);
-    const none = (status: CheckInResult['status'], message: string | null = null, fullName: string | null = null): CheckInResult => ({
+    const none = (
+      status: CheckInResult['status'],
+      message: string | null = null,
+      fullName: string | null = null,
+    ): CheckInResult => ({
       status,
       fullName,
       eventTitle: bundle?.event.title ?? null,
@@ -179,7 +196,8 @@ export class OfflineService {
       sessionTitle: null,
     });
 
-    if (!bundle) return none('error', 'No offline data for this event. Connect once to download it.');
+    if (!bundle)
+      return none('error', 'No offline data for this event. Connect once to download it.');
 
     let token = rawToken.trim();
     if (token.toUpperCase().startsWith('REG:')) token = token.slice(4);
@@ -190,7 +208,11 @@ export class OfflineService {
     const name = member?.fullName ?? reg.guestName ?? 'Guest';
     const w = this.windowOf(bundle, reg.sessionId);
 
-    const base = (status: CheckInResult['status'], checkedInAt: string | null, message: string | null = null): CheckInResult => ({
+    const base = (
+      status: CheckInResult['status'],
+      checkedInAt: string | null,
+      message: string | null = null,
+    ): CheckInResult => ({
       status,
       fullName: name,
       eventTitle: bundle.event.title,
@@ -205,15 +227,24 @@ export class OfflineService {
     });
 
     if (opts.sessionId != null && reg.sessionId !== opts.sessionId)
-      return base('invalid', null, `This pass is for ${w.title ?? 'the main event'}, not the selected sub-event.`);
+      return base(
+        'invalid',
+        null,
+        `This pass is for ${w.title ?? 'the main event'}, not the selected sub-event.`,
+      );
     if (reg.checkedInAt) return base('already', reg.checkedInAt);
-    if (!reg.confirmed) return base('unconfirmed', null, "This registration hasn't been confirmed yet.");
+    if (!reg.confirmed)
+      return base('unconfirmed', null, "This registration hasn't been confirmed yet.");
     // Verify only: report the confirmed pass without recording or queuing a check-in.
     if (opts.verify || bundle.event.verifyOnly) return base('verified', null);
 
     const today = startOfDay(new Date());
     if (today < startOfDay(w.start))
-      return base('notstarted', null, `This ${w.title ? 'sub-event' : 'event'} hasn't started yet.`);
+      return base(
+        'notstarted',
+        null,
+        `This ${w.title ? 'sub-event' : 'event'} hasn't started yet.`,
+      );
     if (today > startOfDay(w.end))
       return base('ended', null, `This ${w.title ? 'sub-event' : 'event'} has ended.`);
 
@@ -235,7 +266,9 @@ export class OfflineService {
       const queuedC = await this.getAll<QueuedCheckIn & { id: number }>(STORE_CHECKINS);
       if (queuedC.length > 0) {
         const res = await firstValueFrom(
-          this.api.syncCheckIns(queuedC.map((c) => ({ token: c.token, checkedInAt: c.checkedInAt }))),
+          this.api.syncCheckIns(
+            queuedC.map((c) => ({ token: c.token, checkedInAt: c.checkedInAt })),
+          ),
         );
         checkins = res.applied;
         // Applied or already-recorded are done; drop them all (notFound also dropped to avoid loops).
@@ -246,7 +279,8 @@ export class OfflineService {
       if (queuedR.length > 0) {
         // Group by event slug.
         const bySlug = new Map<string, (QueuedRegistration & { id: number })[]>();
-        for (const r of queuedR) (bySlug.get(r.slug) ?? bySlug.set(r.slug, []).get(r.slug)!).push(r);
+        for (const r of queuedR)
+          (bySlug.get(r.slug) ?? bySlug.set(r.slug, []).get(r.slug)!).push(r);
         for (const [slug, items] of bySlug) {
           const res = await firstValueFrom(
             this.api.syncOfflineRegistrations(

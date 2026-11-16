@@ -37,9 +37,18 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Username or email</mat-label>
           <mat-icon matPrefix>person</mat-icon>
-          <input matInput type="text" name="email" [(ngModel)]="email" #emailCtrl="ngModel"
-                 required autocomplete="username" />
-          @if (emailCtrl.hasError('required')) { <mat-error>Username or email is required.</mat-error> }
+          <input
+            matInput
+            type="text"
+            name="email"
+            [(ngModel)]="email"
+            #emailCtrl="ngModel"
+            required
+            autocomplete="username"
+          />
+          @if (emailCtrl.hasError('required')) {
+            <mat-error>Username or email is required.</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -64,10 +73,17 @@
           >
             <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
-          @if (pwdCtrl.hasError('required')) { <mat-error>Password is required.</mat-error> }
+          @if (pwdCtrl.hasError('required')) {
+            <mat-error>Password is required.</mat-error>
+          }
         </mat-form-field>
 
-        <button type="submit" class="login-btn" [class.is-loading]="loading()" [disabled]="loading() || f.invalid">
+        <button
+          type="submit"
+          class="login-btn"
+          [class.is-loading]="loading()"
+          [disabled]="loading() || f.invalid"
+        >
           @if (loading()) {
             <span>Signing in…</span>
           } @else {

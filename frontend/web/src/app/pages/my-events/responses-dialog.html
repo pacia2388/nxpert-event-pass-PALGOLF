@@ -1,14 +1,22 @@
-@if (saving()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+@if (saving()) {
+  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+}
 
 <h2 mat-dialog-title>Edit your responses</h2>
 
 <mat-dialog-content>
   <p class="muted" style="margin-top: 0">
-    {{ eventTitle }}@if (sessionTitle()) { — <strong>{{ sessionTitle() }}</strong> }
+    {{ eventTitle }}
+    @if (sessionTitle()) {
+      — <strong>{{ sessionTitle() }}</strong>
+    }
   </p>
 
   @if (loading()) {
-    <div class="empty-state"><mat-icon>hourglass_top</mat-icon><p>Loading…</p></div>
+    <div class="empty-state">
+      <mat-icon>hourglass_top</mat-icon>
+      <p>Loading…</p>
+    </div>
   } @else if (fields().length === 0) {
     <div class="empty-state">
       <mat-icon>info</mat-icon>

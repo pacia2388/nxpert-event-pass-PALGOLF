@@ -43,10 +43,20 @@
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface-variant);
 
-  &.has-image { border-style: solid; }
+  &.has-image {
+    border-style: solid;
+  }
 
-  img { width: 100%; height: 100%; object-fit: cover; }
-  mat-icon { font-size: 36px; width: 36px; height: 36px; }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+  }
 }
 
 .dyn-image-actions {

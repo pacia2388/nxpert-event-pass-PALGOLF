@@ -21,13 +21,16 @@ export class PhoneCountryService {
 
   /** Country codes, "63" first, then numeric order. */
   readonly codes = computed(() =>
-    this.rows().map((r) => r.countryCode).sort((a, b) =>
-      a === '63' ? -1 : b === '63' ? 1 : Number(a) - Number(b)),
+    this.rows()
+      .map((r) => r.countryCode)
+      .sort((a, b) => (a === '63' ? -1 : b === '63' ? 1 : Number(a) - Number(b))),
   );
 
   constructor() {
     this.reload();
-    this.http.get<CountryCodeInfo[]>('country-codes.json').subscribe({ next: (c) => this.catalog.set(c), error: () => {} });
+    this.http
+      .get<CountryCodeInfo[]>('country-codes.json')
+      .subscribe({ next: (c) => this.catalog.set(c), error: () => {} });
   }
 
   /** Country for a code, e.g. "63" gives "Philippines"; "" when the code is not in the JSON. */
@@ -36,7 +39,13 @@ export class PhoneCountryService {
   }
 
   reload(): void {
-    this.api.getPhoneCountries().subscribe({ next: (r) => { this.rows.set(r); this.loaded.set(true); }, error: () => {} });
+    this.api.getPhoneCountries().subscribe({
+      next: (r) => {
+        this.rows.set(r);
+        this.loaded.set(true);
+      },
+      error: () => {},
+    });
   }
 
   /** False when a stored number's country code is not in the table (blank counts as fine). */

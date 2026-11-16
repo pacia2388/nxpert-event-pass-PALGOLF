@@ -36,6 +36,10 @@ export class VerifyComponent implements OnInit {
   }
 
   get homeLink(): string {
-    return this.auth.isLoggedIn() ? (this.auth.isAdmin() ? '/admin/dashboard' : '/my-events') : '/login';
+    return this.auth.isLoggedIn()
+      ? this.auth.isAdmin()
+        ? '/admin/dashboard'
+        : '/my-events'
+      : '/login';
   }
 }

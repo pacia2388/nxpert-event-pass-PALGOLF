@@ -7,16 +7,18 @@
         @if (!loading()) {
           <p class="el-subtitle">
             {{ counts().all }} event{{ counts().all === 1 ? '' : 's' }}
-            @if (counts().live) { · <strong>{{ counts().live }} live now</strong> }
-            @if (counts().upcoming) { · {{ counts().upcoming }} upcoming }
+            @if (counts().live) {
+              · <strong>{{ counts().live }} live now</strong>
+            }
+            @if (counts().upcoming) {
+              · {{ counts().upcoming }} upcoming
+            }
           </p>
         }
       </div>
     </div>
     <div class="el-header-actions">
-      <a class="ev-btn" routerLink="/calendar">
-        <mat-icon>calendar_month</mat-icon> Calendar
-      </a>
+      <a class="ev-btn" routerLink="/calendar"> <mat-icon>calendar_month</mat-icon> Calendar </a>
       @if (auth.isAdmin()) {
         <a class="ev-btn solid" routerLink="/admin/events/new">
           <mat-icon>add</mat-icon> New event
@@ -40,9 +42,14 @@
     <section class="el-toolbar">
       <div class="el-tabs" role="tablist" aria-label="Filter events">
         @for (t of filterTabs; track t.id) {
-          <button type="button" role="tab" class="el-tab"
-                  [class.active]="filter() === t.id" [attr.aria-selected]="filter() === t.id"
-                  (click)="setFilter(t.id)">
+          <button
+            type="button"
+            role="tab"
+            class="el-tab"
+            [class.active]="filter() === t.id"
+            [attr.aria-selected]="filter() === t.id"
+            (click)="setFilter(t.id)"
+          >
             <mat-icon>{{ t.icon }}</mat-icon>
             {{ t.label }}
             <span class="el-count">{{ counts()[t.id] }}</span>
@@ -54,7 +61,12 @@
         <mat-form-field appearance="outline" class="el-search" subscriptSizing="dynamic">
           <mat-label>Search events</mat-label>
           <mat-icon matPrefix>search</mat-icon>
-          <input matInput [ngModel]="search()" (ngModelChange)="onSearch($event)" placeholder="Title or venue" />
+          <input
+            matInput
+            [ngModel]="search()"
+            (ngModelChange)="onSearch($event)"
+            placeholder="Title or venue"
+          />
           @if (search()) {
             <button matIconSuffix mat-icon-button aria-label="Clear search" (click)="onSearch('')">
               <mat-icon>close</mat-icon>
@@ -73,8 +85,13 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-button-toggle-group class="el-view" [value]="view()" (change)="setView($event.value)"
-                                 hideSingleSelectionIndicator aria-label="Layout">
+        <mat-button-toggle-group
+          class="el-view"
+          [value]="view()"
+          (change)="setView($event.value)"
+          hideSingleSelectionIndicator
+          aria-label="Layout"
+        >
           <mat-button-toggle value="grid" matTooltip="Card view" aria-label="Card view">
             <mat-icon>grid_view</mat-icon>
           </mat-button-toggle>
@@ -93,15 +110,23 @@
       </div>
     } @else {
       <p class="el-result muted">
-        Showing {{ pageIndex() * pageSize() + 1 }}–{{ pageIndex() * pageSize() + paged().length }}
+        Showing {{ pageIndex() * pageSize() + 1 }}–{{
+          pageIndex() * pageSize() + paged().length
+        }}
         of {{ filtered().length }}
       </p>
 
       @if (view() === 'grid') {
         <div class="ev-grid el-grid">
           @for (e of paged(); track e.id) {
-            <div class="ev-card is-link" role="link" tabindex="0" [routerLink]="['/admin/events', e.id]"
-                 [attr.aria-label]="'Open ' + e.title" (keydown.enter)="open(e, $event)">
+            <div
+              class="ev-card is-link"
+              role="link"
+              tabindex="0"
+              [routerLink]="['/admin/events', e.id]"
+              [attr.aria-label]="'Open ' + e.title"
+              (keydown.enter)="open(e, $event)"
+            >
               <div class="ev-body">
                 <div class="ev-head">
                   <span class="ev-date">
@@ -117,29 +142,47 @@
                 </div>
 
                 <div class="ev-meta">
-                  <p class="ev-line"><mat-icon>schedule</mat-icon>
-                    <app-schedule [start]="e.startsAt" [end]="e.endsAt" /></p>
+                  <p class="ev-line">
+                    <mat-icon>schedule</mat-icon>
+                    <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
+                  </p>
                   @if (e.format === 'Online') {
                     <p class="ev-line"><mat-icon>videocam</mat-icon> <span>Online meeting</span></p>
                   } @else {
-                    <p class="ev-line"><mat-icon>place</mat-icon>
-                      <span [title]="e.venue">{{ e.venue }}@if (e.format === 'Hybrid') { · also online }</span></p>
+                    <p class="ev-line">
+                      <mat-icon>place</mat-icon>
+                      <span [title]="e.venue"
+                        >{{ e.venue }}
+                        @if (e.format === 'Hybrid') {
+                          · also online
+                        }
+                      </span>
+                    </p>
                   }
                 </div>
 
                 <div class="ev-stats">
                   <div class="ev-stat">
-                    <span class="num">{{ e.registeredCount }}@if (e.capacity) {<span class="cap"> / {{ e.capacity }}</span>}</span>
+                    <span class="num"
+                      >{{ e.registeredCount }}
+                      @if (e.capacity) {
+                        <span class="cap"> / {{ e.capacity }}</span>
+                      }
+                    </span>
                     <span class="lbl">Registered</span>
                     @if (e.capacity) {
-                      <div class="ev-bar"><span [style.width.%]="fill(e.registeredCount, e.capacity)"></span></div>
+                      <div class="ev-bar">
+                        <span [style.width.%]="fill(e.registeredCount, e.capacity)"></span>
+                      </div>
                     }
                   </div>
                   <div class="ev-stat">
                     <span class="num">{{ e.checkedInCount }}</span>
                     <span class="lbl">Checked in</span>
                     @if (e.registeredCount) {
-                      <div class="ev-bar"><span [style.width.%]="fill(e.checkedInCount, e.registeredCount)"></span></div>
+                      <div class="ev-bar">
+                        <span [style.width.%]="fill(e.checkedInCount, e.registeredCount)"></span>
+                      </div>
                     }
                   </div>
                 </div>
@@ -147,8 +190,12 @@
 
               <div class="ev-foot">
                 @if (auth.isAdmin()) {
-                  <button type="button" class="ev-btn solid" (click)="startScanning(e, $event)"
-                          matTooltip="Open the check-in scanner for this event">
+                  <button
+                    type="button"
+                    class="ev-btn solid"
+                    (click)="startScanning(e, $event)"
+                    matTooltip="Open the check-in scanner for this event"
+                  >
                     <mat-icon>qr_code_scanner</mat-icon> Start check-in
                   </button>
                 }
@@ -167,8 +214,14 @@
             <span role="columnheader" class="sr-only">Actions</span>
           </div>
           @for (e of paged(); track e.id) {
-            <div class="el-row" role="row" tabindex="0" [routerLink]="['/admin/events', e.id]"
-                 [attr.aria-label]="'Open ' + e.title" (keydown.enter)="open(e, $event)">
+            <div
+              class="el-row"
+              role="row"
+              tabindex="0"
+              [routerLink]="['/admin/events', e.id]"
+              [attr.aria-label]="'Open ' + e.title"
+              (keydown.enter)="open(e, $event)"
+            >
               <div class="el-event" role="cell">
                 <span class="ev-date el-date">
                   <span class="m">{{ e.startsAt | date: 'MMM' }}</span>
@@ -178,7 +231,10 @@
                   <span class="el-title" [title]="e.title">{{ e.title }}</span>
                   <span class="el-venue">
                     <mat-icon>{{ e.format === 'Online' ? 'videocam' : 'place' }}</mat-icon>
-                    {{ e.format === 'Online' ? 'Online meeting' : e.venue }}@if (e.format === 'Hybrid') { · also online }
+                    {{ e.format === 'Online' ? 'Online meeting' : e.venue }}
+                    @if (e.format === 'Hybrid') {
+                      · also online
+                    }
                   </span>
                   <div class="ev-tags">
                     <ng-container *ngTemplateOutlet="tags; context: { $implicit: e }" />
@@ -189,23 +245,36 @@
                 <app-schedule [start]="e.startsAt" [end]="e.endsAt" />
               </div>
               <div class="el-metric" role="cell">
-                <span class="el-num">{{ e.registeredCount }}@if (e.capacity) {<span class="cap"> / {{ e.capacity }}</span>}</span>
+                <span class="el-num"
+                  >{{ e.registeredCount }}
+                  @if (e.capacity) {
+                    <span class="cap"> / {{ e.capacity }}</span>
+                  }
+                </span>
                 @if (e.capacity) {
-                  <div class="ev-bar"><span [style.width.%]="fill(e.registeredCount, e.capacity)"></span></div>
+                  <div class="ev-bar">
+                    <span [style.width.%]="fill(e.registeredCount, e.capacity)"></span>
+                  </div>
                 }
                 <span class="el-metric-label">Registered</span>
               </div>
               <div class="el-metric" role="cell">
                 <span class="el-num">{{ e.checkedInCount }}</span>
                 @if (e.registeredCount) {
-                  <div class="ev-bar"><span [style.width.%]="fill(e.checkedInCount, e.registeredCount)"></span></div>
+                  <div class="ev-bar">
+                    <span [style.width.%]="fill(e.checkedInCount, e.registeredCount)"></span>
+                  </div>
                 }
                 <span class="el-metric-label">Checked in</span>
               </div>
               <div class="el-actions" role="cell">
                 @if (auth.isAdmin()) {
-                  <button type="button" class="ev-btn solid" (click)="startScanning(e, $event)"
-                          matTooltip="Open the check-in scanner for this event">
+                  <button
+                    type="button"
+                    class="ev-btn solid"
+                    (click)="startScanning(e, $event)"
+                    matTooltip="Open the check-in scanner for this event"
+                  >
                     <mat-icon>qr_code_scanner</mat-icon> <span class="el-btn-text">Check-in</span>
                   </button>
                 }
@@ -217,13 +286,15 @@
       }
 
       @if (filtered().length > pageSizeOptions[0]) {
-        <mat-paginator class="el-paginator"
+        <mat-paginator
+          class="el-paginator"
           [length]="filtered().length"
           [pageSize]="pageSize()"
           [pageIndex]="pageIndex()"
           [pageSizeOptions]="pageSizeOptions"
           (page)="onPage($event)"
-          aria-label="Select page of events">
+          aria-label="Select page of events"
+        >
         </mat-paginator>
       }
     }

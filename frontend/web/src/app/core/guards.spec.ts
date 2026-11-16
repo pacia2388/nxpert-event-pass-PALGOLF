@@ -26,7 +26,13 @@ function signIn(role: Role | null, canConfirmRegistrations = false): void {
     localStorage.setItem(
       'evt_auth',
       // JWT-shaped with no expiry: AuthService reads the payload to drop expired sessions.
-      JSON.stringify({ token: `x.${btoa('{}')}.x`, userId: 1, fullName: 'Test User', role, canConfirmRegistrations }),
+      JSON.stringify({
+        token: `x.${btoa('{}')}.x`,
+        userId: 1,
+        fullName: 'Test User',
+        role,
+        canConfirmRegistrations,
+      }),
     );
   }
   TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient()] });

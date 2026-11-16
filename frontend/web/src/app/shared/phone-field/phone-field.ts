@@ -52,7 +52,11 @@ export class PhoneFieldComponent {
   }
 
   private emit(): void {
-    const v = this.code ? joinPhone(this.code, this.number) : this.number ? '+' + this.number.replace(/\D/g, '') : null;
+    const v = this.code
+      ? joinPhone(this.code, this.number)
+      : this.number
+        ? '+' + this.number.replace(/\D/g, '')
+        : null;
     this.emitted = v;
     this.edited = true;
     this.value.set(v);
@@ -76,7 +80,9 @@ export class PhoneFieldComponent {
     if (!this.code || !this.countries.supports(this.value()))
       return "Mobile messages can't be sent to this number. Pick a listed country code.";
     if (!isCompletePhone(this.code, this.number))
-      return this.code === '63' ? 'Use a mobile number: 9XX XXX XXXX.' : 'Enter the full mobile number.';
+      return this.code === '63'
+        ? 'Use a mobile number: 9XX XXX XXXX.'
+        : 'Enter the full mobile number.';
     return null;
   }
 }

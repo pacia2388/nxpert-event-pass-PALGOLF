@@ -20,23 +20,35 @@ describe('Invitation composer: Invite teams', () => {
   function compose(pickerResult: TeamInviteChanges | undefined): void {
     picked = pickerResult;
     localStorage.clear();
-    localStorage.setItem('evt_auth', JSON.stringify({ token: 't', userId: 1, fullName: 'Demo Admin', role: 'Admin' }));
+    localStorage.setItem(
+      'evt_auth',
+      JSON.stringify({ token: 't', userId: 1, fullName: 'Demo Admin', role: 'Admin' }),
+    );
     TestBed.configureTestingModule({
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     });
     opened = [];
-    vi.spyOn(TestBed.inject(MatDialog), 'open').mockImplementation(((component: unknown, config: { data: unknown }) => {
+    vi.spyOn(TestBed.inject(MatDialog), 'open').mockImplementation(((
+      component: unknown,
+      config: { data: unknown },
+    ) => {
       opened.push({ component, data: config.data });
       return { afterClosed: () => of(picked) };
     }) as never);
 
     fixture = TestBed.createComponent(InvitationComposerComponent);
     fixture.componentRef.setInput('event', {
-      id: 7, title: 'Q3 Product Seminar', venue: 'N-Pax HQ', startAt: '2026-11-18T01:00:00Z', endAt: '2026-11-18T04:00:00Z',
+      id: 7,
+      title: 'Q3 Product Seminar',
+      venue: 'N-Pax HQ',
+      startAt: '2026-11-18T01:00:00Z',
+      endAt: '2026-11-18T04:00:00Z',
     } as unknown as EventDto);
     fixture.detectChanges();
     // The composer loads this event's email history when it opens.
-    TestBed.inject(HttpTestingController).match(() => true).forEach((r) => r.flush([]));
+    TestBed.inject(HttpTestingController)
+      .match(() => true)
+      .forEach((r) => r.flush([]));
     fixture.detectChanges();
   }
 
@@ -44,9 +56,13 @@ describe('Invitation composer: Invite teams', () => {
   const fieldOf = (label: 'To recipients' | 'CC recipients') =>
     root().querySelector(`[aria-label="${label}"]`)!.closest('mat-form-field') as HTMLElement;
   const inviteTeamsButton = (field: HTMLElement) =>
-    Array.from(field.querySelectorAll('button')).find((b) => b.textContent?.includes('Invite teams'));
+    Array.from(field.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Invite teams'),
+    );
   const chips = (field: HTMLElement) =>
-    Array.from(field.querySelectorAll('mat-chip-row')).map((c) => c.textContent?.replace('cancel', '').trim());
+    Array.from(field.querySelectorAll('mat-chip-row')).map((c) =>
+      c.textContent?.replace('cancel', '').trim(),
+    );
 
   function clickInviteTeams(): void {
     inviteTeamsButton(fieldOf('To recipients'))!.click();
@@ -59,7 +75,9 @@ describe('Invitation composer: Invite teams', () => {
     BRANDING.appName = 'Demo Cup';
     try {
       compose(undefined);
-      expect(root().querySelector('.mail-card-foot')?.textContent).toContain('Demo Cup · this is an automated message');
+      expect(root().querySelector('.mail-card-foot')?.textContent).toContain(
+        'Demo Cup · this is an automated message',
+      );
     } finally {
       BRANDING.appName = 'PAL GOLF';
     }
@@ -100,7 +118,9 @@ describe('Invitation composer: Invite teams', () => {
     compose(undefined);
     // The real picker closes some time after the click, outside any change detection pass.
     const closed = new Subject<TeamInviteChanges | undefined>();
-    vi.spyOn(TestBed.inject(MatDialog), 'open').mockReturnValue({ afterClosed: () => closed } as never);
+    vi.spyOn(TestBed.inject(MatDialog), 'open').mockReturnValue({
+      afterClosed: () => closed,
+    } as never);
     clickInviteTeams();
 
     closed.next({ add: ['ana@example.com'], remove: [] });

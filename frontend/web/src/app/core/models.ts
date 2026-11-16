@@ -552,7 +552,8 @@ export interface CheckInOptions {
 export interface CheckInResult {
   // 'error' is a client-only status the offline path uses when no bundle is cached; the API never returns it.
   // 'verified' answers a verify-only scan: the pass is confirmed, but no check-in was recorded.
-  status: 'valid' | 'verified' | 'already' | 'invalid' | 'unconfirmed' | 'notstarted' | 'ended' | 'error';
+  status:
+    'valid' | 'verified' | 'already' | 'invalid' | 'unconfirmed' | 'notstarted' | 'ended' | 'error';
   fullName: string | null;
   eventTitle: string | null;
   checkedInAt: string | null;

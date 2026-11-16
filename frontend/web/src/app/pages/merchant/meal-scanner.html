@@ -2,24 +2,36 @@
   <mat-icon color="primary">restaurant</mat-icon>
   <h1>Meal Stub Scanner</h1>
   <span class="spacer"></span>
-  <button mat-stroked-button (click)="beeper.toggleMute()"
-          [attr.aria-pressed]="!beeper.muted()"
-          [attr.aria-label]="beeper.muted() ? 'Turn scan beep on' : 'Turn scan beep off'">
+  <button
+    mat-stroked-button
+    (click)="beeper.toggleMute()"
+    [attr.aria-pressed]="!beeper.muted()"
+    [attr.aria-label]="beeper.muted() ? 'Turn scan beep on' : 'Turn scan beep off'"
+  >
     <mat-icon>{{ beeper.muted() ? 'volume_off' : 'volume_up' }}</mat-icon>
     {{ beeper.muted() ? 'Sound off' : 'Sound on' }}
   </button>
   <span class="count-chip" title="Total meal stubs you have redeemed, across all sessions">
     <mat-icon class="inline-icon">redeem</mat-icon>
-    {{ redeemedCount() }} redeemed@if (redeemedValue()) { · ₱{{ redeemedValue() | number }} }
+    {{ redeemedCount() }} redeemed
+    @if (redeemedValue()) {
+      · ₱{{ redeemedValue() | number }}
+    }
   </span>
 </div>
 
 <div class="scanner-layout">
   <div class="scanner-col">
-    <mat-button-toggle-group class="mode-toggle" [value]="input()"
-        (change)="setInput($event.value)" aria-label="Scan input">
+    <mat-button-toggle-group
+      class="mode-toggle"
+      [value]="input()"
+      (change)="setInput($event.value)"
+      aria-label="Scan input"
+    >
       <mat-button-toggle value="camera"><mat-icon>photo_camera</mat-icon> Camera</mat-button-toggle>
-      <mat-button-toggle value="barcode"><mat-icon>qr_code_scanner</mat-icon> Barcode</mat-button-toggle>
+      <mat-button-toggle value="barcode"
+        ><mat-icon>qr_code_scanner</mat-icon> Barcode</mat-button-toggle
+      >
     </mat-button-toggle-group>
 
     <p class="muted meal-hint">
@@ -40,7 +52,9 @@
           </mat-card-content>
         </mat-card>
       } @else if (scanning()) {
-        <p class="muted scan-live"><mat-icon class="inline-icon pulse">sensors</mat-icon> Scanning…</p>
+        <p class="muted scan-live">
+          <mat-icon class="inline-icon pulse">sensors</mat-icon> Scanning…
+        </p>
       }
     } @else {
       <div class="barcode-block">
@@ -48,9 +62,16 @@
         <p class="muted">Scan a stub with your scanner — or type its code and press Enter.</p>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Stub code</mat-label>
-          <input #barcodeInput matInput name="barcode" [(ngModel)]="barcodeValue"
-                 (keyup.enter)="submitBarcode()" (blur)="onBarcodeBlur()"
-                 autocomplete="off" placeholder="Waiting for scan…" />
+          <input
+            #barcodeInput
+            matInput
+            name="barcode"
+            [(ngModel)]="barcodeValue"
+            (keyup.enter)="submitBarcode()"
+            (blur)="onBarcodeBlur()"
+            autocomplete="off"
+            placeholder="Waiting for scan…"
+          />
           <mat-icon matSuffix>keyboard</mat-icon>
         </mat-form-field>
       </div>
@@ -65,8 +86,13 @@
         <p class="banner-name">{{ resultName() }}</p>
         @if (resultLabel()) {
           <p class="banner-sub">
-            @if (resultColor()) { <span class="swatch" [style.background]="resultColor()"></span> }
-            {{ resultLabel() }}@if (resultValue()) { · ₱{{ resultValue() }} }
+            @if (resultColor()) {
+              <span class="swatch" [style.background]="resultColor()"></span>
+            }
+            {{ resultLabel() }}
+            @if (resultValue()) {
+              · ₱{{ resultValue() }}
+            }
           </p>
         }
       }

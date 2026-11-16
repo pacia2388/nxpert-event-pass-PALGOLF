@@ -32,7 +32,8 @@
             placeholder="Type an email and press Enter"
             [matChipInputFor]="chipGrid"
             [matChipInputSeparatorKeyCodes]="[13, 188, 32]"
-            (matChipInputTokenEnd)="add($event)" />
+            (matChipInputTokenEnd)="add($event)"
+          />
         </mat-chip-grid>
         <mat-icon matSuffix>mail</mat-icon>
         <mat-hint>Press Enter, comma, or space to add each address.</mat-hint>
@@ -47,16 +48,18 @@
         edit-link and broadcast messages) are delivered to registrants who chose a phone channel.
         Email delivery is unaffected.
       </p>
-      <mat-button-toggle-group [value]="mobileProvider()"
-                               (change)="mobileProvider.set($event.value)"
-                               aria-label="Mobile notification provider">
+      <mat-button-toggle-group
+        [value]="mobileProvider()"
+        (change)="mobileProvider.set($event.value)"
+        aria-label="Mobile notification provider"
+      >
         <mat-button-toggle value="Viber"><mat-icon>chat</mat-icon> Viber</mat-button-toggle>
         <mat-button-toggle value="Sms"><mat-icon>sms</mat-icon> SMS</mat-button-toggle>
       </mat-button-toggle-group>
       <p class="muted section-sub mobile-note">
         Viber sends the QR entry pass as a picture; registrants need the Viber app. SMS is text
-        only: it may include a link to open the QR entry pass, and registrants can always use the
-        QR sent by email or check in by face.
+        only: it may include a link to open the QR entry pass, and registrants can always use the QR
+        sent by email or check in by face.
       </p>
 
       <h2 class="section-title mobile-head">Phone countries</h2>
@@ -66,29 +69,49 @@
         instead.
       </p>
       <table class="pc-table">
-        <thead><tr><th>Code</th><th>Country</th><th>Viber</th><th>SMS</th><th></th></tr></thead>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Country</th>
+            <th>Viber</th>
+            <th>SMS</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           @for (r of countries.rows(); track r.id) {
             <tr>
               <td>+{{ r.countryCode }}</td>
               <td>{{ countries.countryName(r.countryCode) }}</td>
               <td>
-                <mat-checkbox [checked]="r.viber" (change)="setChannels(r, $event.checked, r.sms, $event.source)"
-                              [attr.aria-label]="'Viber for +' + r.countryCode" />
+                <mat-checkbox
+                  [checked]="r.viber"
+                  (change)="setChannels(r, $event.checked, r.sms, $event.source)"
+                  [attr.aria-label]="'Viber for +' + r.countryCode"
+                />
               </td>
               <td>
-                <mat-checkbox [checked]="r.sms" (change)="setChannels(r, r.viber, $event.checked, $event.source)"
-                              [attr.aria-label]="'SMS for +' + r.countryCode" />
+                <mat-checkbox
+                  [checked]="r.sms"
+                  (change)="setChannels(r, r.viber, $event.checked, $event.source)"
+                  [attr.aria-label]="'SMS for +' + r.countryCode"
+                />
               </td>
               <td class="pc-actions">
-                <button mat-icon-button type="button" (click)="removeCountry(r)"
-                        [attr.aria-label]="'Remove +' + r.countryCode">
+                <button
+                  mat-icon-button
+                  type="button"
+                  (click)="removeCountry(r)"
+                  [attr.aria-label]="'Remove +' + r.countryCode"
+                >
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="5" class="muted">No country codes. Users cannot save phone numbers.</td></tr>
+            <tr>
+              <td colspan="5" class="muted">No country codes. Users cannot save phone numbers.</td>
+            </tr>
           }
         </tbody>
       </table>

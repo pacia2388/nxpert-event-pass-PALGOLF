@@ -22,7 +22,8 @@ import { ScheduleComponent } from '../../../shared/schedule';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ScheduleComponent, 
+  imports: [
+    ScheduleComponent,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -37,7 +38,10 @@ import { ScheduleComponent } from '../../../shared/schedule';
   templateUrl: './dashboard.html',
   styles: [
     `
-      .event-picker { min-width: 240px; max-width: 360px; }
+      .event-picker {
+        min-width: 240px;
+        max-width: 360px;
+      }
       .select-search {
         position: sticky;
         top: 0;
@@ -68,8 +72,12 @@ import { ScheduleComponent } from '../../../shared/schedule';
         color: var(--mat-sys-on-surface-variant);
         font-size: 13px;
       }
-      .chapter-card mat-card-content { padding-top: 4px; }
-      .kit-card { margin-top: 16px; }
+      .chapter-card mat-card-content {
+        padding-top: 4px;
+      }
+      .kit-card {
+        margin-top: 16px;
+      }
       .collapse-head {
         display: flex;
         align-items: center;
@@ -77,10 +85,19 @@ import { ScheduleComponent } from '../../../shared/schedule';
         cursor: pointer;
         user-select: none;
       }
-      .collapse-head .collapse-titles { flex: 1; min-width: 0; }
-      .collapse-head .collapse-toggle { flex: none; }
-      .chapter-row { margin: 10px 0; }
-      .chapter-row.zero { opacity: 0.55; }
+      .collapse-head .collapse-titles {
+        flex: 1;
+        min-width: 0;
+      }
+      .collapse-head .collapse-toggle {
+        flex: none;
+      }
+      .chapter-row {
+        margin: 10px 0;
+      }
+      .chapter-row.zero {
+        opacity: 0.55;
+      }
       .chapter-line {
         display: flex;
         justify-content: space-between;
@@ -88,15 +105,28 @@ import { ScheduleComponent } from '../../../shared/schedule';
         font-size: 13px;
         margin-bottom: 3px;
       }
-      .chapter-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .chapter-pct { color: var(--mat-sys-on-surface-variant); white-space: nowrap; }
+      .chapter-name {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .chapter-pct {
+        color: var(--mat-sys-on-surface-variant);
+        white-space: nowrap;
+      }
       .chapter-track {
         height: 8px;
         border-radius: 999px;
         background: var(--mat-sys-surface-container-high);
         overflow: hidden;
       }
-      .chapter-fill { height: 100%; border-radius: 999px; min-width: 2px; transition: width 0.3s ease; }
+      .chapter-fill {
+        height: 100%;
+        border-radius: 999px;
+        min-width: 2px;
+        transition: width 0.3s ease;
+      }
       .sub-day-label {
         margin: 14px 0 6px;
         font-size: 12px;
@@ -105,7 +135,9 @@ import { ScheduleComponent } from '../../../shared/schedule';
         text-transform: uppercase;
         color: var(--mat-sys-on-surface-variant);
       }
-      .sub-day-label:first-child { margin-top: 2px; }
+      .sub-day-label:first-child {
+        margin-top: 2px;
+      }
       .full-tag {
         margin-left: 6px;
         padding: 1px 6px;

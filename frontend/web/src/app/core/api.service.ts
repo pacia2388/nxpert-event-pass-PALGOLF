@@ -73,7 +73,6 @@ import {
   MailPlanSendDto,
 } from './models';
 
-
 /** Viber broadcast outcome: numbers reached by Viber, registrants emailed instead, numbers not reached. */
 export interface ViberBroadcastResult {
   sent: number;
@@ -221,8 +220,11 @@ export class ApiService {
     return this.http.get<PublicRegistrationForm>(this.url(`/api/registrations/public/${token}`));
   }
   // `identity` (guests only) also updates the registrant's name / email / mobile.
-  updatePublicResponses(token: string, responses: Record<string, string>,
-    identity?: { fullName: string; email: string; phone: string }): Observable<{ message: string }> {
+  updatePublicResponses(
+    token: string,
+    responses: Record<string, string>,
+    identity?: { fullName: string; email: string; phone: string },
+  ): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(
       this.url(`/api/registrations/public/${token}/responses`),
       { responses, ...identity },
@@ -288,10 +290,17 @@ export class ApiService {
     return this.http.get<ContactDto[]>(this.url('/api/contacts'));
   }
   // Composed invitation with To / CC and inline images; errors are explained by the composer.
-  sendInvitationMessage(eventId: number, message: InvitationMessageRequest): Observable<InvitationMessageResult> {
-    return this.http.post<InvitationMessageResult>(this.url(`/api/events/${eventId}/invitations/compose`), message, {
-      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
-    });
+  sendInvitationMessage(
+    eventId: number,
+    message: InvitationMessageRequest,
+  ): Observable<InvitationMessageResult> {
+    return this.http.post<InvitationMessageResult>(
+      this.url(`/api/events/${eventId}/invitations/compose`),
+      message,
+      {
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      },
+    );
   }
   invitationEmailHistory(eventId: number): Observable<InvitationEmail[]> {
     return this.http.get<InvitationEmail[]>(this.url(`/api/events/${eventId}/invitations/emails`), {
@@ -299,26 +308,45 @@ export class ApiService {
     });
   }
   invitationEmail(eventId: number, id: number): Observable<InvitationEmail> {
-    return this.http.get<InvitationEmail>(this.url(`/api/events/${eventId}/invitations/emails/${id}`), {
-      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
-    });
+    return this.http.get<InvitationEmail>(
+      this.url(`/api/events/${eventId}/invitations/emails/${id}`),
+      {
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      },
+    );
   }
-  updateInvitationEmail(eventId: number, id: number, message: InvitationMessageRequest & { version: string }): Observable<InvitationMessageResult> {
-    return this.http.put<InvitationMessageResult>(this.url(`/api/events/${eventId}/invitations/emails/${id}`), message, {
-      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
-    });
+  updateInvitationEmail(
+    eventId: number,
+    id: number,
+    message: InvitationMessageRequest & { version: string },
+  ): Observable<InvitationMessageResult> {
+    return this.http.put<InvitationMessageResult>(
+      this.url(`/api/events/${eventId}/invitations/emails/${id}`),
+      message,
+      {
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      },
+    );
   }
   cancelInvitationEmail(eventId: number, id: number, version: string): Observable<void> {
-    return this.http.post<void>(this.url(`/api/events/${eventId}/invitations/emails/${id}/cancel`), { version }, {
-      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
-    });
+    return this.http.post<void>(
+      this.url(`/api/events/${eventId}/invitations/emails/${id}/cancel`),
+      { version },
+      {
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      },
+    );
   }
   // Pasted web image whose site blocks the browser from reading it; the API copies it (admins).
   pastedImage(url: string): Observable<Blob> {
-    return this.http.post(this.url('/api/pasted-images'), { url }, {
-      responseType: 'blob',
-      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
-    });
+    return this.http.post(
+      this.url('/api/pasted-images'),
+      { url },
+      {
+        responseType: 'blob',
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      },
+    );
   }
   // ---- Mail planner (admins) ----
   mailPlans(): Observable<MailPlanDto[]> {
@@ -360,7 +388,10 @@ export class ApiService {
     return this.http.delete<{ planDeleted: boolean }>(this.url(`/api/mail-plans/sends/${sendId}`));
   }
   sendMailPlanNow(sendId: number): Observable<MailPlanSendDto> {
-    return this.http.post<MailPlanSendDto>(this.url(`/api/mail-plans/sends/${sendId}/send-now`), {});
+    return this.http.post<MailPlanSendDto>(
+      this.url(`/api/mail-plans/sends/${sendId}/send-now`),
+      {},
+    );
   }
   retryMailPlanSend(sendId: number): Observable<MailPlanSendDto> {
     return this.http.post<MailPlanSendDto>(this.url(`/api/mail-plans/sends/${sendId}/retry`), {});
@@ -374,7 +405,9 @@ export class ApiService {
     return this.http.get<{ bodyHtml: string }>(this.url(`/api/mail-inbox/${id}/body`));
   }
   setMailReminder(id: number, remindAt: Date | null): Observable<InboxMailDto> {
-    return this.http.put<InboxMailDto>(this.url(`/api/mail-inbox/${id}/reminder`), { remindAt: remindAt?.toISOString() ?? null });
+    return this.http.put<InboxMailDto>(this.url(`/api/mail-inbox/${id}/reminder`), {
+      remindAt: remindAt?.toISOString() ?? null,
+    });
   }
   snoozeMailReminder(id: number): Observable<InboxMailDto> {
     return this.http.post<InboxMailDto>(this.url(`/api/mail-inbox/${id}/snooze`), {});
@@ -383,7 +416,10 @@ export class ApiService {
     return this.http.post<InboxMailDto>(this.url(`/api/mail-inbox/${id}/done`), {});
   }
 
-  sendInvites(eventId: number, emails: string[]): Observable<{ sent: number; registerUrl: string }> {
+  sendInvites(
+    eventId: number,
+    emails: string[],
+  ): Observable<{ sent: number; registerUrl: string }> {
     return this.http.post<{ sent: number; registerUrl: string }>(
       this.url(`/api/events/${eventId}/invitations`),
       { emails },
@@ -396,16 +432,24 @@ export class ApiService {
   }
   // Scanner totals; polled in the background, so failures are reported inline, not as toasts.
   attendanceSummary(eventId: number): Observable<EventAttendanceSummary> {
-    return this.http.get<EventAttendanceSummary>(this.url(`/api/events/${eventId}/attendance/summary`), {
-      context: new HttpContext().set(SKIP_ERROR_TOAST, true),
-    });
+    return this.http.get<EventAttendanceSummary>(
+      this.url(`/api/events/${eventId}/attendance/summary`),
+      {
+        context: new HttpContext().set(SKIP_ERROR_TOAST, true),
+      },
+    );
   }
   // Admin: soft-delete an attendee — the pass stops working, the registration history is kept.
   deleteAttendee(eventId: number, registrationId: number): Observable<void> {
     return this.http.delete<void>(this.url(`/api/events/${eventId}/attendance/${registrationId}`));
   }
-  getAttendeePass(eventId: number, registrationId: number): Observable<{
-    token: string; email: string | null; confirmedAt: string | null;
+  getAttendeePass(
+    eventId: number,
+    registrationId: number,
+  ): Observable<{
+    token: string;
+    email: string | null;
+    confirmedAt: string | null;
   }> {
     return this.http.get<{ token: string; email: string | null; confirmedAt: string | null }>(
       this.url(`/api/events/${eventId}/attendance/${registrationId}/pass`),
@@ -414,11 +458,15 @@ export class ApiService {
   // Re-email a confirmed attendee's pass to their registered address (ignores the Viber preference).
   resendAttendeePass(eventId: number, registrationId: number): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(
-      this.url(`/api/events/${eventId}/attendance/${registrationId}/resend-pass`), {},
+      this.url(`/api/events/${eventId}/attendance/${registrationId}/resend-pass`),
+      {},
     );
   }
   // Admin: remove pending registrations (confirmed / checked-in ones are skipped server-side).
-  cancelRegistrations(eventId: number, registrationIds: number[]): Observable<CancelRegistrationsResult> {
+  cancelRegistrations(
+    eventId: number,
+    registrationIds: number[],
+  ): Observable<CancelRegistrationsResult> {
     return this.http.post<CancelRegistrationsResult>(
       this.url(`/api/events/${eventId}/attendance/cancel`),
       { registrationIds },
@@ -431,9 +479,12 @@ export class ApiService {
     });
   }
   manualCheckIn(eventId: number, registrationIds: number[]): Observable<ManualCheckInResult> {
-    return this.http.post<ManualCheckInResult>(this.url(`/api/events/${eventId}/attendance/checkin`), {
-      registrationIds,
-    });
+    return this.http.post<ManualCheckInResult>(
+      this.url(`/api/events/${eventId}/attendance/checkin`),
+      {
+        registrationIds,
+      },
+    );
   }
   claimKit(
     eventId: number,
@@ -448,9 +499,12 @@ export class ApiService {
     });
   }
   unclaimKit(eventId: number, registrationIds: number[]): Observable<UnclaimKitResult> {
-    return this.http.post<UnclaimKitResult>(this.url(`/api/events/${eventId}/attendance/unclaim-kit`), {
-      registrationIds,
-    });
+    return this.http.post<UnclaimKitResult>(
+      this.url(`/api/events/${eventId}/attendance/unclaim-kit`),
+      {
+        registrationIds,
+      },
+    );
   }
   redeemMeals(
     eventId: number,
@@ -458,19 +512,28 @@ export class ApiService {
     redeemedBy: string | null,
     selfClaimed: boolean,
   ): Observable<RedeemMealsResult> {
-    return this.http.post<RedeemMealsResult>(this.url(`/api/events/${eventId}/attendance/redeem-meals`), {
-      registrationIds,
-      redeemedBy,
-      selfClaimed,
-    });
+    return this.http.post<RedeemMealsResult>(
+      this.url(`/api/events/${eventId}/attendance/redeem-meals`),
+      {
+        registrationIds,
+        redeemedBy,
+        selfClaimed,
+      },
+    );
   }
   unredeemMeals(eventId: number, registrationIds: number[]): Observable<UnredeemMealsResult> {
-    return this.http.post<UnredeemMealsResult>(this.url(`/api/events/${eventId}/attendance/unredeem-meals`), {
-      registrationIds,
-    });
+    return this.http.post<UnredeemMealsResult>(
+      this.url(`/api/events/${eventId}/attendance/unredeem-meals`),
+      {
+        registrationIds,
+      },
+    );
   }
   redeemMealByToken(token: string, day?: number | null): Observable<MealScanResult> {
-    return this.http.post<MealScanResult>(this.url('/api/checkin/redeem-meals'), { token, day: day ?? null });
+    return this.http.post<MealScanResult>(this.url('/api/checkin/redeem-meals'), {
+      token,
+      day: day ?? null,
+    });
   }
   mealBoard(eventId: number): Observable<MealBoardDto> {
     return this.http.get<MealBoardDto>(this.url(`/api/events/${eventId}/attendance/meal-board`));
@@ -482,18 +545,28 @@ export class ApiService {
     redeemedBy: string | null,
     selfClaimed: boolean,
   ): Observable<RedeemMealDayResult> {
-    return this.http.post<RedeemMealDayResult>(this.url(`/api/events/${eventId}/attendance/redeem-meal-day`), {
-      registrationIds,
-      day,
-      redeemedBy,
-      selfClaimed,
-    });
+    return this.http.post<RedeemMealDayResult>(
+      this.url(`/api/events/${eventId}/attendance/redeem-meal-day`),
+      {
+        registrationIds,
+        day,
+        redeemedBy,
+        selfClaimed,
+      },
+    );
   }
-  unredeemMealDay(eventId: number, registrationIds: number[], day: number): Observable<UnredeemMealDayResult> {
-    return this.http.post<UnredeemMealDayResult>(this.url(`/api/events/${eventId}/attendance/unredeem-meal-day`), {
-      registrationIds,
-      day,
-    });
+  unredeemMealDay(
+    eventId: number,
+    registrationIds: number[],
+    day: number,
+  ): Observable<UnredeemMealDayResult> {
+    return this.http.post<UnredeemMealDayResult>(
+      this.url(`/api/events/${eventId}/attendance/unredeem-meal-day`),
+      {
+        registrationIds,
+        day,
+      },
+    );
   }
   // Individually-issued meal stubs. Redemption is open to merchants (meal-scan controller).
   redeemMealStub(code: string): Observable<MealStubScanResult> {
@@ -504,11 +577,15 @@ export class ApiService {
     return this.http.get<MealScanTally>(this.url('/api/meal-scan/my-tally'));
   }
   mealStubBoard(eventId: number): Observable<MealStubBoardDto> {
-    return this.http.get<MealStubBoardDto>(this.url(`/api/events/${eventId}/attendance/meal-stubs`));
+    return this.http.get<MealStubBoardDto>(
+      this.url(`/api/events/${eventId}/attendance/meal-stubs`),
+    );
   }
   // Segregated per-stub list (each stub, with the merchant who redeemed it).
   mealStubList(eventId: number): Observable<MealStubDetailDto[]> {
-    return this.http.get<MealStubDetailDto[]>(this.url(`/api/events/${eventId}/attendance/meal-stub-list`));
+    return this.http.get<MealStubDetailDto[]>(
+      this.url(`/api/events/${eventId}/attendance/meal-stub-list`),
+    );
   }
   redeemStubIds(
     eventId: number,
@@ -516,18 +593,24 @@ export class ApiService {
     redeemedBy: string | null,
     selfClaimed: boolean,
   ): Observable<StubIdsResult> {
-    return this.http.post<StubIdsResult>(this.url(`/api/events/${eventId}/attendance/redeem-stub-ids`), {
-      stubIds,
-      redeemedBy,
-      selfClaimed,
-    });
+    return this.http.post<StubIdsResult>(
+      this.url(`/api/events/${eventId}/attendance/redeem-stub-ids`),
+      {
+        stubIds,
+        redeemedBy,
+        selfClaimed,
+      },
+    );
   }
   unredeemStubIds(eventId: number, stubIds: number[]): Observable<StubIdsResult> {
-    return this.http.post<StubIdsResult>(this.url(`/api/events/${eventId}/attendance/unredeem-stub-ids`), {
-      stubIds,
-      redeemedBy: null,
-      selfClaimed: false,
-    });
+    return this.http.post<StubIdsResult>(
+      this.url(`/api/events/${eventId}/attendance/unredeem-stub-ids`),
+      {
+        stubIds,
+        redeemedBy: null,
+        selfClaimed: false,
+      },
+    );
   }
   redeemStubs(
     eventId: number,
@@ -535,16 +618,22 @@ export class ApiService {
     redeemedBy: string | null,
     selfClaimed: boolean,
   ): Observable<RedeemStubsResult> {
-    return this.http.post<RedeemStubsResult>(this.url(`/api/events/${eventId}/attendance/redeem-stubs`), {
-      registrationIds,
-      redeemedBy,
-      selfClaimed,
-    });
+    return this.http.post<RedeemStubsResult>(
+      this.url(`/api/events/${eventId}/attendance/redeem-stubs`),
+      {
+        registrationIds,
+        redeemedBy,
+        selfClaimed,
+      },
+    );
   }
   unredeemStubs(eventId: number, registrationIds: number[]): Observable<UnredeemStubsResult> {
-    return this.http.post<UnredeemStubsResult>(this.url(`/api/events/${eventId}/attendance/unredeem-stubs`), {
-      registrationIds,
-    });
+    return this.http.post<UnredeemStubsResult>(
+      this.url(`/api/events/${eventId}/attendance/unredeem-stubs`),
+      {
+        registrationIds,
+      },
+    );
   }
   exportUrl(eventId: number): string {
     return this.url(`/api/events/${eventId}/attendance/export`);
@@ -564,7 +653,9 @@ export class ApiService {
   }
   // Public: which service carries mobile messages, for channel labels.
   getMobileChannel(): Observable<{ mobileProvider: MobileProvider }> {
-    return this.http.get<{ mobileProvider: MobileProvider }>(this.url('/api/settings/mobile-channel'));
+    return this.http.get<{ mobileProvider: MobileProvider }>(
+      this.url('/api/settings/mobile-channel'),
+    );
   }
 
   // ---- Phone countries (list is public; add/remove admin) ----
@@ -587,9 +678,12 @@ export class ApiService {
   }
   // Switch the event's verify-only mode (applies to every scanner of the event).
   setVerifyOnly(eventId: number, enabled: boolean): Observable<{ enabled: boolean }> {
-    return this.http.put<{ enabled: boolean }>(this.url(`/api/checkin/events/${eventId}/verify-only`), {
-      enabled,
-    });
+    return this.http.put<{ enabled: boolean }>(
+      this.url(`/api/checkin/events/${eventId}/verify-only`),
+      {
+        enabled,
+      },
+    );
   }
   // Facial recognition identified a user → check them in for this event.
   checkInUser(
@@ -597,7 +691,11 @@ export class ApiService {
     userId: number,
     opts: Omit<CheckInOptions, 'eventId'> = {},
   ): Observable<CheckInResult> {
-    return this.http.post<CheckInResult>(this.url('/api/checkin/user'), { eventId, userId, ...opts });
+    return this.http.post<CheckInResult>(this.url('/api/checkin/user'), {
+      eventId,
+      userId,
+      ...opts,
+    });
   }
 
   // ---- User master (admin) ----
@@ -637,7 +735,9 @@ export class ApiService {
     return this.http.delete<void>(this.url(`/api/teams/${id}`));
   }
   addTeamMember(teamId: number, userId: number): Observable<TeamMemberAddResult> {
-    return this.http.post<TeamMemberAddResult>(this.url(`/api/teams/${teamId}/members`), { userId });
+    return this.http.post<TeamMemberAddResult>(this.url(`/api/teams/${teamId}/members`), {
+      userId,
+    });
   }
   removeTeamMember(teamId: number, userId: number): Observable<void> {
     return this.http.delete<void>(this.url(`/api/teams/${teamId}/members/${userId}`));
@@ -652,17 +752,24 @@ export class ApiService {
     return this.http.post<TeamMemberAddResult>(this.url('/api/teams/mine/members'), body);
   }
   findTeamCandidates(email: string): Observable<TeamCandidate[]> {
-    return this.http.get<TeamCandidate[]>(this.url('/api/teams/mine/candidates'), { params: { email } });
+    return this.http.get<TeamCandidate[]>(this.url('/api/teams/mine/candidates'), {
+      params: { email },
+    });
   }
   removeMyTeamMember(userId: number): Observable<void> {
     return this.http.delete<void>(this.url(`/api/teams/mine/members/${userId}`));
   }
   sendTeamRegistrationNotice(userIds: number[]): Observable<TeamRegistrationNoticeResult> {
-    return this.http.post<TeamRegistrationNoticeResult>(this.url('/api/teams/mine/registration-notice'), { userIds });
+    return this.http.post<TeamRegistrationNoticeResult>(
+      this.url('/api/teams/mine/registration-notice'),
+      { userIds },
+    );
   }
   // Team registration link (anonymous): pre-fill, then complete the account the Captain created.
   getTeamRegistration(token: string): Observable<TeamRegistrationPrefill> {
-    return this.http.get<TeamRegistrationPrefill>(this.url(`/api/auth/team-registration/${encodeURIComponent(token)}`));
+    return this.http.get<TeamRegistrationPrefill>(
+      this.url(`/api/auth/team-registration/${encodeURIComponent(token)}`),
+    );
   }
 
   // Registered face descriptors, for facial-recognition check-in.
@@ -671,7 +778,9 @@ export class ApiService {
   }
   // Guest-registration faces for an event (token-based), for facial-recognition check-in of guests.
   eventGuestFaceDescriptors(eventId: number): Observable<RegistrationFace[]> {
-    return this.http.get<RegistrationFace[]>(this.url(`/api/events/${eventId}/guest-face-descriptors`));
+    return this.http.get<RegistrationFace[]>(
+      this.url(`/api/events/${eventId}/guest-face-descriptors`),
+    );
   }
 
   // ---- Vouchers (airline baggage, golf equipment) ----

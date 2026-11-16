@@ -7,8 +7,18 @@ import { EventsBrowseComponent } from './events-browse';
 
 function event(id: number, title: string, endsAt: string, status = 'Published'): EventDto {
   return {
-    id, title, endsAt, status, startsAt: endsAt, description: '', venue: 'Clubhouse', publicSlug: `ev-${id}`,
-    isFull: false, sessions: [], format: 'Onsite', bannerImage: null,
+    id,
+    title,
+    endsAt,
+    status,
+    startsAt: endsAt,
+    description: '',
+    venue: 'Clubhouse',
+    publicSlug: `ev-${id}`,
+    isFull: false,
+    sessions: [],
+    format: 'Onsite',
+    bannerImage: null,
   } as unknown as EventDto;
 }
 
@@ -23,7 +33,12 @@ describe('Browse Events tabs', () => {
       providers: [
         provideRouter([]),
         ...(opts.tab
-          ? [{ provide: ActivatedRoute, useValue: { queryParamMap: of(convertToParamMap({ tab: opts.tab })) } }]
+          ? [
+              {
+                provide: ActivatedRoute,
+                useValue: { queryParamMap: of(convertToParamMap({ tab: opts.tab })) },
+              },
+            ]
           : []),
         {
           provide: ApiService,
@@ -48,9 +63,12 @@ describe('Browse Events tabs', () => {
 
   const root = () => fixture.nativeElement as HTMLElement;
   const text = () => root().textContent ?? '';
-  const titles = () => Array.from(root().querySelectorAll('.ev-name')).map((h) => h.textContent?.trim());
+  const titles = () =>
+    Array.from(root().querySelectorAll('.ev-name')).map((h) => h.textContent?.trim());
   const filterButton = (label: string) =>
-    Array.from(root().querySelectorAll<HTMLButtonElement>('.pill-tab')).find((b) => b.textContent?.trim() === label)!;
+    Array.from(root().querySelectorAll<HTMLButtonElement>('.pill-tab')).find(
+      (b) => b.textContent?.trim() === label,
+    )!;
   const clickTab = (label: string) => {
     filterButton(label).click();
     fixture.detectChanges();

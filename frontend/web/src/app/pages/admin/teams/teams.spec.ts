@@ -46,7 +46,9 @@ describe('Teams page form', () => {
     name.dispatchEvent(new Event('blur'));
     fixture.detectChanges();
 
-    const icon = fixture.debugElement.query(By.css('mat-form-field:has(input[name="description"]) mat-icon.req'));
+    const icon = fixture.debugElement.query(
+      By.css('mat-form-field:has(input[name="description"]) mat-icon.req'),
+    );
     expect(icon?.injector.get(MatTooltip).message).toBe('At least 2 characters');
   });
 });

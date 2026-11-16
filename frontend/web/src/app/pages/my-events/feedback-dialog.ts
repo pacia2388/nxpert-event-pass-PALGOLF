@@ -1,10 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -54,15 +50,17 @@ export class FeedbackDialogComponent implements OnInit {
   submit(): void {
     if (this.rating() < 1) return;
     this.saving.set(true);
-    this.api.submitFeedback(this.data.eventId, this.rating(), this.comment.trim() || null).subscribe({
-      next: () => {
-        this.toast.success('Thanks for your feedback!');
-        this.ref.close(true);
-      },
-      error: () => {
-        this.saving.set(false);
-        this.toast.error('Could not submit feedback.');
-      },
-    });
+    this.api
+      .submitFeedback(this.data.eventId, this.rating(), this.comment.trim() || null)
+      .subscribe({
+        next: () => {
+          this.toast.success('Thanks for your feedback!');
+          this.ref.close(true);
+        },
+        error: () => {
+          this.saving.set(false);
+          this.toast.error('Could not submit feedback.');
+        },
+      });
   }
 }

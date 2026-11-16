@@ -14,7 +14,10 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { CATEGORY_CONFIRMED_STATE, CategoryWarningService } from '../../core/category-warning.service';
+import {
+  CATEGORY_CONFIRMED_STATE,
+  CategoryWarningService,
+} from '../../core/category-warning.service';
 import { OfflineService } from '../../core/offline.service';
 import { ToastService } from '../../core/toast.service';
 import { EventDto, MealDto } from '../../core/models';
@@ -46,10 +49,19 @@ import { ScheduleComponent } from '../../shared/schedule';
     DynamicFieldsComponent,
   ],
   templateUrl: './public-event.html',
-  styles: [`
-    .edit-response-link { background: none; border: 0; padding: 0; font: inherit;
-      color: var(--mat-sys-primary, #006400); text-decoration: underline; cursor: pointer; }
-  `],
+  styles: [
+    `
+      .edit-response-link {
+        background: none;
+        border: 0;
+        padding: 0;
+        font: inherit;
+        color: var(--mat-sys-primary, #006400);
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    `,
+  ],
 })
 export class PublicEventComponent implements OnInit {
   protected auth = inject(AuthService);
@@ -85,7 +97,6 @@ export class PublicEventComponent implements OnInit {
   faceConsent = false;
   capturedFace = signal<string | null>(null); // JSON 128-float descriptor
   capturedFacePhoto = signal<string | null>(null); // the captured still (jpeg data URL)
-
 
   // Which channel(s) the pass is delivered on (Both = email + Viber). The chosen channel only
   // decides where the pass is sent — email and phone are always collected regardless.
@@ -226,7 +237,13 @@ export class PublicEventComponent implements OnInit {
     }
     this.api.registerForEvent(e.id, ids, dyn?.collect() ?? {}).subscribe({
       next: (res) => {
-        this.showSuccess(res.attendeeName || this.auth.fullName(), true, true, res.created, res.editToken ?? null);
+        this.showSuccess(
+          res.attendeeName || this.auth.fullName(),
+          true,
+          true,
+          res.created,
+          res.editToken ?? null,
+        );
         this.registering.set(false);
       },
       error: (err) => {
@@ -287,7 +304,11 @@ export class PublicEventComponent implements OnInit {
         next: (res) => {
           this.deliveryChannel.set(this.notificationChannel);
           this.showSuccess(
-            this.fullName.trim(), this.usesEmail(), false, res.created, res.editToken ?? null,
+            this.fullName.trim(),
+            this.usesEmail(),
+            false,
+            res.created,
+            res.editToken ?? null,
           );
           this.registering.set(false);
         },
@@ -354,13 +375,16 @@ export class PublicEventComponent implements OnInit {
       // registration instead of hiding the action or creating a second registration.
       if (!token && this.isAccount()) {
         const registrations = await firstValueFrom(this.api.myRegistrations());
-        const matches = registrations.filter((r) => r.eventId === this.event()?.id &&
-          (!this.hasSessions() || this.selectedSessions().has(r.sessionId ?? -1)));
+        const matches = registrations.filter(
+          (r) =>
+            r.eventId === this.event()?.id &&
+            (!this.hasSessions() || this.selectedSessions().has(r.sessionId ?? -1)),
+        );
         token = (matches.find((r) => !r.checkedInAt) ?? matches[0])?.token ?? null;
       } else if (!token) {
-        const result = await firstValueFrom(this.api.resolveEditToken(
-          this.slug, this.senateNo.trim(), this.attendeeName().trim(),
-        ));
+        const result = await firstValueFrom(
+          this.api.resolveEditToken(this.slug, this.senateNo.trim(), this.attendeeName().trim()),
+        );
         token = result.token;
       }
       if (!token) {
@@ -370,8 +394,10 @@ export class PublicEventComponent implements OnInit {
       this.editToken.set(token);
       await this.router.navigate(['/r', token]);
     } catch (err) {
-      this.toast.error((err as { error?: { message?: string } })?.error?.message ??
-        'Could not open your response. Please try again.');
+      this.toast.error(
+        (err as { error?: { message?: string } })?.error?.message ??
+          'Could not open your response. Please try again.',
+      );
     } finally {
       this.editResolving.set(false);
     }

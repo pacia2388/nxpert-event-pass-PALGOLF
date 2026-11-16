@@ -1,5 +1,13 @@
 // Mail planner view models, mapped from the API (dates as Date objects for the calendar views).
-import { InboxMailDto, MailAudienceGroup, MailChannel, MailKind, MailPlanDto, MailPlanSendDto, MailSendStatus } from '../../core/models';
+import {
+  InboxMailDto,
+  MailAudienceGroup,
+  MailChannel,
+  MailKind,
+  MailPlanDto,
+  MailPlanSendDto,
+  MailSendStatus,
+} from '../../core/models';
 
 export type { MailChannel, MailKind, MailSendStatus };
 export type ReminderStatus = 'Upcoming' | 'Due today' | 'Done' | 'Snoozed' | 'Not planned';
@@ -107,7 +115,10 @@ function reminderStatus(done: boolean, snoozed: boolean, remindAt: Date | null):
 }
 
 /** Unique, lower-cased e-mail addresses a selection resolves to today. */
-export function resolveReceivers(groups: MailAudienceGroup[], sel: Pick<ReceiverSelection, 'groupIds' | 'emails'>): string[] {
+export function resolveReceivers(
+  groups: MailAudienceGroup[],
+  sel: Pick<ReceiverSelection, 'groupIds' | 'emails'>,
+): string[] {
   const emails = new Set<string>();
   for (const g of groups) if (sel.groupIds.includes(g.id)) g.emails.forEach((e) => emails.add(e));
   sel.emails.forEach((e) => emails.add(e.toLowerCase()));

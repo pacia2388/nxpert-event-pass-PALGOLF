@@ -43,15 +43,20 @@ export interface KitClaimResult {
 
       <mat-slide-toggle [(ngModel)]="selfClaimed">Self-claimed</mat-slide-toggle>
       <p class="muted kc-hint">
-        On — each person collected their own {{ noun }} (their own name is recorded).
-        Off — one person collected on their behalf; enter that name below.
+        On — each person collected their own {{ noun }} (their own name is recorded). Off — one
+        person collected on their behalf; enter that name below.
       </p>
 
       @if (!selfClaimed()) {
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Claimed by</mat-label>
-          <input matInput [(ngModel)]="claimedBy" maxlength="200" placeholder="Name of the person claiming"
-                 (keyup.enter)="confirm()" />
+          <input
+            matInput
+            [(ngModel)]="claimedBy"
+            maxlength="200"
+            placeholder="Name of the person claiming"
+            (keyup.enter)="confirm()"
+          />
           <mat-icon matSuffix>person</mat-icon>
         </mat-form-field>
       }
@@ -65,10 +70,20 @@ export interface KitClaimResult {
   `,
   styles: [
     `
-      :host { display: block; min-width: min(400px, 82vw); }
-      .kc-intro { margin: 0 0 12px; }
-      .kc-hint { margin: 6px 0 12px; font-size: 12px; }
-      .full-width { width: 100%; }
+      :host {
+        display: block;
+        min-width: min(400px, 82vw);
+      }
+      .kc-intro {
+        margin: 0 0 12px;
+      }
+      .kc-hint {
+        margin: 6px 0 12px;
+        font-size: 12px;
+      }
+      .full-width {
+        width: 100%;
+      }
     `,
   ],
 })

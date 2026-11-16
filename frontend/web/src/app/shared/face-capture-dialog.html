@@ -30,7 +30,11 @@
       <span>{{ hint() }}</span>
     </p>
     @if (guideState() === 'good') {
-      <mat-progress-bar class="hold-bar" mode="determinate" [value]="holdProgress() * 100"></mat-progress-bar>
+      <mat-progress-bar
+        class="hold-bar"
+        mode="determinate"
+        [value]="holdProgress() * 100"
+      ></mat-progress-bar>
     }
     @if (loadingModels()) {
       <p class="muted face-loading">
@@ -38,21 +42,28 @@
       </p>
     } @else {
       <p class="muted" style="text-align: center">
-        Line your face up with the oval — it captures automatically, or tap <strong>Capture</strong>.
+        Line your face up with the oval — it captures automatically, or tap
+        <strong>Capture</strong>.
       </p>
     }
   } @else {
     <p class="muted" style="text-align: center">Face captured. Use it, or retake.</p>
   }
 
-  @if (error()) { <p class="error-text">{{ error() }}</p> }
+  @if (error()) {
+    <p class="error-text">{{ error() }}</p>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="close()">Cancel</button>
   @if (!captured()) {
-    <button mat-flat-button color="primary" (click)="capture()"
-            [disabled]="busy() || loadingModels() || !!cameraError()">
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="capture()"
+      [disabled]="busy() || loadingModels() || !!cameraError()"
+    >
       <mat-icon>photo_camera</mat-icon> Capture
     </button>
   } @else {

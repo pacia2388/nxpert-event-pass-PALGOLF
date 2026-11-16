@@ -1,10 +1,18 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { EventDto } from '../../core/models';
-import { CATEGORY_CONFIRMED_STATE, CategoryWarningService } from '../../core/category-warning.service';
+import {
+  CATEGORY_CONFIRMED_STATE,
+  CategoryWarningService,
+} from '../../core/category-warning.service';
 import { openImageLightbox } from '../../shared/image-lightbox';
 import { ScheduleComponent } from '../../shared/schedule';
 import { canRegister } from './event-tab';
@@ -49,7 +57,10 @@ export class EventDetailsDialogComponent {
     const warn = this.canRegister() && !this.registered;
     if (warn && !(await this.categoryWarning.confirm(this.e.category))) return;
     this.ref.close();
-    this.router.navigate(['/e', this.e.publicSlug], warn ? { state: { [CATEGORY_CONFIRMED_STATE]: true } } : {});
+    this.router.navigate(
+      ['/e', this.e.publicSlug],
+      warn ? { state: { [CATEGORY_CONFIRMED_STATE]: true } } : {},
+    );
   }
 
   goMyEvents(): void {

@@ -8,7 +8,10 @@ import { signIn } from '../helpers/ui';
 // Serial: concurrent admin team-member adds can fail with a 500 (serializable transaction).
 test.describe.configure({ mode: 'serial' });
 
-test('a Regular-team player is warned before registering for a Senior event', async ({ page, adminApi }) => {
+test('a Regular-team player is warned before registering for a Senior event', async ({
+  page,
+  adminApi,
+}) => {
   const event = await createPublishedEvent(adminApi, { category: 'Senior' });
   const player = await createTeamMember(adminApi, 'Regular');
   await signIn(page, player);
@@ -36,7 +39,10 @@ test('a Regular-team player is warned before registering for a Senior event', as
   await expect(page.getByText('Your registration is pending confirmation.')).toBeVisible();
 });
 
-test('a Senior-team player is warned before registering for a Regular event', async ({ page, adminApi }) => {
+test('a Senior-team player is warned before registering for a Regular event', async ({
+  page,
+  adminApi,
+}) => {
   const event = await createPublishedEvent(adminApi, { category: 'Regular' });
   const player = await createTeamMember(adminApi, 'Senior');
   await signIn(page, player);
@@ -46,11 +52,16 @@ test('a Senior-team player is warned before registering for a Regular event', as
   await page.getByRole('button', { name: 'Register for this event' }).click();
 
   await expect(
-    page.getByRole('dialog').getByText('This is a Regular event, but your team is in the Senior category.'),
+    page
+      .getByRole('dialog')
+      .getByText('This is a Regular event, but your team is in the Senior category.'),
   ).toBeVisible();
 });
 
-test('a player whose team category matches registers without a warning', async ({ page, adminApi }) => {
+test('a player whose team category matches registers without a warning', async ({
+  page,
+  adminApi,
+}) => {
   const event = await createPublishedEvent(adminApi, { category: 'Senior' });
   const player = await createTeamMember(adminApi, 'Senior');
   await signIn(page, player);
@@ -74,7 +85,10 @@ test('a player who is not on a team registers without a warning', async ({ page,
   await expect(page.getByText('Your registration is pending confirmation.')).toBeVisible();
 });
 
-test('Register on Browse Events warns once, before the event page opens', async ({ page, adminApi }) => {
+test('Register on Browse Events warns once, before the event page opens', async ({
+  page,
+  adminApi,
+}) => {
   const event = await createPublishedEvent(adminApi, { category: 'Senior' });
   const player = await createTeamMember(adminApi, 'Regular');
   await signIn(page, player);
@@ -109,7 +123,11 @@ test('Register in the Browse Events details dialog warns too', async ({ page, ad
 
   await page.goto('/events');
   await page.getByLabel('Search events').fill(event.title);
-  await page.locator('article').filter({ hasText: event.title }).getByRole('button', { name: 'Details' }).click();
+  await page
+    .locator('article')
+    .filter({ hasText: event.title })
+    .getByRole('button', { name: 'Details' })
+    .click();
   await page.getByRole('dialog').getByRole('button', { name: 'Register' }).click();
 
   await expect(
