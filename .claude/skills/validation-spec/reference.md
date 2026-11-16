@@ -168,7 +168,7 @@ Annotate every request DTO and let `[ApiController]` auto-return `400 ProblemDet
 |------|---------|-------|
 | Login: wrong credentials → 401, no user-enumeration | ✅ | Keep generic message. |
 | Register: duplicate email → 409 | ✅ | Also enforce email format (L2). |
-| Password rule (8–128, letter+digit+symbol, not the email) on sign-up, team link and My Account | ✅ | `PasswordRules`. Admin user master still checks length only. |
+| Password rule (8–128, letter+digit+symbol, not the email) on sign-up, team link, My Account and the admin user master | ✅ | `PasswordRules`; the web forms show a checklist (`app-password-requirements`). |
 | Event title 3–300 and **End > Start** on create/edit | ✅ | `EventsController.ValidateTitleAndSchedule`. Sub-event dates not yet checked. |
 | Event registration blocked when **Closed** | ✅ | |
 | Event registration blocked when **Full** (capacity) | ✅ | ⚠️ **race condition**: two concurrent registrations can both pass the count check and exceed capacity. Add a transaction + re-check, or a DB-level guard. |
