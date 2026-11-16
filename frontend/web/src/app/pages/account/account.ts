@@ -19,6 +19,7 @@ import { AuthService } from '../../core/auth.service';
 import { NotificationChannel, ProfileUpdate } from '../../core/models';
 import { FaceCaptureDialogComponent, FaceCaptureResult } from '../../shared/face-capture-dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { isValidPassword, PASSWORD_HINT, PASSWORD_PATTERN } from '../../shared/password';
 import {
   BIRTHDATE_MIN,
   birthdateMax,
@@ -95,6 +96,8 @@ export class AccountComponent implements OnInit {
   // Optional password change
   currentPassword = '';
   newPassword = '';
+  readonly passwordPattern = PASSWORD_PATTERN;
+  readonly passwordHint = PASSWORD_HINT;
 
   previewPhoto = () => this.newPhoto() ?? (this.clearPhoto() ? null : this.existingPhoto());
 
@@ -204,7 +207,7 @@ export class AccountComponent implements OnInit {
 
   get valid(): boolean {
     const names = !!this.firstName.trim() && !!this.lastName.trim();
-    const pwOk = !this.newPassword || (this.newPassword.length >= 8 && !!this.currentPassword);
+    const pwOk = !this.newPassword || (isValidPassword(this.newPassword) && !!this.currentPassword);
     const phoneOk = this.phone ? this.countries.isValid(this.phone) : !this.phoneRequired();
     return names && pwOk && phoneOk && isValidBirthdate(this.birthdate);
   }

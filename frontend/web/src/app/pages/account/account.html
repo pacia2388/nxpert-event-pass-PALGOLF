@@ -184,10 +184,19 @@
               type="password"
               name="newPassword"
               [(ngModel)]="newPassword"
+              #newPwdCtrl="ngModel"
               minlength="8"
+              maxlength="128"
+              [pattern]="passwordPattern"
               autocomplete="new-password"
             />
-            <mat-hint>At least 8 characters.</mat-hint>
+            <mat-hint>{{ passwordHint }}</mat-hint>
+            @if (newPwdCtrl.hasError('minlength')) {
+              <mat-error>Password must be at least 8 characters.</mat-error>
+            }
+            @if (!newPwdCtrl.hasError('minlength') && newPwdCtrl.hasError('pattern')) {
+              <mat-error>Include at least one letter, one number and one symbol.</mat-error>
+            }
           </mat-form-field>
         </div>
 

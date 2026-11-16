@@ -147,10 +147,10 @@
               required
               minlength="8"
               maxlength="128"
-              pattern="^(?=.*[A-Za-z])(?=.*\d).+$"
+              [pattern]="passwordPattern"
               autocomplete="new-password"
             />
-            <mat-hint>At least 8 characters, with a letter and a number.</mat-hint>
+            <mat-hint>{{ passwordHint }}</mat-hint>
             @if (pwdCtrl.hasError('required')) {
               <mat-error>Password is required.</mat-error>
             }
@@ -158,7 +158,7 @@
               <mat-error>Password must be at least 8 characters.</mat-error>
             }
             @if (!pwdCtrl.hasError('minlength') && pwdCtrl.hasError('pattern')) {
-              <mat-error>Include at least one letter and one number.</mat-error>
+              <mat-error>Include at least one letter, one number and one symbol.</mat-error>
             }
           </mat-form-field>
 

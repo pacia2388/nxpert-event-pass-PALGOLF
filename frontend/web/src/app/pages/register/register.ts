@@ -14,6 +14,7 @@ import { AuthService, RegisterBody } from '../../core/auth.service';
 import { ApiService } from '../../core/api.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { BIRTHDATE_MIN, birthdateMax, isValidBirthdate, toIsoDate } from '../../shared/birthdate';
+import { PASSWORD_HINT, PASSWORD_PATTERN } from '../../shared/password';
 
 @Component({
   selector: 'app-register',
@@ -52,6 +53,8 @@ export class RegisterComponent implements OnInit {
   level = '';
   email = '';
   password = '';
+  readonly passwordPattern = PASSWORD_PATTERN;
+  readonly passwordHint = PASSWORD_HINT;
   phone: string | null = null; // "+<code><number>" from the phone field (optional)
   protected countries = inject(PhoneCountryService);
   organization = '';
