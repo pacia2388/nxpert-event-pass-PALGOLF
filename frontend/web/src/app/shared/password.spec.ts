@@ -15,6 +15,7 @@ describe('choosing a password', () => {
     ['no symbol', 'Passw0rd1'],
     ['a space as the only non-letter, non-digit', 'Pass w0rd1'],
     ['an accented letter as the only non-letter, non-digit', 'Passw0rdñ'],
+    ['an ñ typed as n plus a combining tilde, with no symbol', 'Passw0rdñ'],
     ['no digit', 'Password!'],
     ['no letter', '1234567!'],
     ['under 8 characters', 'Pa1!xyz'],
@@ -22,6 +23,12 @@ describe('choosing a password', () => {
     ['nothing', ''],
   ])('refuses %s', (_label, password) => {
     expect(isValidPassword(password)).toBe(false);
+  });
+
+  it('counts the length of ñ the same whichever way the tilde is typed', () => {
+    // 7 characters once the tilde joins the n, as the API counts them.
+    expect(isValidPassword('ab1!ñcd')).toBe(false);
+    expect(isValidPassword('ab1!ñcde')).toBe(true);
   });
 
   it('refuses the email, whatever its case, once the email is known', () => {
