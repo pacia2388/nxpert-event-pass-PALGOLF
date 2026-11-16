@@ -362,7 +362,38 @@ public class TeamsController : ControllerBase
     // The one place a member row is written. The member cap and the one-team-per-user rule are
     // checked inside a serializable transaction so two concurrent adds cannot overfill a team, and
     // a new account is only saved together with its membership (a full team leaves no orphan user).
+    // Concurrent adds can deadlock on the serializable range locks; SQL Server then rolls back one
+    // of them (error 1205), which is retried from the start so the rules are checked again.
+    private const int AddMemberAttempts = 10;
+
     private async Task<ActionResult<TeamMemberAddResult>> AddMemberAsync(int teamId, User user, bool isNew)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await TryAddMemberAsync(teamId, user, isNew);
+            }
+            catch (Exception ex) when (IsDeadlock(ex))
+            {
+                // Forget the rolled-back inserts (the membership, and a new account) before retrying.
+                foreach (var entry in _db.ChangeTracker.Entries().Where(e => e.State == EntityState.Added).ToList())
+                    entry.State = EntityState.Detached;
+                if (attempt == AddMemberAttempts)
+                    return Conflict(new { message = "The team is busy. Please try again." });
+                await Task.Delay(Random.Shared.Next(10, 50) * attempt);
+            }
+        }
+    }
+
+    private static bool IsDeadlock(Exception? ex)
+    {
+        for (; ex is not null; ex = ex.InnerException)
+            if (ex is Microsoft.Data.SqlClient.SqlException { Number: 1205 }) return true;
+        return false;
+    }
+
+    private async Task<ActionResult<TeamMemberAddResult>> TryAddMemberAsync(int teamId, User user, bool isNew)
     {
         await using var tx = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
@@ -395,7 +426,7 @@ public class TeamsController : ControllerBase
             await _db.SaveChangesAsync();
             await tx.CommitAsync();
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex) when (!IsDeadlock(ex))
         {
             return Conflict(new { message = "Could not add this member. Please try again." });
         }
