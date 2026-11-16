@@ -49,7 +49,7 @@ public static class EventFormats
     public static bool HasVenue(string? f) => f != Online;
 }
 
-// Who an event is for. null = no category (everyone). Senior = 65 and older.
+// Who an event is for. null = no category (everyone). Compared with the player's team category.
 public static class EventCategories
 {
     public const string Senior = "Senior";
@@ -215,7 +215,7 @@ public class Event
     // Calendar-invite revision (iCalendar SEQUENCE). Bumped whenever an online event's time,
     // title or link changes, so re-sent invites replace the earlier calendar entry.
     public int InviteSequence { get; set; }
-    // Who the event is for: Senior (65+), Regular, or null (no category). See EventCategories.
+    // Who the event is for: Senior, Regular, or null (no category). See EventCategories.
     [MaxLength(10)] public string? Category { get; set; }
     public DateTime CreatedAt { get; set; }
 

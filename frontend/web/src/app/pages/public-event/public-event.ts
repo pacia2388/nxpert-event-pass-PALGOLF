@@ -14,8 +14,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { ConfirmService } from '../../core/confirm.service';
-import { categoryAgeWarning } from '../../core/event-category';
+import { CATEGORY_CONFIRMED_STATE, CategoryWarningService } from '../../core/category-warning.service';
 import { OfflineService } from '../../core/offline.service';
 import { ToastService } from '../../core/toast.service';
 import { EventDto, MealDto } from '../../core/models';
@@ -61,7 +60,9 @@ export class PublicEventComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private toast = inject(ToastService);
-  private confirmer = inject(ConfirmService);
+  private categoryWarning = inject(CategoryWarningService);
+  // Set when the player already chose "Register anyway" on Browse Events: don't ask twice.
+  private categoryConfirmed = !!history.state?.[CATEGORY_CONFIRMED_STATE];
   private dialog = inject(MatDialog);
 
   slug = '';
@@ -177,7 +178,6 @@ export class PublicEventComponent implements OnInit {
     this.api.getPublicEvent(this.slug).subscribe({
       next: (e) => {
         this.event.set(e);
-        if (e.category) this.auth.myBirthdate(); // warm the session cache so Register doesn't wait
         this.loading.set(false);
       },
       error: (err) => {
@@ -220,7 +220,7 @@ export class PublicEventComponent implements OnInit {
       return;
     }
     this.registering.set(true);
-    if (!(await this.confirmCategoryAge(e.category))) {
+    if (!this.categoryConfirmed && !(await this.categoryWarning.confirm(e.category))) {
       this.registering.set(false);
       return;
     }
@@ -233,20 +233,6 @@ export class PublicEventComponent implements OnInit {
         this.registering.set(false);
         this.toast.error(err?.error?.message ?? 'Registration failed. Please try again.');
       },
-    });
-  }
-
-  // Senior (65+) / Regular events: warn a player whose age doesn't match before registering.
-  // Resolves true to go ahead. No category or no birthdate on file → no warning.
-  private async confirmCategoryAge(category: EventDto['category']): Promise<boolean> {
-    if (!category) return true;
-    const message = categoryAgeWarning(category, await this.auth.myBirthdate());
-    if (!message) return true;
-    return this.confirmer.confirm({
-      title: category === 'Senior' ? 'This event is for seniors' : 'This event is for regular players',
-      message: `${message} Register anyway?`,
-      confirmText: 'Register anyway',
-      tone: 'warning',
     });
   }
 

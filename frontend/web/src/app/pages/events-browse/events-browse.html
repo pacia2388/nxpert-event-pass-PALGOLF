@@ -112,10 +112,17 @@
               <mat-icon>check_circle</mat-icon> Registered
             </a>
           } @else {
-            <a class="ev-btn solid" [routerLink]="['/e', e.publicSlug]">
-              <mat-icon>{{ canRegister(e) ? 'how_to_reg' : 'visibility' }}</mat-icon>
-              {{ !canRegister(e) ? 'View' : (isRegistered(e) ? 'Add sub-event' : 'Register') }}
-            </a>
+            @if (canRegister(e) && !isRegistered(e)) {
+              <!-- Not routerLink: the category warning must be answered before navigating. -->
+              <a class="ev-btn solid" [href]="eventHref(e)" (click)="register(e, $event)">
+                <mat-icon>how_to_reg</mat-icon> Register
+              </a>
+            } @else {
+              <a class="ev-btn solid" [routerLink]="['/e', e.publicSlug]">
+                <mat-icon>{{ canRegister(e) ? 'how_to_reg' : 'visibility' }}</mat-icon>
+                {{ canRegister(e) ? 'Add sub-event' : 'View' }}
+              </a>
+            }
           }
         </div>
       </article>

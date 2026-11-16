@@ -70,9 +70,11 @@ it**, fees, schedule and meal stubs.
 
 - **Signed in:** your **name** and **ID No.** come from your account (read-only) — click
   **Register for this event**.
-  - On a **Senior** event (65 and older) when you're under 65, or a **Regular** event (under 65)
-    when you're 65 or older, a warning asks you to confirm — **Cancel** or **Register anyway**.
-    Your age comes from the birthdate in **My Account**; with no birthdate there is no warning.
+  - On a **Senior** event when your team is **Regular**, or a **Regular** event when your team is
+    **Senior**, a **Different category** warning asks you to confirm — **Cancel** or **Register
+    anyway**. If you're not on a team there is no warning. The same warning shows when you click
+    **Register** on a **Browse Events** card or in its **Details**; after **Register anyway** there,
+    the event page doesn't ask again.
 - **Not signed in (guest):** fill in
   - **Full name** and **ID No.**
   - **Send my pass via** — Email, Viber, or Both

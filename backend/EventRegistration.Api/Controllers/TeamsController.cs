@@ -202,6 +202,20 @@ public class TeamsController : ControllerBase
         return team is null ? NoContent() : Ok(ToDetailDto(team));
     }
 
+    // Just the category of the caller's team, for the event-category registration warning.
+    // 204 when the caller leads or belongs to no team.
+    [HttpGet("mine/category")]
+    [Authorize(Roles = Roles.Captain + "," + Roles.Participant)]
+    public async Task<ActionResult<TeamCategoryDto>> MineCategory()
+    {
+        var userId = this.UserId();
+        var category = await _db.Teams
+            .Where(t => t.TeamLeadUserId == userId || t.Members.Any(m => m.UserId == userId))
+            .Select(t => t.Category)
+            .FirstOrDefaultAsync();
+        return category is null ? NoContent() : Ok(new TeamCategoryDto(category));
+    }
+
     // Add a Participant to the caller's team by name + email. An email that is not in the system
     // creates the account (role Participant, default temporary password); an existing Participant
     // just joins. The role is never taken from input.

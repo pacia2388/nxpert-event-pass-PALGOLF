@@ -5,61 +5,66 @@ import { AuthService } from './auth.service';
 import { AuthResponse } from './models';
 
 // A signed-in session whose token never expires (exp far in the future).
-function session(): AuthResponse {
+function session(role = 'Participant'): AuthResponse {
   const payload = btoa(JSON.stringify({ exp: 4102444800 }));
-  return { token: `h.${payload}.s` } as AuthResponse;
+  return { token: `h.${payload}.s`, role } as AuthResponse;
 }
 
-describe("the signed-in player's birthdate", () => {
-  let auth: AuthService;
+describe("the signed-in player's team category", () => {
   let http: HttpTestingController;
 
-  beforeEach(() => {
-    localStorage.setItem('evt_auth', JSON.stringify(session()));
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
-    auth = TestBed.inject(AuthService);
+  function signInAs(role: string): AuthService {
+    localStorage.setItem('evt_auth', JSON.stringify(session(role)));
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     http = TestBed.inject(HttpTestingController);
-  });
+    return TestBed.inject(AuthService);
+  }
 
   afterEach(() => {
     http.verify();
     localStorage.clear();
   });
 
-  it('is fetched once per session', async () => {
-    const first = auth.myBirthdate();
-    http.expectOne((r) => r.url.endsWith('/api/auth/me')).flush({ birthdate: '1990-01-31' });
+  it.each(['Participant', 'Captain'])("is the category of a %s's team", async (role) => {
+    const auth = signInAs(role);
+    const category = auth.myTeamCategory();
+    http.expectOne((r) => r.url.endsWith('/api/teams/mine/category')).flush({ category: 'Senior' });
 
-    expect(await first).toBe('1990-01-31');
-    expect(await auth.myBirthdate()).toBe('1990-01-31');
-    http.expectNone((r) => r.url.endsWith('/api/auth/me'));
+    expect(await category).toBe('Senior');
   });
 
-  it('is fetched again after a failed attempt', async () => {
-    const failed = auth.myBirthdate();
-    http.expectOne((r) => r.url.endsWith('/api/auth/me')).flush(null, { status: 0, statusText: 'offline' });
-    expect(await failed).toBeNull();
+  it('is null for a player who is not on a team', async () => {
+    const auth = signInAs('Participant');
+    const category = auth.myTeamCategory();
+    http
+      .expectOne((r) => r.url.endsWith('/api/teams/mine/category'))
+      .flush(null, { status: 204, statusText: 'No Content' });
 
-    const retried = auth.myBirthdate();
-    http.expectOne((r) => r.url.endsWith('/api/auth/me')).flush({ birthdate: '1950-01-02' });
-    expect(await retried).toBe('1950-01-02');
+    expect(await category).toBeNull();
   });
 
-  it('is fetched again after the profile changes', async () => {
-    const before = auth.myBirthdate();
-    http.expectOne((r) => r.url.endsWith('/api/auth/me')).flush({ birthdate: '1990-01-31' });
-    await before;
+  it('is null when the team cannot be loaded', async () => {
+    const auth = signInAs('Participant');
+    const category = auth.myTeamCategory();
+    http
+      .expectOne((r) => r.url.endsWith('/api/teams/mine/category'))
+      .flush(null, { status: 0, statusText: 'offline' });
 
-    auth.applyProfileUpdate(session());
+    expect(await category).toBeNull();
+  });
 
-    const after = auth.myBirthdate();
-    http.expectOne((r) => r.url.endsWith('/api/auth/me')).flush({ birthdate: '1960-03-01' });
-    expect(await after).toBe('1960-03-01');
+  it('is null without a request for roles that have no team', async () => {
+    const auth = signInAs('Admin');
+
+    expect(await auth.myTeamCategory()).toBeNull();
   });
 
   it('is null without a request when nobody is signed in', async () => {
+    const auth = signInAs('Participant');
     auth.logout();
 
-    expect(await auth.myBirthdate()).toBeNull();
+    expect(await auth.myTeamCategory()).toBeNull();
   });
 });

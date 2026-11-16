@@ -12,6 +12,8 @@ public record TeamDto(
 public record TeamDetailDto(
     int Id, string Description, string Category, int TeamLeadUserId, string TeamLeadName,
     int MemberCount, int MaxMembers, DateTime CreatedAt, List<TeamMemberDto> Members);
+// The caller's team category only (event-category registration warning).
+public record TeamCategoryDto(string Category);
 public record TeamUpsertRequest(
     [StringLength(200)] string Description, [StringLength(20)] string Category,
     [Range(1, int.MaxValue)] int TeamLeadUserId);
