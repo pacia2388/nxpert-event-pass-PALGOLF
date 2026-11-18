@@ -12,21 +12,30 @@ namespace EventRegistration.Api.Controllers;
 public class SettingsController : ControllerBase
 {
     private readonly SettingsService _settings;
-    public SettingsController(SettingsService settings) => _settings = settings;
+    private readonly MobileMessenger _mobile;
+
+    public SettingsController(SettingsService settings, MobileMessenger mobile)
+    {
+        _settings = settings;
+        _mobile = mobile;
+    }
+
+    private bool CanSwitch => _mobile.ViberReady && _mobile.SmsReady;
+
+    private async Task<AppSettingsDto> DtoAsync(List<string> cc) =>
+        new(cc, await _mobile.ActiveProviderAsync(), _mobile.ViberReady, _mobile.SmsReady);
 
     [HttpGet]
     public async Task<ActionResult<AppSettingsDto>> Get()
     {
-        var cc = await _settings.GetEmailCcAsync();
-        var provider = MobileProviders.Normalize(await _settings.GetAsync(SettingKeys.MobileProvider));
-        return Ok(new AppSettingsDto(cc, provider));
+        return Ok(await DtoAsync(await _settings.GetEmailCcAsync()));
     }
 
     // Which service carries mobile messages ("Viber" or "Sms"), so forms can label the mobile
     // channel. Public: the registration form and account page need it.
     [HttpGet("mobile-channel"), AllowAnonymous]
     public async Task<ActionResult<MobileChannelDto>> MobileChannel() =>
-        Ok(new MobileChannelDto(MobileProviders.Normalize(await _settings.GetAsync(SettingKeys.MobileProvider))));
+        Ok(new MobileChannelDto(await _mobile.ActiveProviderAsync()));
 
     [HttpPut]
     public async Task<ActionResult<AppSettingsDto>> Update(UpdateSettingsRequest req)
@@ -45,11 +54,13 @@ public class SettingsController : ControllerBase
 
         if (req.MobileProvider is not null && !MobileProviders.IsValid(req.MobileProvider))
             return BadRequest(new { message = "Mobile provider must be 'Viber' or 'Sms'." });
-        var provider = MobileProviders.Normalize(req.MobileProvider);
+        // The channel can be chosen only when both services are set up; otherwise the stored choice
+        // is left alone (the set-up service is used whatever it says).
+        if (req.MobileProvider is not null && CanSwitch)
+            await _settings.SetAsync(SettingKeys.MobileProvider, MobileProviders.Normalize(req.MobileProvider));
 
         await _settings.SetAsync(SettingKeys.EmailCc, string.Join(",", cleaned));
-        await _settings.SetAsync(SettingKeys.MobileProvider, provider);
-        return Ok(new AppSettingsDto(cleaned, provider));
+        return Ok(await DtoAsync(cleaned));
     }
 
     private static bool IsValidEmail(string email) =>

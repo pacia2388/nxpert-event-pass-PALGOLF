@@ -48,14 +48,29 @@
         edit-link and broadcast messages) are delivered to registrants who chose a phone channel.
         Email delivery is unaffected.
       </p>
-      <mat-button-toggle-group
-        [value]="mobileProvider()"
-        (change)="mobileProvider.set($event.value)"
-        aria-label="Mobile notification provider"
-      >
-        <mat-button-toggle value="Viber"><mat-icon>chat</mat-icon> Viber</mat-button-toggle>
-        <mat-button-toggle value="Sms"><mat-icon>sms</mat-icon> SMS</mat-button-toggle>
-      </mat-button-toggle-group>
+      @if (canSwitch()) {
+        <mat-button-toggle-group
+          [value]="mobileProvider()"
+          (change)="mobileProvider.set($event.value)"
+          aria-label="Mobile notification provider"
+        >
+          <mat-button-toggle value="Viber"><mat-icon>chat</mat-icon> Viber</mat-button-toggle>
+          <mat-button-toggle value="Sms"><mat-icon>sms</mat-icon> SMS</mat-button-toggle>
+        </mat-button-toggle-group>
+      } @else {
+        <p class="mobile-current">
+          <mat-icon>{{ mobileProvider() === 'Sms' ? 'sms' : 'chat' }}</mat-icon>
+          Phone messages are sent by <strong>{{ providerName() }}</strong>.
+        </p>
+        <p class="muted section-sub">
+          @if (providerDown()) {
+            {{ providerName() }} is not set up yet, so phone messages go by email for now.
+          } @else {
+            Only {{ providerName() }} is set up, so it is used for all phone messages.
+          }
+          You can choose between Viber and SMS once both are set up.
+        </p>
+      }
       <p class="muted section-sub mobile-note">
         Viber sends the QR entry pass as a picture; registrants need the Viber app. SMS is text
         only: it may include a link to open the QR entry pass, and registrants can always use the QR

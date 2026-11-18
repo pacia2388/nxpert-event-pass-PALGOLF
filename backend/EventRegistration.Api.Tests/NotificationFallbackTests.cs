@@ -176,7 +176,7 @@ public class OutboxRuleTests : IDisposable
     [InlineData("Production", DeliveryResult.NotConfigured, false)]
     public async Task Viber_off(string env, DeliveryResult expected, bool written)
     {
-        var viber = new ViberService(new ViberSettings(), NullLogger<ViberService>.Instance, new Env(_root, env));
+        var viber = new SinchViberService(new ViberSettings(), NullLogger<SinchViberService>.Instance, new Env(_root, env));
 
         Assert.Equal(expected, await viber.SendTextAsync("+639171234567", "Hi", "Hello"));
         Assert.Equal(written, OutboxFiles > 0);
@@ -208,13 +208,28 @@ public class OutboxRuleTests : IDisposable
     [Fact]
     public async Task Viber_on_but_failing_writes_the_outbox_and_reports_failed()
     {
-        // An unreachable gateway: the send fails, the message is kept in outbox/.
-        var viber = new ViberService(new ViberSettings { Enabled = true, BaseUrl = "http://127.0.0.1:9", ApiKey = "k", Sender = "s" },
-            NullLogger<ViberService>.Instance, new Env(_root, "Production"));
+        // Sinch refuses the send: the message is kept in outbox/.
+        var viber = new SinchViberService(
+            new ViberSettings { Enabled = true, ProjectId = "p", KeyId = "k", KeySecret = "s", AppId = "a", Region = "us" },
+            NullLogger<SinchViberService>.Instance, new Env(_root, "Production"), new FailingSinch());
 
         Assert.Equal(DeliveryResult.Failed, await viber.SendTextAsync("+639171234567", "Hi", "Hello"));
         Assert.True(OutboxFiles > 0);
     }
+}
+
+// A Sinch client whose every call fails, as when Sinch is unreachable or rejects the request.
+file sealed class FailingSinch : Sinch.ISinchClient
+{
+    private static Exception Down => new HttpRequestException("Sinch unreachable");
+    public Sinch.Auth.ISinchAuth Auth => throw Down;
+    public Sinch.Numbers.ISinchNumbers Numbers => throw Down;
+    public Sinch.SMS.ISinchSms Sms => throw Down;
+    public Sinch.Conversation.ISinchConversation Conversation => throw Down;
+    public Sinch.Fax.ISinchFax Fax => throw Down;
+    public Sinch.Verification.ISinchVerificationClient Verification(string appKey, string appSecret,
+        Sinch.Auth.AuthStrategy authStrategy) => throw Down;
+    public Sinch.Voice.ISinchVoiceClient Voice(string appKey, string appSecret, Sinch.Voice.VoiceRegion voiceRegion) => throw Down;
 }
 
 // End to end through the API (environment "Testing", so every turned-off channel is skipped).
@@ -235,7 +250,7 @@ public class NotificationFallbackApiTests(ApiFixture api)
         var e = api.Services.GetRequiredService<EmailSettings>();
         var v = api.Services.GetRequiredService<ViberSettings>();
         var s = api.Services.GetRequiredService<SmsSettings>();
-        Assert.All(new[] { e.Host, e.Password, v.BaseUrl, v.ApiKey, s.BaseUrl, s.ApiKey, s.ApiSecret }, Assert.Empty);
+        Assert.All(new[] { e.Host, e.Password, v.ProjectId, v.KeyId, v.KeySecret, v.AppId, s.BaseUrl, s.ApiKey, s.ApiSecret }, Assert.Empty);
         Assert.All(new[] { e.TestSendDir, v.TestSendDir, s.TestSendDir },
             d => Assert.StartsWith(ApiFixture.SentRoot, d));
     }
@@ -334,6 +349,31 @@ public class NotificationFallbackApiTests(ApiFixture api)
         var body = await api.Anonymous().GetFromJsonAsync<JsonElement>("/api/settings/mobile-channel");
 
         Assert.Contains(body.GetProperty("mobileProvider").GetString(), new[] { "Viber", "Sms" });
+    }
+
+    [Fact]
+    public async Task With_only_SMS_set_up_SMS_is_used_and_the_admin_cannot_switch()
+    {
+        // SMS looks set up (sends still go to test/sent); Viber stays off.
+        var s = api.Services.GetRequiredService<SmsSettings>();
+        (s.Enabled, s.BaseUrl, s.ApiKey, s.Sender) = (true, "http://127.0.0.1:9", "k", "s");
+        try
+        {
+            var admin = await api.AdminAsync();
+            var put = await admin.PutAsJsonAsync("/api/settings", new { ccEmails = Array.Empty<string>(), mobileProvider = "Viber" });
+            put.EnsureSuccessStatusCode();
+            var body = await put.Content.ReadFromJsonAsync<JsonElement>();
+
+            Assert.Equal("Sms", body.GetProperty("mobileProvider").GetString());
+            Assert.False(body.GetProperty("viberReady").GetBoolean());
+            Assert.True(body.GetProperty("smsReady").GetBoolean());
+            var label = await api.Anonymous().GetFromJsonAsync<JsonElement>("/api/settings/mobile-channel");
+            Assert.Equal("Sms", label.GetProperty("mobileProvider").GetString());
+        }
+        finally
+        {
+            (s.Enabled, s.BaseUrl, s.ApiKey, s.Sender) = (false, "", "", "");
+        }
     }
 
     // EmailService whose sends always fail, to exercise EmailSender's queue.

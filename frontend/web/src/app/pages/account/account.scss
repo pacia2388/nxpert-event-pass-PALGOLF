@@ -7,3 +7,8 @@
   font-size: 13px;
   color: var(--mat-sys-error);
 }
+
+// Its hint fills the space below, so the next row's floating label would overlap it.
+.email-field {
+  margin-bottom: 12px;
+}

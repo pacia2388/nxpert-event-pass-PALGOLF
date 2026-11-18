@@ -12,13 +12,13 @@ namespace EventRegistration.Api.Controllers;
 public class EventsController : ControllerBase
 {
     private readonly AppDbContext _db;
-    private readonly ViberService _viber;
+    private readonly SinchViberService _viber;
     private readonly PassService _pass;
     private readonly ILogger<EventsController> _log;
     private readonly CalendarInvitationNotifier _calendars;
     private readonly EmailSender _email;
     private readonly NotificationService _notify;
-    public EventsController(AppDbContext db, ViberService viber, PassService pass, ILogger<EventsController> log,
+    public EventsController(AppDbContext db, SinchViberService viber, PassService pass, ILogger<EventsController> log,
         CalendarInvitationNotifier calendars, EmailSender email, NotificationService notify)
     {
         _email = email;
@@ -726,7 +726,7 @@ public class EventsController : ControllerBase
 
         return rows
             .Where(x => !string.IsNullOrWhiteSpace(x.Phone) && NotificationChannels.UsesViber(x.Channel))
-            .Select(x => (Phone: ViberService.NormalizePhone(x.Phone!), Email: string.IsNullOrWhiteSpace(x.Email) ? null : x.Email.Trim()))
+            .Select(x => (Phone: SinchViberService.NormalizePhone(x.Phone!), Email: string.IsNullOrWhiteSpace(x.Email) ? null : x.Email.Trim()))
             .Where(x => x.Phone.Length > 0)
             .GroupBy(x => x.Phone)
             .Select(g => (g.Key, g.Select(x => x.Email).FirstOrDefault(e => e is not null)))

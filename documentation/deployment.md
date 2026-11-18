@@ -103,9 +103,21 @@ never commit this file.
     "FromAddress": "<from address>"
   },
   "FaceEngine": { "ApiKey": "<shared face engine key, see 1.3>" },
-  // Email when a Viber / SMS message fails (default true). Set false when the provider falls
-  // back on its side (e.g. Infobip Viber -> SMS), so registrants don't get the message twice.
-  "Viber": { "FallbackToEmail": true },
+  // Viber goes through Sinch (Conversation API, Viber Business Messages channel).
+  // Region = the Conversation app's region: "us", "eu" or "br" (one value).
+  // PublicApiBaseUrl = public HTTPS API address Sinch fetches QR/stub images from.
+  // FallbackToEmail: email when a Viber / SMS message fails (default true). Set false when the
+  // provider falls back on its side, so registrants don't get the message twice.
+  "Viber": {
+    "Enabled": true,
+    "ProjectId": "<sinch project id>",
+    "KeyId": "<sinch access key id>",
+    "KeySecret": "<sinch access key secret>",
+    "AppId": "<conversation app id>",
+    "Region": "us",
+    "PublicApiBaseUrl": "https://SERVER:5001",
+    "FallbackToEmail": true
+  },
   "Sms": { "FallbackToEmail": true },
   "App": {
     "FrontendBaseUrl": "https://SERVER",

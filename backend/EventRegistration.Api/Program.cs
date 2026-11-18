@@ -36,7 +36,8 @@ builder.Services.AddSingleton<PastedImageFetcher>();
 builder.Services.AddHostedService<MailPlanScheduler>();
 var viberSettings = builder.Configuration.GetSection("Viber").Get<ViberSettings>() ?? new ViberSettings();
 builder.Services.AddSingleton(viberSettings);
-builder.Services.AddScoped<ViberService>();
+// Singleton: the Sinch client inside caches its token and connections.
+builder.Services.AddSingleton<SinchViberService>();
 var smsSettings = builder.Configuration.GetSection("Sms").Get<SmsSettings>() ?? new SmsSettings();
 builder.Services.AddSingleton(smsSettings);
 builder.Services.AddScoped<SmsService>();

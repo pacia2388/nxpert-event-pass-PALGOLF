@@ -895,7 +895,10 @@ export interface CountryCodeInfo {
 
 export interface AppSettingsDto {
   ccEmails: string[];
+  /** The channel in use: the admin's choice when both are set up, else the one that is. */
   mobileProvider: MobileProvider;
+  viberReady: boolean;
+  smsReady: boolean;
 }
 
 export interface FeedbackDto {

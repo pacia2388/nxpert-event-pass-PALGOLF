@@ -11,7 +11,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ApiService } from '../../../core/api.service';
 import { ToastService } from '../../../core/toast.service';
-import { MobileProvider, PhoneCountry } from '../../../core/models';
+import { AppSettingsDto, MobileProvider, PhoneCountry } from '../../../core/models';
 import { PhoneCountryService } from '../../../core/phone-country.service';
 import { ConfirmService } from '../../../core/confirm.service';
 
@@ -47,6 +47,12 @@ import { ConfirmService } from '../../../core/confirm.service';
       }
       .mobile-head {
         margin-top: 24px;
+      }
+      .mobile-current {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
       }
       .mobile-note {
         margin-top: 12px;
@@ -100,18 +106,34 @@ export class SettingsComponent implements OnInit {
   inputError = signal<string | null>(null);
   // Which transport delivers phone notifications (entry pass, kit-claim, edit link).
   mobileProvider = signal<MobileProvider>('Viber');
+  // Which services are set up on the server; the admin can choose only when both are.
+  viberReady = signal(false);
+  smsReady = signal(false);
+  canSwitch = computed(() => this.viberReady() && this.smsReady());
+  // Plain name of the channel in use, for the "currently used" note.
+  providerName = computed(() => (this.mobileProvider() === 'Sms' ? 'SMS' : 'Viber'));
+  // The channel in use is not set up, so phone messages go by email.
+  providerDown = computed(() =>
+    this.mobileProvider() === 'Sms' ? !this.smsReady() : !this.viberReady(),
+  );
 
   private static readonly EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   ngOnInit(): void {
     this.api.getSettings().subscribe({
       next: (s) => {
-        this.ccEmails.set(s.ccEmails ?? []);
-        this.mobileProvider.set(s.mobileProvider ?? 'Viber');
+        this.apply(s);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  private apply(s: AppSettingsDto): void {
+    this.ccEmails.set(s.ccEmails ?? []);
+    this.mobileProvider.set(s.mobileProvider ?? 'Viber');
+    this.viberReady.set(!!s.viberReady);
+    this.smsReady.set(!!s.smsReady);
   }
 
   // Add one or more addresses (the chip input may deliver a comma/space separated paste).
@@ -142,8 +164,7 @@ export class SettingsComponent implements OnInit {
     this.saving.set(true);
     this.api.updateSettings(this.ccEmails(), this.mobileProvider()).subscribe({
       next: (s) => {
-        this.ccEmails.set(s.ccEmails ?? []);
-        this.mobileProvider.set(s.mobileProvider ?? 'Viber');
+        this.apply(s);
         this.saving.set(false);
         this.toast.success('Settings saved.');
       },

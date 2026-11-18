@@ -55,7 +55,7 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Viber:Enabled", "false");
         builder.UseSetting("Sms:Enabled", "false");
         // No real provider can be reached from a test, even if a test turns a channel on.
-        foreach (var key in new[] { "Email:Host", "Email:User", "Email:Password", "Viber:BaseUrl", "Viber:ApiKey",
+        foreach (var key in new[] { "Email:Host", "Email:User", "Email:Password", "Viber:ProjectId", "Viber:KeyId", "Viber:KeySecret", "Viber:AppId",
                      "Sms:BaseUrl", "Sms:ApiKey", "Sms:ApiSecret", "FaceEngine:ApiKey" })
             builder.UseSetting(key, "");
         _ = ClearSentOnce.Value;

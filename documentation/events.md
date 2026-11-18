@@ -169,8 +169,11 @@ Forms show the mobile option as "Mobile (Viber)" or "Mobile (SMS)" after the Set
   the `FallbackToEmail` switch says. A turned-off service in Production is skipped the same way.
   The admin picks codes from `frontend/web/public/country-codes.json` (code + country name, read
   at runtime, no rebuild); to offer a new country, add `{ "code": "…", "country": "…" }` there.
-- Turn `FallbackToEmail` off when the provider falls back on its side (e.g. Infobip Viber → SMS),
-  so the registrant does not get the message twice.
+- Turn `FallbackToEmail` off when the provider falls back on its side, so the registrant does not
+  get the message twice.
+- Viber is sent through Sinch (`SinchViberService`, Sinch .NET SDK). Only a send Sinch refuses
+  counts as failed; Sinch reports later non-delivery by webhook, which the app does not receive,
+  so those never fall back to email.
 
 - **Viber/SMS are never retried**, mail plans included (`MailPlanDeliveries.MobileAttemptedAt`).
   A mail-plan receiver whose mobile message fails gets the email instead, unless already emailed.

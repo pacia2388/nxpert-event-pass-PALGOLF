@@ -6,7 +6,7 @@ namespace EventRegistration.Api.Services;
 
 /// <summary>
 /// A transport for phone-based notifications (entry pass, kit-claim, edit link, broadcasts).
-/// Implemented by <see cref="ViberService"/> and <see cref="SmsService"/> so the two are
+/// Implemented by <see cref="SinchViberService"/> and <see cref="SmsService"/> so the two are
 /// interchangeable behind <see cref="MobileMessenger"/>.
 /// </summary>
 public interface IMobileSender
@@ -21,18 +21,18 @@ public interface IMobileSender
 }
 
 /// <summary>
-/// Routes phone notifications to Viber or SMS based on the admin-configured provider
-/// (<see cref="SettingKeys.MobileProvider"/>, default Viber). The choice is read per-send so an
-/// admin can switch providers in Settings without a restart.
+/// Routes phone notifications to Viber or SMS: the admin-configured provider
+/// (<see cref="SettingKeys.MobileProvider"/>, default Viber) when both are set up, otherwise the one
+/// that is. Read per-send so an admin can switch providers in Settings without a restart.
 /// </summary>
 public class MobileMessenger
 {
-    private readonly ViberService _viber;
+    private readonly SinchViberService _viber;
     private readonly SmsService _sms;
     private readonly SettingsService _settings;
     private readonly AppDbContext _db;
 
-    public MobileMessenger(ViberService viber, SmsService sms, SettingsService settings, AppDbContext db)
+    public MobileMessenger(SinchViberService viber, SmsService sms, SettingsService settings, AppDbContext db)
     {
         _viber = viber;
         _sms = sms;
@@ -40,8 +40,20 @@ public class MobileMessenger
         _db = db;
     }
 
-    private async Task<bool> SmsActiveAsync() => string.Equals(
-        await _settings.GetAsync(SettingKeys.MobileProvider), MobileProviders.Sms, StringComparison.OrdinalIgnoreCase);
+    public bool ViberReady => _viber.Configured;
+    public bool SmsReady => _sms.Configured;
+
+    /// <summary>
+    /// The channel in use: the admin's choice when both services are set up, else the one that is
+    /// set up; with neither set up, the stored choice (messages then go by email).
+    /// </summary>
+    public async Task<string> ActiveProviderAsync()
+    {
+        if (ViberReady != SmsReady) return ViberReady ? MobileProviders.Viber : MobileProviders.Sms;
+        return MobileProviders.Normalize(await _settings.GetAsync(SettingKeys.MobileProvider));
+    }
+
+    private async Task<bool> SmsActiveAsync() => await ActiveProviderAsync() == MobileProviders.Sms;
 
     private async Task<IMobileSender> ResolveAsync() => await SmsActiveAsync() ? _sms : _viber;
 

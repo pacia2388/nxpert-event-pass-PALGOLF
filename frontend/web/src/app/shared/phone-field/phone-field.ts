@@ -49,6 +49,12 @@ export class PhoneFieldComponent {
     ({ code: this.code, number: this.number } = splitPhone(v, this.countries.codes()));
     this.emitted = v;
     this.edited = false;
+    // A stored value with no digits shows as blank, so hand blank back: otherwise the parent
+    // keeps the hidden junk, sees an invalid phone and cannot save.
+    if (v && !/\d/.test(v)) {
+      this.emitted = null;
+      this.value.set(null);
+    }
   }
 
   private emit(): void {

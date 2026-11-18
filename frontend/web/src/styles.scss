@@ -1397,6 +1397,8 @@ mat-card-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  // Fields keep their own height; a stretched field grows its outline box.
+  align-items: start;
 }
 
 .two-col mat-form-field {

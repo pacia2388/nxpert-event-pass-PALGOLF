@@ -7,7 +7,7 @@ namespace EventRegistration.Api.Services;
 public class SmsSettings
 {
     // When disabled (the default), messages are written to the on-disk outbox instead of being
-    // sent — mirroring EmailService/ViberService so the demo works without an SMS sender.
+    // sent — mirroring EmailService/SinchViberService so the demo works without an SMS sender.
     public bool Enabled { get; set; } = false;
     // Which SMS gateway to use: "Infobip" (default), "UniSMS", or "Movider".
     public string Provider { get; set; } = "Infobip";
@@ -37,7 +37,7 @@ public class SmsSettings
 /// Delivers text notifications over SMS via Infobip. SMS carries no images, so the entry-pass and
 /// meal-stub messages are sent as plain text (the QR itself still reaches the registrant by email
 /// when they use it). When Infobip isn't configured, messages are written to the on-disk outbox so
-/// the demo still works; a send failure also falls back to the outbox. Mirrors <see cref="ViberService"/>.
+/// the demo still works; a send failure also falls back to the outbox. Mirrors <see cref="SinchViberService"/>.
 /// </summary>
 public class SmsService : IMobileSender
 {

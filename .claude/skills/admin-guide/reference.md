@@ -350,7 +350,9 @@ A grant change takes effect at the user's **next sign-in**.
 - **Email CC recipients** — addresses copied on **every** system email (passes, invitations,
   verification, kit notices). Type an address and press Enter.
 - **Mobile notification channel** — **Viber** or **SMS** for registrants who chose a phone
-  channel (SMS is text only — no QR image).
+  channel (SMS is text only — no QR image). You can choose only when both are set up; otherwise
+  the page tells you which one is used (the one that is set up), or that phone messages go by
+  email until one is set up.
 - Click **Save settings**.
 
 ---

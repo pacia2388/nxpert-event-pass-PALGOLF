@@ -295,7 +295,9 @@ public record AttendeeDto(
 public record EventAttendanceSummaryDto(int EventId, int CheckedIn, int Registered, DateTime AsOf);
 
 // Admin app settings. CcEmails are addresses CC'd on every outgoing email.
-public record AppSettingsDto(List<string> CcEmails, string MobileProvider);
+// ViberReady / SmsReady: the service is turned on and set up in server config. The admin may
+// switch channels only when both are ready.
+public record AppSettingsDto(List<string> CcEmails, string MobileProvider, bool ViberReady, bool SmsReady);
 public record MobileChannelDto(string MobileProvider);
 public record UpdateSettingsRequest(List<string>? CcEmails, string? MobileProvider);
 
