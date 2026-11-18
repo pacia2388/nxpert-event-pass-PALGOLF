@@ -58,19 +58,28 @@
           <mat-button-toggle value="Sms"><mat-icon>sms</mat-icon> SMS</mat-button-toggle>
         </mat-button-toggle-group>
       } @else {
-        <p class="mobile-current">
-          <mat-icon>{{ mobileProvider() === 'Sms' ? 'sms' : 'chat' }}</mat-icon>
-          Phone messages are sent by <strong>{{ providerName() }}</strong
-          >.
-        </p>
-        <p class="muted section-sub">
-          @if (providerDown()) {
-            {{ providerName() }} is not set up yet, so phone messages go by email for now.
-          } @else {
-            Only {{ providerName() }} is set up, so it is used for all phone messages.
-          }
-          You can choose between Viber and SMS once both are set up.
-        </p>
+        @if (providerDown()) {
+          <!-- Neither is set up (with one set up, that one is always the channel in use). -->
+          <p class="mobile-current">
+            <mat-icon>mail</mat-icon>
+            <span>Phone messages go by <strong>email</strong> for now.</span>
+          </p>
+          <p class="muted section-sub">
+            Neither Viber nor SMS is set up yet. You can choose between them once both are set up.
+          </p>
+        } @else {
+          <p class="mobile-current">
+            <mat-icon>{{ mobileProvider() === 'Sms' ? 'sms' : 'chat' }}</mat-icon>
+            <span
+              >Phone messages are sent by <strong>{{ providerName() }}</strong
+              >.</span
+            >
+          </p>
+          <p class="muted section-sub">
+            Only {{ providerName() }} is set up, so it is used for all phone messages. You can
+            choose between Viber and SMS once both are set up.
+          </p>
+        }
       }
       <p class="muted section-sub mobile-note">
         Viber sends the QR entry pass as a picture; registrants need the Viber app. SMS is text
