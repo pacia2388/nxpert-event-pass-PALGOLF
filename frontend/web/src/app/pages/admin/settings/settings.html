@@ -60,7 +60,8 @@
       } @else {
         <p class="mobile-current">
           <mat-icon>{{ mobileProvider() === 'Sms' ? 'sms' : 'chat' }}</mat-icon>
-          Phone messages are sent by <strong>{{ providerName() }}</strong>.
+          Phone messages are sent by <strong>{{ providerName() }}</strong
+          >.
         </p>
         <p class="muted section-sub">
           @if (providerDown()) {
