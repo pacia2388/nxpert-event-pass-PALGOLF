@@ -17,6 +17,7 @@ echo Worktree:      %WT%
 rem Untracked local files (git ignores them, so a new worktree lacks them).
 for %%f in (
   "start-all.ps1"
+  ".claude\launch.json"
   "backend\EventRegistration.Api\appsettings.Development.Local.json"
   "facerog-engine\.env.local"
   "facerog-engine\.env"
@@ -25,6 +26,9 @@ for %%f in (
     if exist "%WT%\%%~f" (echo   skip  %%~f) else (copy /y "%MAIN%\%%~f" "%WT%\%%~f" >nul && echo   copy  %%~f)
   )
 )
+
+rem No local dev-server config in the main checkout either: start from the shared template.
+if not exist "%WT%\.claude\launch.json" (copy /y "%WT%\.claude\launch.example.json" "%WT%\.claude\launch.json" >nul && echo   copy  .claude\launch.example.json -^> .claude\launch.json)
 
 rem Large dependency folders: directory junctions to the main checkout's.
 for %%d in (

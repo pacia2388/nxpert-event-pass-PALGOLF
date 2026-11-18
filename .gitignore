@@ -22,3 +22,7 @@ Thumbs.db
 /backend/EventRegistration.Api/appsettings.*.Local.json
 ./backend/EventRegistration.Api/appsettings.json
 
+/facerog-engine/pytest-of-CAPTAIN/pytest-0
+
+# Per-developer dev-server configs; the shared template is .claude/launch.example.json.
+/.claude/launch.json

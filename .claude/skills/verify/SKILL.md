@@ -25,6 +25,8 @@ ground truth; a PR body or commit message is a claim about it, and a mismatch is
 ## 2. Start the servers
 
 Use `preview_start` with these `.claude/launch.json` names. Start only what the change reaches.
+`.claude/launch.json` is per-developer and gitignored; if it is missing, copy
+`.claude/launch.example.json` to it (`scripts/setup-worktree.cmd` does this in a worktree).
 
 | Name | Port | Serves |
 |------|------|--------|

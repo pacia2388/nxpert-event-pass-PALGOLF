@@ -100,5 +100,6 @@ The camera API (`getUserMedia`) needs HTTPS except on `localhost`. Expose both s
 
 ## Launch configs
 
-`.claude/launch.json` defines `web` (port 4200) and `web-alt` (port 4300) for the Angular dev
+`.claude/launch.json` (your own copy of the tracked `.claude/launch.example.json`; it is gitignored
+so you can change ports or paths for your machine) defines `web` (port 4200) and `web-alt` (port 4300) for the Angular dev
 server (`npm start --prefix frontend/web`).
