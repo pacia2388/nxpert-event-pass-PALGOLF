@@ -68,7 +68,7 @@ public class SmsService : IMobileSender
     /// Sends the entry-pass details to a phone over SMS (text only — no QR image). Falls back to the outbox.
     /// </summary>
     public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
-        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null)
+        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null, MobileTag? tag = null)
     {
         // Clickable link to the entry-pass page (opens in the recipient's browser and shows the QR).
         var passUrl = BuildPassUrl(passToken);
@@ -93,7 +93,7 @@ public class SmsService : IMobileSender
     }
 
     /// <summary>Sends a plain text SMS. <paramref name="subject"/> only labels the outbox entry.</summary>
-    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text) =>
+    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text, MobileTag? tag = null) =>
         await SendAsync(NormalizePhone(phone), subject, text);
 
     /// <summary>

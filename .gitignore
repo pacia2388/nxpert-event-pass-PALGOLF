@@ -5,6 +5,7 @@
 
 # Backend runtime artifacts
 backend/EventRegistration.Api/outbox/
+backend/EventRegistration.Api/logs/
 
 # Node / Angular
 node_modules/

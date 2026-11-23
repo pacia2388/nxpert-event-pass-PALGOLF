@@ -12,6 +12,10 @@ public static class PhoneNumber
     public const string InvalidMessage = "Please enter a valid mobile number with its country code (e.g. +63 917 123 4567).";
     public const string UnsupportedMessage = "Mobile numbers from this country are not supported.";
 
+    // For logs: first 3 and last 4 characters only, e.g. "+63•••••1234".
+    public static string Mask(string phone) =>
+        phone.Length <= 7 ? new string('•', phone.Length) : phone[..3] + new string('•', phone.Length - 7) + phone[^4..];
+
     // "+<digits>" = any country; without "+" the input is read as a PH number
     // (09XXXXXXXXX, 639XXXXXXXXX, 9XXXXXXXXX). Spaces, dashes and brackets are ignored.
     // Returns null when the number is not valid.

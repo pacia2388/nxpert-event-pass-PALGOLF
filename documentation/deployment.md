@@ -113,6 +113,8 @@ never commit this file.
   // PublicApiBaseUrl = public HTTPS API address Sinch fetches QR/stub images from.
   // FallbackToEmail: email when a Viber / SMS message fails (default true). Set false when the
   // provider falls back on its side, so registrants don't get the message twice.
+  // WebhookSecret: secret of the Sinch delivery-report webhook (see "Sinch delivery reports"
+  // below). Empty = late Viber failures are ignored (no email).
   "Viber": {
     "Enabled": true,
     "ProjectId": "<sinch project id>",
@@ -121,7 +123,8 @@ never commit this file.
     "AppId": "<conversation app id>",
     "Region": "us",
     "PublicApiBaseUrl": "https://SERVER:5001",
-    "FallbackToEmail": true
+    "FallbackToEmail": true,
+    "WebhookSecret": "<sinch webhook secret>"
   },
   "Sms": { "FallbackToEmail": true },
   "App": {
@@ -130,6 +133,18 @@ never commit this file.
   }
 }
 ```
+
+**Sinch delivery reports (Viber late failures → email).** Sinch accepts a Viber message first and
+reports later whether it was delivered. To send the email when it was not (e.g. the number has no
+Viber), in the Sinch dashboard open the Conversation app → **Webhooks** → add one: target
+`https://SERVER:5001/api/webhooks/sinch/conversation` (public HTTPS API address, port included),
+trigger **MESSAGE_DELIVERY**, and a long random secret. Put the same secret in
+`Viber:WebhookSecret`. The API must be reachable from the internet over HTTPS with a trusted
+certificate. On startup the log shows `Viber delivery reports: on`. Every webhook call is also
+written to `logs\viber-hook\viber-hook-yyyyMMdd.log` in the API site folder (one file per day,
+server time; the app pool identity needs write access to `logs`; old files are not deleted, so
+clear them by hand). To trace one message, search those files for its message id; the
+`ViberMessages` table holds each message's last status.
 
 The published `appsettings.json` still holds dev values (dev JWT key, dev Face Engine key, dev
 connection string). Every one of those must be overridden here or by environment variables.

@@ -1,3 +1,5 @@
+using EventRegistration.Api.Data;
+using EventRegistration.Api.Models;
 using Sinch;
 using Sinch.Conversation;
 using Sinch.Conversation.Common;
@@ -27,6 +29,9 @@ public class ViberSettings
     // When a Viber message fails, send the email instead. Turn off when the provider already
     // falls back on its side, so the registrant does not get the message twice.
     public bool FallbackToEmail { get; set; } = true;
+    // Secret of the Sinch Conversation webhook (trigger MESSAGE_DELIVERY) that reports later
+    // delivery failures. Local / production config only. Empty or "required" = reports refused.
+    public string WebhookSecret { get; set; } = "";
     // Tests only (ignored in Production): write messages to this folder instead of sending them.
     public string TestSendDir { get; set; } = "";
     // Tests only, with TestSendDir: every send fails, to exercise fallback.
@@ -38,8 +43,9 @@ public class ViberSettings
 /// Conversation API (Sinch .NET SDK). Sinch sends straight to the recipient's phone number. When
 /// Sinch isn't configured, messages (and the QR PNG) are written to the on-disk outbox so the demo
 /// still works offline; a send failure also falls back to the outbox.
-/// Only a rejected request counts as failed: Sinch reports later delivery failures by webhook,
-/// which this app does not receive, so those never trigger the email fallback.
+/// A rejected request counts as failed straight away. Sinch reports later delivery failures by
+/// webhook (SinchWebhooksController): every accepted message is saved as a <see cref="ViberMessage"/>,
+/// and a failure of a tagged one (<see cref="MobileTag"/>) queues the email instead.
 /// </summary>
 public class SinchViberService : IMobileSender
 {
@@ -49,14 +55,17 @@ public class SinchViberService : IMobileSender
     private readonly string _outboxDir;
     // One client per process: it caches its OAuth token and HTTP connections.
     private readonly Lazy<ISinchClient> _client;
+    private readonly IServiceScopeFactory? _scopes;
 
-    // client: tests only, a stand-in for Sinch; DI leaves it null.
+    // client: tests only, a stand-in for Sinch; DI leaves it null. scopes: for saving accepted
+    // messages (singleton, so a scope per save); null in unit tests.
     public SinchViberService(ViberSettings s, ILogger<SinchViberService> log, IWebHostEnvironment env,
-        ISinchClient? client = null)
+        ISinchClient? client = null, IServiceScopeFactory? scopes = null)
     {
         _s = s;
         _log = log;
         _env = env;
+        _scopes = scopes;
         _outboxDir = Path.Combine(env.ContentRootPath, "outbox");
         _client = new Lazy<ISinchClient>(() => client ?? new SinchClient(_s.ProjectId, _s.KeyId, _s.KeySecret,
             o => o.ConversationRegion = new ConversationRegion(_s.Region.Trim().ToLowerInvariant())));
@@ -80,7 +89,7 @@ public class SinchViberService : IMobileSender
     /// otherwise only the text is sent. Falls back to the outbox.
     /// </summary>
     public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
-        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null)
+        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null, MobileTag? tag = null)
     {
         var text =
             $"Hi {attendeeName}, your registration for \"{title}\" is confirmed.\n" +
@@ -97,7 +106,7 @@ public class SinchViberService : IMobileSender
         try
         {
             // Text first, image second: the details still arrive even if the image is rejected.
-            await SendAsync(to, new AppMessage(new TextMessage(text)));
+            await SendAsync(to, new AppMessage(new TextMessage(text)), tag);
             var mediaUrl = PublicUrl($"api/passes/{passToken}/qr.png");
             if (mediaUrl is not null)
                 await SendAsync(to, new AppMessage(new MediaMessage { Url = mediaUrl }));
@@ -119,7 +128,7 @@ public class SinchViberService : IMobileSender
     /// Falls back to the on-disk outbox when Sinch isn't configured or the send fails.
     /// <paramref name="subject"/> is only used to label the outbox entry.
     /// </summary>
-    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text)
+    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text, MobileTag? tag = null)
     {
         var to = NormalizePhone(phone);
 
@@ -128,7 +137,7 @@ public class SinchViberService : IMobileSender
 
         try
         {
-            await SendAsync(to, new AppMessage(new TextMessage(text)));
+            await SendAsync(to, new AppMessage(new TextMessage(text)), tag);
             _log.LogInformation("Sent Viber message to {Phone} ('{Subject}') via Sinch.", to, subject);
             return DeliveryResult.Sent;
         }
@@ -184,13 +193,14 @@ public class SinchViberService : IMobileSender
     }
 
     // One message to one phone on the Viber Business Messages channel. Throws SinchApiException
-    // when Sinch rejects the request.
-    private async Task SendAsync(string to, AppMessage message)
+    // when Sinch rejects the request. An accepted message is saved for its delivery reports.
+    private async Task SendAsync(string to, AppMessage message, MobileTag? tag = null)
     {
         var resp = await _client.Value.Conversation.Messages.Send(new SendMessageRequest
         {
             AppId = _s.AppId,
             Message = message,
+            MessageMetadata = tag is null ? null : $"reg:{tag.RegistrationId};kind:{tag.Kind}",
             Recipient = new Identified
             {
                 IdentifiedBy = new IdentifiedBy
@@ -199,7 +209,29 @@ public class SinchViberService : IMobileSender
                 },
             },
         });
-        _log.LogDebug("Sinch accepted Viber message {MessageId} for {Phone}.", resp.MessageId, to);
+        _log.LogInformation("Sinch accepted Viber message {MessageId} for {PhoneMasked} (registration {RegistrationId}, {Kind}, tagged {Tagged})",
+            resp.MessageId, PhoneNumber.Mask(to), tag?.RegistrationId, tag?.Kind, tag is not null);
+        await RecordAsync(resp.MessageId, to, tag);
+    }
+
+    // The message is already accepted: a save failure is logged, never turned into a send failure.
+    private async Task RecordAsync(string? messageId, string to, MobileTag? tag)
+    {
+        if (_scopes is null || string.IsNullOrEmpty(messageId)) return;
+        try
+        {
+            using var scope = _scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.ViberMessages.Add(new ViberMessage
+            {
+                MessageId = messageId, Phone = to, RegistrationId = tag?.RegistrationId, Kind = tag?.Kind,
+            });
+            await db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Could not save Viber message {MessageId}; its delivery reports will be ignored.", messageId);
+        }
     }
 
     // Absolute HTTPS URL Sinch fetches for an image message, or null when no publicly reachable

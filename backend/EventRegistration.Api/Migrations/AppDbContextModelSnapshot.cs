@@ -1106,6 +1106,49 @@ namespace EventRegistration.Api.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("EventRegistration.Api.Models.ViberMessage", b =>
+                {
+                    b.Property<string>("MessageId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("AcceptedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("EmailQueuedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ReasonCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("RegistrationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("AcceptedAt");
+
+                    b.ToTable("ViberMessages");
+                });
+
             modelBuilder.Entity("EventRegistration.Api.Models.Voucher", b =>
                 {
                     b.Property<int>("Id")

@@ -105,6 +105,21 @@ Every P case also checks `PassEmailSentAt`: stamped when something was delivered
 | R03 | Direct invite queued (Message), retry runs | ✉ sent, `invite.ics` kept |
 | R04 | Meeting cancel queued, registration then deleted, retry runs | ✉ "Registration cancelled" sent from the snapshot |
 
+## V — Viber delivery reports (Sinch webhook)
+
+`SinchWebhookTests`: signed `POST /api/webhooks/sinch/conversation` calls against seeded
+`ViberMessage` rows.
+
+| Id | Case | Expected |
+|---|---|---|
+| V01 | Missing headers, wrong secret, or timestamp 10 min old | 401; row unchanged; no retry |
+| V02 | `Viber:WebhookSecret` not set | 401 for every call |
+| V03 | `FAILED` on a tagged pass, reported twice | Status FAILED, reason saved, `EmailQueuedAt` set, exactly one `EmailRetry` (Pass) |
+| V04 | `DELIVERED`, then `READ` | Status updated each time; no email |
+| V05 | `FAILED` on an untagged message (Both channel, fallback off, follow-up image) | Status FAILED; no email |
+| V06 | Unknown `message_id` | 200; no row |
+| V07 | `FAILED` more than 24 h after the send | Status FAILED; no email |
+
 ## Also covered (other test classes)
 
 | Area | Test class |

@@ -13,6 +13,9 @@ builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.Environment
 // Event / team categories for this installation. Not published, so a deploy keeps the server's copy;
 // no file = no categories. Edits apply without a restart.
 builder.Configuration.AddJsonFile("categories.json", optional: true, reloadOnChange: true);
+// Sinch webhook lines also go to logs/viber-hook/*.log (Logging:LogLevel filters still apply).
+builder.Logging.AddProvider(new ViberHookFileLoggerProvider(
+    Path.Combine(builder.Environment.ContentRootPath, "logs", "viber-hook")));
 
 // ---- Database ----
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -115,6 +118,9 @@ if (emailSettings.Enabled)
     app.Logger.LogInformation("Email delivery: SMTP via {Host}:{Port}.", emailSettings.Host, emailSettings.Port);
 else
     app.Logger.LogInformation("Email delivery: outbox (SMTP is off).");
+var webhookSecret = viberSettings.WebhookSecret?.Trim();
+app.Logger.LogInformation("Viber delivery reports: {Enabled}",
+    string.IsNullOrEmpty(webhookSecret) || webhookSecret.Equals("required", StringComparison.OrdinalIgnoreCase) ? "off" : "on");
 
 // ---- Migrate + seed on startup ----
 // Applying migrations on startup is controlled by the Database:AutoMigrate flag in appsettings

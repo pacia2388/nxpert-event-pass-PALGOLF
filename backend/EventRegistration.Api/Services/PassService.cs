@@ -116,16 +116,17 @@ public class PassService
         var email = reg.DisplayEmail;
 
         // Mobile: the pass (or, for online-only events, the confirmation text) decides delivery;
-        // the join link and meal stubs follow on the same provider, best effort.
-        async Task<DeliveryResult> Mobile(IMobileSender m)
+        // the join link and meal stubs follow on the same provider, best effort. Only the pass /
+        // confirmation text carries the tag, so a failed follow-up never sends the email.
+        async Task<DeliveryResult> Mobile(IMobileSender m, MobileTag? tag)
         {
             var result = showPass
-                ? await m.SendPassAsync(phone!, title, startsAt, endsAt, venue, name, reg.Token.ToString(), qrPng, editUrl)
+                ? await m.SendPassAsync(phone!, title, startsAt, endsAt, venue, name, reg.Token.ToString(), qrPng, editUrl, tag)
                 : await m.SendTextAsync(phone!, $"Registration confirmed — {title}",
                     $"Hi {name}, your registration for \"{title}\" is confirmed.\n" +
                     $"{ScheduleText.Text(startsAt, endsAt)}" +
                     (meetingUrl is null ? "" : $"\nJoin online: {meetingUrl}") +
-                    (editUrl is null ? "" : $"\nEdit your response: {editUrl}"));
+                    (editUrl is null ? "" : $"\nEdit your response: {editUrl}"), tag);
             if (!result.Delivered()) return result;
             if (showPass && meetingUrl is not null)
                 await m.SendTextAsync(phone!, $"Registration confirmed — {title}", $"You can also join \"{title}\" online: {meetingUrl}");
@@ -198,9 +199,9 @@ public class PassService
         var subject = $"Updated: {title}";
 
         return await DeliverAsync(reg, ChannelOf(reg),
-            m => m.SendTextAsync(reg.DisplayPhone!, subject,
+            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, subject,
                 $"Hi {reg.DisplayName}, the event details for \"{title}\" have changed.\n" +
-                $"{ScheduleText.Text(startsAt, endsAt)}\nJoin: {url}"),
+                $"{ScheduleText.Text(startsAt, endsAt)}\nJoin: {url}", tag),
             invite is null ? null : () => _email.SendAsync(invite.AttendeeEmail, subject,
                 EventFormats.HasOnline(ev.Format) ? EmailTemplates.MeetingUpdated(title, startsAt, endsAt, reg.DisplayName, url) :
                     "<p>The event details have changed. The attached calendar invitation updates your existing event.</p>" +
@@ -230,7 +231,7 @@ public class PassService
         // registrant also gets a text, so it is sent as "Both".
         var channel = NotificationChannels.UsesViber(ChannelOf(reg)) ? NotificationChannels.Both : NotificationChannels.Email;
         return await DeliverAsync(reg, channel,
-            m => m.SendTextAsync(reg.DisplayPhone!, $"Cancelled: {title}", text),
+            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, $"Cancelled: {title}", text, tag),
             snapshot is null ? null : () => SendMeetingCancelEmailAsync(snapshot),
             EmailRetryKinds.MeetingCancel, isRetry: false,
             snapshot is null ? null : JsonSerializer.Serialize(snapshot));
@@ -266,7 +267,7 @@ public class PassService
         var email = reg.DisplayEmail;
 
         return await DeliverAsync(reg, ChannelOf(reg),
-            m => m.SendTextAsync(reg.DisplayPhone!, subject, text),
+            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, subject, text, tag),
             string.IsNullOrWhiteSpace(email) ? null : () => _email.SendAsync(email, subject, EmailTemplates.KitClaimed(ev.Title, name, claimedBy)),
             EmailRetryKinds.KitClaimed, isRetry);
     }
@@ -284,8 +285,8 @@ public class PassService
         var email = reg.DisplayEmail;
 
         return await DeliverAsync(reg, ChannelOf(reg),
-            m => m.SendTextAsync(reg.DisplayPhone!, subject,
-                $"Hi {name}, review or update your response for \"{ev.Title}\" here: {url}"),
+            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, subject,
+                $"Hi {name}, review or update your response for \"{ev.Title}\" here: {url}", tag),
             string.IsNullOrWhiteSpace(email) ? null : () => _email.SendAsync(email, subject, EmailTemplates.EditLink(ev.Title, name, url)),
             EmailRetryKinds.EditLink, isRetry);
     }
@@ -297,19 +298,23 @@ public class PassService
     /// A mobile-preferred registrant with no phone, or whose country code is not listed for the
     /// active channel (Phone country table), gets email whatever FallbackToEmail says. A failed email never falls back to
     /// mobile; it is queued for a background retry instead (unless this is that retry, which is
-    /// email only). <paramref name="email"/> is null when there is no address.
+    /// email only). <paramref name="email"/> is null when there is no address. When a Viber
+    /// failure reported later must still send the email (mobile preferred, FallbackToEmail on,
+    /// has an address), the mobile send gets a <see cref="MobileTag"/>.
     /// </summary>
     private async Task<PassDelivery> DeliverAsync(Registration reg, string channel,
-        Func<IMobileSender, Task<DeliveryResult>> mobile, Func<Task<DeliveryResult>>? email,
+        Func<IMobileSender, MobileTag?, Task<DeliveryResult>> mobile, Func<Task<DeliveryResult>>? email,
         string retryKind, bool isRetry, string? snapshotJson = null)
     {
         if (isRetry) channel = NotificationChannels.Email;
         var route = NotificationChannels.UsesViber(channel) && !string.IsNullOrWhiteSpace(reg.DisplayPhone)
             ? await _mobile.RouteAsync() : null;
-        var mobileChain = route is not null && route.Supports(reg.DisplayPhone)
-            ? new List<ChannelAttempt> { new(route.Name, () => mobile(route.Sender)) }
-            : new List<ChannelAttempt>();
         var emailAttempt = email is null ? null : new ChannelAttempt("email", email);
+        var tag = channel == NotificationChannels.Viber && emailAttempt is not null && route?.Sender.FallbackToEmail == true
+            ? new MobileTag(reg.Id, retryKind) : null;
+        var mobileChain = route is not null && route.Supports(reg.DisplayPhone)
+            ? new List<ChannelAttempt> { new(route.Name, () => mobile(route.Sender, tag)) }
+            : new List<ChannelAttempt>();
 
         var chains = new List<ChainResult>();
         if (channel == NotificationChannels.Both)

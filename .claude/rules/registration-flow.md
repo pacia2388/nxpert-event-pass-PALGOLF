@@ -9,6 +9,9 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
   country code is not in the Phone country table for the active channel skips mobile and always
   gets email. Viber/SMS are tried once and never retried (mail plans included); failed registrant
   emails retry 5× in the background. An email failure never falls back to Viber/SMS.
+  A Viber failure Sinch reports later (delivery webhook, within 24 h) on the message that decides
+  delivery (pass / confirmation, meeting update, kit claimed, edit link) also queues the email
+  once, under the same rule (mobile preferred, `Viber:FallbackToEmail` on, has an email).
   The mobile channel is the admin's Settings choice only when both Viber and SMS are set up;
   otherwise the one that is set up is used, and the choice is not offered.
   Exception: the organizer **Viber broadcast** is Viber only (optional fallback); it reports failed numbers, never counts them as sent.

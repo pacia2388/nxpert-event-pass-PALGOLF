@@ -51,6 +51,11 @@ Create `appsettings.Production.json` next to the DLL (real values, never dev sec
 }
 ```
 
+Viber late-failure fallback: add a Sinch Conversation webhook (trigger `MESSAGE_DELIVERY`, target
+`https://SERVER:5001/api/webhooks/sinch/conversation`, with a secret) and set the same secret as
+`Viber:WebhookSecret` here. Needs the API on public HTTPS. Unset = late failures send no email.
+See `documentation/deployment.md` → "Sinch delivery reports".
+
 The app runs EF migrations and seeds on startup (`DbSeeder`); the SQL login must be able to create
 the DB (or pre-create an empty `EventRegistrationDb` and grant `db_owner`).
 

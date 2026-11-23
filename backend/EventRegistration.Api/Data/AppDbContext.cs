@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<InvitationEmail> InvitationEmails => Set<InvitationEmail>();
     public DbSet<EmailRetry> EmailRetries => Set<EmailRetry>();
+    public DbSet<ViberMessage> ViberMessages => Set<ViberMessage>();
     public DbSet<PhoneCountry> PhoneCountries => Set<PhoneCountry>();
     public DbSet<Registration> Registrations => Set<Registration>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
@@ -103,6 +104,7 @@ public class AppDbContext : DbContext
         b.Entity<InvitationEmail>().HasIndex(i => new { i.Status, i.NextAttemptAt });
         b.Entity<EmailRetry>().HasIndex(r => new { r.Status, r.NextAttemptAt });
         b.Entity<EmailRetry>().HasIndex(r => new { r.RegistrationId, r.Kind });
+        b.Entity<ViberMessage>().HasIndex(m => m.AcceptedAt);
 
         b.Entity<PhoneCountry>().HasIndex(c => c.CountryCode).IsUnique();
         b.Entity<PhoneCountry>().HasData(new PhoneCountry { Id = 1, CountryCode = "63", Viber = true, Sms = true });
