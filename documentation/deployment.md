@@ -182,7 +182,8 @@ npm ci
 npm run build
 ```
 
-Output: `dist/web/browser` (includes `web.config` and `appSettings.json` from `public/`).
+Output: `dist/web/browser` (includes `web.config` and `appSettings.json` from `public/`; `menu.json` is left
+out so the server's copy is never overwritten).
 
 ### 2.2 IIS site
 
@@ -217,8 +218,12 @@ The repo `web.config` forwards to port **8100**. Edit
 <action type="Rewrite" url="http://127.0.0.1:8001/{R:1}" appendQueryString="true" />
 ```
 
+To switch menus off for this installation, edit `menu.json` in the same folder (see
+[menu-config.md](menu-config.md)). The build does not include it: copy
+`frontend/web/public/menu.json` there once on a new installation.
+
 Keep a copy of the edited `appSettings.json` and `web.config`; every new build overwrites both
-with repo values.
+with repo values. When replacing the site contents, do not delete `menu.json`.
 
 ### 2.5 Check
 
@@ -371,8 +376,9 @@ Both 443 and 8000 face the internet, so all items apply before go-live.
 
 - **Backend:** `dotnet publish` again, stop the `PalGolf_API` app pool, copy over the files
   (keep `appsettings.Production.json`), start the pool.
-- **Frontend:** `npm ci` + `npm run build`, replace the site contents, then restore the server's
-  `appSettings.json` and `web.config` (port 8001 proxy rule).
+- **Frontend:** `npm ci` + `npm run build`, replace the site contents (keep `menu.json`, which the
+  build leaves out), then restore the server's `appSettings.json` and `web.config` (port 8001
+  proxy rule).
 - **Face Engine:** `nssm stop PalGolf_FaceEngine`, copy the new code over (keep `.venv`, `.env`,
   `.env.local`, `datasets\`, `start_service.bat`), run `.venv\Scripts\pip install -r requirements.txt`
   if requirements changed, then `nssm start PalGolf_FaceEngine`.

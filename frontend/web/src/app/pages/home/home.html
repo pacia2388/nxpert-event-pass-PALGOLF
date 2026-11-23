@@ -43,4 +43,10 @@
       </a>
     }
   </div>
+  @if (modules().length === 0) {
+    <div class="empty-state">
+      <mat-icon>apps</mat-icon>
+      <p>No modules are available.</p>
+    </div>
+  }
 </div>

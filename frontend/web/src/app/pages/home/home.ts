@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth.service';
+import { MenuId, menuEnabled } from '../../core/config';
 
 type ModuleCategory = 'Events' | 'Operations' | 'Admin' | 'Account';
 
@@ -11,6 +12,8 @@ interface AppModule {
   icon: string;
   link: string;
   category: ModuleCategory;
+  /** The menu.json switch for this tile; none = always on. */
+  menu?: MenuId;
 }
 
 // Tab order on the launcher; only categories the user actually has modules in are shown.
@@ -27,16 +30,13 @@ export class HomeComponent {
 
   readonly filter = signal<'All' | ModuleCategory>('All');
 
-  // Modules available to the signed-in user, mirroring the role-based navigation.
-  readonly modules = computed<AppModule[]>(() => {
-    // const account: AppModule = {
-    //   title: 'My Account',
-    //   subtitle: 'Profile & Password',
-    //   icon: 'manage_accounts',
-    //   link: '/account',
-    //   category: 'Account',
-    // };
+  // Modules available to the signed-in user, without the menus menu.json switched off.
+  readonly modules = computed<AppModule[]>(() =>
+    this.byRole().filter((m) => !m.menu || menuEnabled(m.menu)),
+  );
 
+  // Modules for the signed-in user's role, mirroring the role-based navigation.
+  private byRole(): AppModule[] {
     if (this.auth.isAdmin()) {
       return [
         {
@@ -44,6 +44,7 @@ export class HomeComponent {
           subtitle: 'Insights & KPI',
           icon: 'insights',
           link: '/admin/dashboard',
+          menu: 'dashboard',
           category: 'Operations',
         },
         {
@@ -58,6 +59,7 @@ export class HomeComponent {
           subtitle: 'Event Dates & Invitations',
           icon: 'calendar_month',
           link: '/calendar',
+          menu: 'calendar',
           category: 'Events',
         },
         {
@@ -65,6 +67,7 @@ export class HomeComponent {
           subtitle: 'Send Days & Reminders',
           icon: 'schedule_send',
           link: '/mail-planner',
+          menu: 'mailPlanner',
           category: 'Events',
         },
         {
@@ -74,12 +77,19 @@ export class HomeComponent {
           link: '/events',
           category: 'Events',
         },
-        // { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
+        {
+          title: 'My Events',
+          subtitle: 'Passes & Tickets',
+          icon: 'confirmation_number',
+          link: '/my-events',
+          category: 'Events',
+        },
         {
           title: 'Meal Scanner',
           subtitle: 'Meal Stub Redemption',
           icon: 'restaurant',
           link: '/merchant/scan',
+          menu: 'mealScanner',
           category: 'Operations',
         },
         {
@@ -87,6 +97,7 @@ export class HomeComponent {
           subtitle: 'People & Access',
           icon: 'group',
           link: '/admin/users',
+          menu: 'users',
           category: 'Admin',
         },
         {
@@ -94,10 +105,9 @@ export class HomeComponent {
           subtitle: 'Captains & Members',
           icon: 'groups',
           link: '/admin/teams',
+          menu: 'teams',
           category: 'Admin',
         },
-        // { title: 'Settings', subtitle: 'System Config', icon: 'settings', link: '/admin/settings', category: 'Admin' }
-        // account,
       ];
     }
     if (this.auth.isMerchant()) {
@@ -107,6 +117,7 @@ export class HomeComponent {
           subtitle: 'Meal Stub Redemption',
           icon: 'restaurant',
           link: '/merchant/scan',
+          menu: 'mealScanner',
           category: 'Operations',
         },
       ];
@@ -119,12 +130,19 @@ export class HomeComponent {
         link: '/events',
         category: 'Events',
       },
-      // { title: 'My Events', subtitle: 'Passes & Tickets', icon: 'confirmation_number', link: '/my-events', category: 'Events' },
+      {
+        title: 'My Events',
+        subtitle: 'Passes & Tickets',
+        icon: 'confirmation_number',
+        link: '/my-events',
+        category: 'Events',
+      },
       {
         title: 'Calendar',
         subtitle: 'Event Dates & Invitations',
         icon: 'calendar_month',
         link: '/calendar',
+        menu: 'calendar',
         category: 'Events',
       },
       // { title: 'Reminders', subtitle: 'Mail Reminder', icon: 'schedule_send', link: '/mail-planner', category: 'Events' },
@@ -133,6 +151,7 @@ export class HomeComponent {
         subtitle: 'Team members',
         icon: 'group',
         link: '/team',
+        menu: 'myTeam',
         category: 'Account',
       },
       {
@@ -140,9 +159,9 @@ export class HomeComponent {
         subtitle: 'Airline Baggage',
         icon: 'luggage',
         link: '/voucher',
+        menu: 'voucher',
         category: 'Events',
       },
-      // account,
     ];
     if (this.auth.canConfirm()) {
       return [
@@ -157,7 +176,7 @@ export class HomeComponent {
       ];
     }
     return participant;
-  });
+  }
 
   readonly categories = computed(() => {
     const present = new Set(this.modules().map((m) => m.category));

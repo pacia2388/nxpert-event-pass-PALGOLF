@@ -9,13 +9,17 @@ import {
   provideRouter,
 } from '@angular/router';
 import { AuthResponse } from './models';
+import { loadMenus } from './config';
 import {
   authGuard,
   confirmerGuard,
+  homeFor,
+  menuGuard,
   nonMerchantGuard,
   participantOrCaptainGuard,
   voucherGuard,
 } from './guards';
+import { AuthService } from './auth.service';
 
 type Role = AuthResponse['role'];
 
@@ -107,5 +111,46 @@ describe('route guards', () => {
       expect(visit(participantOrCaptainGuard, '/team')).toBe('/login?returnUrl=%2Fteam');
       expect(visit(authGuard, '/home')).toBe('/login?returnUrl=%2Fhome');
     });
+  });
+});
+
+describe('menus switched off in menu.json', () => {
+  const realFetch = globalThis.fetch;
+
+  async function switchOff(...ids: string[]): Promise<void> {
+    const menus = Object.fromEntries(ids.map((id) => [id, false]));
+    globalThis.fetch = (async () => new Response(JSON.stringify({ menus }))) as typeof fetch;
+    await loadMenus();
+  }
+
+  afterEach(async () => {
+    await switchOff(); // every menu back on
+    globalThis.fetch = realFetch;
+  });
+
+  it('lets anyone through to a menu that is on', async () => {
+    await switchOff('dashboard');
+    signIn('Participant');
+    expect(visit(menuGuard('voucher'), '/voucher')).toBe('allowed');
+  });
+
+  it('sends a signed-in user home from a menu that is off', async () => {
+    await switchOff('voucher');
+    signIn('Participant');
+    expect(visit(menuGuard('voucher'), '/voucher')).toBe('/home');
+  });
+
+  it('sends a signed-out visitor to login from a menu that is off', async () => {
+    await switchOff('voucher');
+    signIn(null);
+    expect(visit(menuGuard('voucher'), '/voucher')).toBe('/login');
+  });
+
+  it('lands a merchant on Home when the Meal Scanner is off', async () => {
+    signIn('Merchant');
+    const auth = TestBed.inject(AuthService);
+    expect(homeFor(auth)).toBe('/merchant/scan');
+    await switchOff('mealScanner');
+    expect(homeFor(auth)).toBe('/home');
   });
 });

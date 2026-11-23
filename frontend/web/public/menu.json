@@ -1,0 +1,12 @@
+{
+  "menus": {
+    "dashboard": true,
+    "calendar": true,
+    "mailPlanner": true,
+    "mealScanner": true,
+    "users": true,
+    "teams": false,
+    "myTeam": false,
+    "voucher": false
+  }
+}

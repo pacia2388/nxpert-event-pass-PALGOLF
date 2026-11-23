@@ -8,6 +8,7 @@ import {
   participantOrCaptainGuard,
   guestGuard,
   voucherGuard,
+  menuGuard,
 } from './core/guards';
 
 export const routes: Routes = [
@@ -47,7 +48,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin/dashboard',
-    canActivate: [adminGuard],
+    canActivate: [menuGuard('dashboard'), adminGuard],
     loadComponent: () =>
       import('./pages/admin/dashboard/dashboard').then((m) => m.DashboardComponent),
   },
@@ -60,13 +61,13 @@ export const routes: Routes = [
   {
     // Event calendar (merchants only scan meal stubs).
     path: 'calendar',
-    canActivate: [nonMerchantGuard],
+    canActivate: [menuGuard('calendar'), nonMerchantGuard],
     loadComponent: () => import('./pages/calendar/calendar').then((m) => m.CalendarComponent),
   },
   {
     // Mail Planner: send plans for admins, reminders on received mails for everyone.
     path: 'mail-planner',
-    canActivate: [nonMerchantGuard],
+    canActivate: [menuGuard('mailPlanner'), nonMerchantGuard],
     loadComponent: () =>
       import('./pages/mail-planner/mail-planner').then((m) => m.MailPlannerComponent),
   },
@@ -82,24 +83,24 @@ export const routes: Routes = [
   },
   {
     path: 'admin/users',
-    canActivate: [adminGuard],
+    canActivate: [menuGuard('users'), adminGuard],
     loadComponent: () => import('./pages/admin/users/users').then((m) => m.UsersComponent),
   },
   {
     path: 'admin/teams',
-    canActivate: [adminGuard],
+    canActivate: [menuGuard('teams'), adminGuard],
     loadComponent: () => import('./pages/admin/teams/teams').then((m) => m.TeamsComponent),
   },
   {
     // Captain: view + manage their team. Participant: view the team they belong to (read-only).
     path: 'team',
-    canActivate: [participantOrCaptainGuard],
+    canActivate: [menuGuard('myTeam'), participantOrCaptainGuard],
     loadComponent: () => import('./pages/team/team').then((m) => m.TeamComponent),
   },
   {
     // Prototype: golf equipment voucher for a Philippine Airlines booking reference.
     path: 'voucher',
-    canActivate: [voucherGuard],
+    canActivate: [menuGuard('voucher'), voucherGuard],
     loadComponent: () => import('./pages/voucher/voucher').then((m) => m.VoucherComponent),
   },
   {
@@ -144,14 +145,14 @@ export const routes: Routes = [
   },
   {
     path: 'merchant/scan',
-    canActivate: [merchantGuard],
+    canActivate: [menuGuard('mealScanner'), merchantGuard],
     loadComponent: () =>
       import('./pages/merchant/meal-scanner').then((m) => m.MealScannerComponent),
   },
   {
     // Airline baggage vouchers (golf equipment), Participant and Captain only.
     path: 'voucher',
-    canActivate: [participantOrCaptainGuard],
+    canActivate: [menuGuard('voucher'), participantOrCaptainGuard],
     loadComponent: () => import('./pages/voucher/voucher').then((m) => m.VoucherComponent),
   },
   { path: '**', redirectTo: 'login' },

@@ -39,3 +39,61 @@ function wording(settings: Record<string, unknown>, key: string, fallback: strin
   if (typeof value !== 'string') throw new Error(`appSettings.json: ${key} must be a string`);
   return value.trim() || fallback;
 }
+
+/** Menus an installation can switch off for everyone in menu.json. Every other page is always on. */
+export const MENU_IDS = [
+  'dashboard',
+  'calendar',
+  'mailPlanner',
+  'mealScanner',
+  'users',
+  'teams',
+  'myTeam',
+  'voucher',
+] as const;
+export type MenuId = (typeof MENU_IDS)[number];
+
+const disabledMenus = new Set<MenuId>();
+
+/** False when menu.json switches this menu off. */
+export function menuEnabled(id: MenuId): boolean {
+  return !disabledMenus.has(id);
+}
+
+/**
+ * Reads menu.json (served next to index.html). Never stops the app: a missing or broken file
+ * leaves every menu on and logs why, so a bad edit cannot lock users out.
+ */
+export async function loadMenus(): Promise<void> {
+  disabledMenus.clear();
+  let file: unknown;
+  try {
+    const res = await fetch('menu.json', { cache: 'no-cache' });
+    if (!res.ok) {
+      console.warn(`menu.json: HTTP ${res.status}; every menu is on`);
+      return;
+    }
+    file = await res.json();
+  } catch (err) {
+    // IIS answers a missing menu.json with index.html, which is not JSON.
+    console.error('menu.json is missing or not valid JSON; every menu is on', err);
+    return;
+  }
+  const menus = (file as { menus?: unknown } | null)?.menus;
+  if (typeof menus !== 'object' || menus === null || Array.isArray(menus)) {
+    console.error('menu.json: "menus" must be an object; every menu is on');
+    return;
+  }
+  const off: MenuId[] = [];
+  for (const [id, on] of Object.entries(menus)) {
+    if (!(MENU_IDS as readonly string[]).includes(id)) {
+      console.warn(`menu.json: "${id}" is not a menu that can be switched off; ignored`);
+    } else if (typeof on !== 'boolean') {
+      console.error(`menu.json: "${id}" must be true or false; every menu is on`);
+      return;
+    } else if (!on) {
+      off.push(id as MenuId);
+    }
+  }
+  off.forEach((id) => disabledMenus.add(id));
+}

@@ -1,10 +1,20 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { MenuId, menuEnabled } from './config';
 
 // The default landing page for a logged-in user, by role.
 export function homeFor(auth: AuthService): string {
-  return auth.isMerchant() ? '/merchant/scan' : '/home';
+  return auth.isMerchant() && menuEnabled('mealScanner') ? '/merchant/scan' : '/home';
+}
+
+// A page whose menu menu.json switched off: signed-in users go home, everyone else to login.
+export function menuGuard(id: MenuId): CanActivateFn {
+  return () => {
+    if (menuEnabled(id)) return true;
+    const auth = inject(AuthService);
+    return inject(Router).createUrlTree([auth.isLoggedIn() ? homeFor(auth) : '/login']);
+  };
 }
 
 export const authGuard: CanActivateFn = (_route, state) => {

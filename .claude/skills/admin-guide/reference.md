@@ -31,6 +31,11 @@ above the cards (**All**, **Events**, **Operations**, **Admin**, **Account**) fi
 | **Settings** | System configuration |
 | **My Account** | Your profile and password |
 
+Some cards may be missing: an installation can switch menus off for everyone (Dashboard, Calendar,
+Mail Planner, Meal Scanner, Users, Teams, My Team, Voucher). A switched-off page also sends you
+back to Home if you open its link. Events, Browse Events, My Events, the check-in scanner, My
+Account and Settings are always there. If no card is left, Home says "No modules are available."
+
 The **Home** button (top-left of the green header) always brings you back here. On the right
 of the header: the **notifications bell** and your **name badge** (click it for **Edit
 account**, **Install app**, and **Sign out**).

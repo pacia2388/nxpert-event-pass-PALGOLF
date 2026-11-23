@@ -109,3 +109,6 @@ Browse `https://SERVER:8443/` → sign-in page.
   filenames avoid stale cache).
 - Changed `apiBaseUrl`? Edit `appSettings.json` on the server and reload — no rebuild. A new build
   overwrites it with dev values: restore the server copy after each frontend deploy.
+- `menu.json` (next to `appSettings.json`, switches menus off) is left out of the production
+  build, so a deploy never overwrites it. Copy it once on a new install; never delete it when
+  replacing the site files.

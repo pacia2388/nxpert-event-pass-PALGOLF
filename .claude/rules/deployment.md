@@ -10,6 +10,10 @@ Source: `deploy-iis` skill.
 - **`appSettings.json` is read at runtime** — edit it on the server and reload; no rebuild. It is
   public (served to every browser), so never put secrets there. A new build overwrites it with the
   dev values: keep the server copy and restore it after each deploy.
+- **`menu.json`** (App site root, source `frontend/web/public/menu.json`) switches menus off for
+  the whole installation; read at runtime like `appSettings.json`. The production build leaves it
+  out, so a deploy never overwrites it: copy it to the server once, and never delete it when
+  replacing the site files. Core event menus, My Account and Settings are always on.
 - Use `npm ci` (not `npm install`) for production builds.
 - Production config lives in `appsettings.Production.json` with `ASPNETCORE_ENVIRONMENT=Production`;
   real values only, never dev secrets, never committed.

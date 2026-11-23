@@ -37,7 +37,9 @@ before registering for events (a banner reminds you and has **Resend email**).
 After signing in you see **Home** with cards for **Browse Events**, **My Events** and **My
 Account**. The **Home** button at the top-left always brings you back. The **bell** shows your
 notifications (for example when a registration is approved), and the menu under your **name**
-has **Edit account**, **Install app** and **Sign out**.
+has **Edit account**, **Install app** and **Sign out**. Cards such as **Calendar**, **My Team** or
+**Voucher** may be missing when the organizer has switched them off; **Browse Events** and **My
+Events** are always there.
 
 > **Install the app:** on a phone, tap **Install** on the banner (on iPhone: **Share → Add to
 > Home Screen**) to open NXPass like an app.
