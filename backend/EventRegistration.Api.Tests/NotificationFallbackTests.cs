@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -171,6 +172,9 @@ public class OutboxRuleTests : IDisposable
         if (Directory.Exists(_root)) Directory.Delete(_root, true);
     }
 
+    private static readonly MobilePart[] HelloPart = [new("Hi", "Hello")];
+    private static readonly OutgoingMessage Hello = new(EmailRetryKinds.Message, HelloPart, HelloPart);
+
     [Theory]
     [InlineData("Development", DeliveryResult.Disabled, true)]
     [InlineData("Production", DeliveryResult.NotConfigured, false)]
@@ -178,7 +182,7 @@ public class OutboxRuleTests : IDisposable
     {
         var viber = new SinchViberService(new ViberSettings(), NullLogger<SinchViberService>.Instance, new Env(_root, env));
 
-        Assert.Equal(expected, await viber.SendTextAsync("+639171234567", "Hi", "Hello"));
+        Assert.Equal(expected, await viber.SendAsync("+639171234567", Hello));
         Assert.Equal(written, OutboxFiles > 0);
     }
 
@@ -189,7 +193,7 @@ public class OutboxRuleTests : IDisposable
     {
         var sms = new SmsService(new SmsSettings(), NullLogger<SmsService>.Instance, new Env(_root, env));
 
-        Assert.Equal(expected, await sms.SendTextAsync("+639171234567", "Hi", "Hello"));
+        Assert.Equal(expected, await sms.SendAsync("+639171234567", Hello));
         Assert.Equal(written, OutboxFiles > 0);
     }
 
@@ -213,8 +217,20 @@ public class OutboxRuleTests : IDisposable
             new ViberSettings { Enabled = true, ProjectId = "p", KeyId = "k", KeySecret = "s", AppId = "a", Region = "us" },
             NullLogger<SinchViberService>.Instance, new Env(_root, "Production"), new FailingSinch());
 
-        Assert.Equal(DeliveryResult.Failed, await viber.SendTextAsync("+639171234567", "Hi", "Hello"));
+        Assert.Equal(DeliveryResult.Failed, await viber.SendAsync("+639171234567", Hello));
         Assert.True(OutboxFiles > 0);
+    }
+
+    [Theory]
+    [InlineData("../secret.eml")]
+    [InlineData("C:\\temp\\x.eml")]
+    [InlineData("notes.txt")]
+    public void Only_bare_eml_names_are_accepted(string name)
+    {
+        // A file name read from the database can never point outside the mail-queue folder.
+        var store = new EmailFileStore(new ConfigurationBuilder().Build(), new Env(_root, "Production"));
+        Assert.Null(store.PathOf(name));
+        Assert.NotNull(store.PathOf("0123abcd.eml"));
     }
 }
 
@@ -397,7 +413,8 @@ public class NotificationFallbackApiTests(ApiFixture api)
         using var scope = api.Services.CreateScope();
         var sp = scope.ServiceProvider;
         var failing = new FailingEmail(sp);
-        var sender = new EmailSender(failing, sp.GetRequiredService<IServiceScopeFactory>(), NullLogger<EmailSender>.Instance);
+        var sender = new EmailSender(failing, sp.GetRequiredService<EmailFileStore>(), sp.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<EmailSender>.Instance);
         var subject = $"Queued {Guid.NewGuid():N}";
         var ics = new EmailAttachment("invite.ics", [1, 2, 3], "text/calendar");
 
@@ -405,15 +422,17 @@ public class NotificationFallbackApiTests(ApiFixture api)
 
         Assert.True(result.RetryQueued);
         Assert.True(result.Accepted);
-        var db = sp.GetRequiredService<AppDbContext>();
-        var row = await db.EmailRetries.SingleAsync(r => r.Kind == EmailRetryKinds.Message && r.SnapshotJson!.Contains(subject));
-        var message = JsonSerializer.Deserialize<QueuedEmail>(row.SnapshotJson!)!;
-        Assert.Equal(["mia@example.com"], message.To);
-        Assert.Equal(ics.Content, message.Attachments![0].Content);
-        Assert.True(message.IncludeDefaultCc); // the Settings CC copy survives the retry
+        // The database keeps only the file name; the whole email is in the .eml file.
+        var row = Assert.Single(await api.RetriesMentioningAsync(subject, EmailRetryKinds.Message));
+        Assert.Null(row.SnapshotJson);
+        Assert.EndsWith(".eml", row.EmailFile);
+        var saved = (await sp.GetRequiredService<EmailFileStore>().LoadAsync(row.EmailFile))!;
+        Assert.Equal("mia@example.com", saved.To.Mailboxes.Single().Address);
+        Assert.Equal(subject, saved.Subject);
+        Assert.Contains(saved.BodyParts, p => p.ContentType.MimeType == "text/calendar"); // invite.ics kept
 
         Assert.Equal(DeliveryResult.Failed, await sender.SendNowAsync(["mia@example.com"], subject, "<p>Hi</p>"));
-        Assert.Equal(1, await db.EmailRetries.CountAsync(r => r.SnapshotJson!.Contains(subject)));
+        Assert.Single(await api.RetriesMentioningAsync(subject));
     }
 
     [Fact]
@@ -426,7 +445,28 @@ public class NotificationFallbackApiTests(ApiFixture api)
         var result = await scope.ServiceProvider.GetRequiredService<EmailSender>().SendAsync(["mia@example.com"], subject, "<p>Hi</p>");
 
         Assert.False(result.Accepted);
-        Assert.False(await scope.ServiceProvider.GetRequiredService<AppDbContext>().EmailRetries.AnyAsync(r => r.SnapshotJson!.Contains(subject)));
+        Assert.Empty(await api.RetriesMentioningAsync(subject));
+    }
+
+    [Fact]
+    public async Task A_saved_email_file_is_sent_by_the_retry_then_deleted()
+    {
+        using var scope = api.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        var subject = $"From file {Guid.NewGuid():N}";
+        var file = await sp.GetRequiredService<EmailSender>().SaveAsync(
+            new QueuedEmail(["mia@example.com"], [], subject, "<p>Hi</p>", null, null));
+        var db = sp.GetRequiredService<AppDbContext>();
+        var row = new EmailRetry { Kind = EmailRetryKinds.Message, NextAttemptAt = DateTimeOffset.UtcNow, EmailFile = file };
+        db.EmailRetries.Add(row);
+        await db.SaveChangesAsync();
+
+        await sp.GetRequiredService<EmailRetryDispatcher>().DispatchAsync(row.Id);
+
+        db.ChangeTracker.Clear();
+        Assert.Equal(EmailRetryStatus.Sent, (await db.EmailRetries.SingleAsync(r => r.Id == row.Id)).Status);
+        Assert.Single(ApiFixture.Sent("email", subject));
+        Assert.False(File.Exists(sp.GetRequiredService<EmailFileStore>().PathOf(file)));
     }
 
     [Fact]
@@ -446,7 +486,7 @@ public class NotificationFallbackApiTests(ApiFixture api)
 
         await scope.ServiceProvider.GetRequiredService<EmailRetryDispatcher>().DispatchAsync(row.Id);
 
-        // Email is off in tests, so the send is not delivered and the row waits for the next try.
+        // An older row (email as JSON). Email is off here, so the row waits for the next try.
         db.ChangeTracker.Clear();
         var after = await db.EmailRetries.SingleAsync(r => r.Id == row.Id);
         Assert.Equal((EmailRetryStatus.Queued, 1), (after.Status, after.Attempts));

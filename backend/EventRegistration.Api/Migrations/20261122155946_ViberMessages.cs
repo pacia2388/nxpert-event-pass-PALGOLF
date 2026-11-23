@@ -23,7 +23,10 @@ namespace EventRegistration.Api.Migrations
                     ReasonCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     AcceptedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    EmailQueuedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
+                    EmailQueuedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    GroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EmailSnapshotJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EmailFile = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -34,6 +37,11 @@ namespace EventRegistration.Api.Migrations
                 name: "IX_ViberMessages_AcceptedAt",
                 table: "ViberMessages",
                 column: "AcceptedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ViberMessages_GroupId",
+                table: "ViberMessages",
+                column: "GroupId");
         }
 
         /// <inheritdoc />

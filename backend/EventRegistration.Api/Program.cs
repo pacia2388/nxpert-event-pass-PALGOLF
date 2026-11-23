@@ -36,6 +36,7 @@ var emailSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>
 builder.Services.AddSingleton(emailSettings);
 builder.Services.AddScoped<SettingsService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddSingleton<EmailFileStore>();
 builder.Services.AddScoped<EmailSender>();
 builder.Services.AddScoped<InvitationEmailDispatcher>();
 builder.Services.AddHostedService<InvitationEmailScheduler>();
@@ -53,6 +54,7 @@ builder.Services.AddScoped<SmsService>();
 // Routes phone notifications to Viber or SMS per the admin-configured provider.
 builder.Services.AddScoped<MobileMessenger>();
 builder.Services.AddScoped<NotificationDelivery>();
+builder.Services.AddScoped<MessageDispatcher>();
 builder.Services.AddScoped<EmailRetryDispatcher>();
 builder.Services.AddHostedService<EmailRetryScheduler>();
 builder.Services.AddSingleton<QrService>();

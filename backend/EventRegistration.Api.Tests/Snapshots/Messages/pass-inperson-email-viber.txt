@@ -72,12 +72,8 @@ Where: Course
 Present the QR entry pass at the entrance.
 
 Need to update your details? http://localhost:4200/r/<guid>
-[image attached]
-
-===== viber =====
-To: <phone>
-Subject: meal-stubs_Snapshot Open
 
 Your 1 meal stub for "Snapshot Open" — present each QR at the meal counter.
 Lunch ₱150.00 · VALID ON MARCH 15, 2030
+[image attached]
 

@@ -10,7 +10,8 @@ For attendees registering for events and using their entry pass or online meetin
 > **How registration works:** when you register your registration is **pending** — no pass is
 > issued yet. Once an organizer **confirms** it, your **QR entry pass** is sent to you by your
 > chosen channel (email and/or Viber). For **online** events you receive the **meeting link and a
-> calendar invite** instead. Only a confirmed pass can be scanned at the door.
+> calendar invite** instead. If the Viber or SMS message can't reach you, the pass (with its meal
+> stubs and join link) comes by email instead. Only a confirmed pass can be scanned at the door.
 
 ---
 

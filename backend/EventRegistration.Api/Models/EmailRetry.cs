@@ -9,8 +9,13 @@ public static class EmailRetryKinds
     public const string EditLink = "EditLink";
     public const string MeetingUpdate = "MeetingUpdate";
     public const string MeetingCancel = "MeetingCancel";
-    // Any other email sent through EmailSender: the whole message is kept in SnapshotJson.
+    // Any other email sent through EmailSender (or a broadcast's fallback): the whole email is kept
+    // as an .eml file (EmailFile). Rows queued before that keep it as JSON in SnapshotJson.
     public const string Message = "Message";
+    // A mail-plan day / reminder email after a late Viber failure: SnapshotJson keeps only the
+    // delivery (MailPlanEmailRef); the email is rebuilt from the plan, since pasted images make copies large.
+    public const string MailPlan = "MailPlan";
+    public const string MailReminder = "MailReminder";
 }
 
 public static class EmailRetryStatus
@@ -40,6 +45,9 @@ public class EmailRetry
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? SentAt { get; set; }
     // MeetingCancel: the calendar entry, attendee name and reason as JSON.
-    // Message: the whole email (QueuedEmail) as JSON.
+    // MailPlan / MailReminder: the receiver's delivery (MailPlanEmailRef) as JSON.
+    // Message (older rows only): the whole email (QueuedEmail) as JSON.
     public string? SnapshotJson { get; set; }
+    // Message: the file name of the saved email (EmailFileStore), never its content.
+    [MaxLength(100)] public string? EmailFile { get; set; }
 }

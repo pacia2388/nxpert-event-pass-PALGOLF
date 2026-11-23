@@ -18,6 +18,9 @@ Source: `deploy-iis` skill.
   the whole installation; read at runtime like `appSettings.json`. The production build leaves it
   out, so a deploy never overwrites it: copy it to the server once, and never delete it when
   replacing the site files. Core event menus, My Account and Settings are always on.
+- **`mail-queue/`** (API site root, or `App:MailQueueDir`) holds emails waiting for a retry as
+  `.eml` files; the database keeps only their file names. It contains personal data: never serve it,
+  and never delete it on deploy (no `robocopy /MIR`). Old files are removed automatically after 26 h.
 - Use `npm ci` (not `npm install`) for production builds.
 - Production config lives in `appsettings.Production.json` with `ASPNETCORE_ENVIRONMENT=Production`;
   real values only, never dev secrets, never committed.

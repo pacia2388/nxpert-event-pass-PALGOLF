@@ -42,28 +42,26 @@ public sealed record MeetingCancelSnapshot(CalendarInvite.Details Invite, string
 
 /// <summary>
 /// Issues entry passes and other registrant messages. The pass (a QR of the registration token) is
-/// only ever sent once a registration has been confirmed by an admin. Each message goes to the
-/// registrant's channel with fallback (<see cref="DeliverAsync"/>). Callers save the DbContext.
+/// only ever sent once a registration has been confirmed by an admin. Each message is built from
+/// <see cref="MessageTemplates"/> and sent by <see cref="MessageDispatcher"/> (send → fall back).
+/// Callers save the DbContext.
 /// </summary>
 public class PassService
 {
     private readonly EmailService _email;
-    private readonly MobileMessenger _mobile;
-    private readonly NotificationDelivery _delivery;
-    private readonly IServiceScopeFactory _scopes;
+    private readonly MessageDispatcher _dispatcher;
+    private readonly SmsSettings _sms;
     private readonly QrService _qr;
     private readonly MealStubService _mealStubs;
     private readonly MealStubImageService _stubImages;
     private readonly IConfiguration _config;
 
-    public PassService(EmailService email, MobileMessenger mobile, NotificationDelivery delivery,
-        IServiceScopeFactory scopes, QrService qr, MealStubService mealStubs, MealStubImageService stubImages,
-        IConfiguration config)
+    public PassService(EmailService email, MessageDispatcher dispatcher, SmsSettings sms, QrService qr,
+        MealStubService mealStubs, MealStubImageService stubImages, IConfiguration config)
     {
         _email = email;
-        _mobile = mobile;
-        _delivery = delivery;
-        _scopes = scopes;
+        _dispatcher = dispatcher;
+        _sms = sms;
         _qr = qr;
         _mealStubs = mealStubs;
         _stubImages = stubImages;
@@ -78,6 +76,8 @@ public class PassService
 
     private static string ChannelOf(Registration reg) =>
         reg.User?.NotificationChannel ?? reg.GuestNotificationChannel ?? NotificationChannels.Email;
+
+    private static Recipient To(Registration reg, string channel) => new(reg.DisplayPhone, channel, reg.Id);
 
     /// <summary>
     /// Sends the "registration confirmed" pass to the registrant over their preferred channel
@@ -112,30 +112,20 @@ public class PassService
 
         var editUrl = EditUrl(ev, reg);
         var channel = emailOnly ? NotificationChannels.Email : ChannelOf(reg);
-        var phone = reg.DisplayPhone;
         var email = reg.DisplayEmail;
 
-        // Mobile: the pass (or, for online-only events, the confirmation text) decides delivery;
-        // the join link and meal stubs follow on the same provider, best effort. Only the pass /
-        // confirmation text carries the tag, so a failed follow-up never sends the email.
-        async Task<DeliveryResult> Mobile(IMobileSender m, MobileTag? tag)
+        // One message: the pass (or, for online-only events, the confirmation text), the join link
+        // and the meal stubs travel together, so a failed part sends the email.
+        var stubLines = new List<MessageTemplates.MealStubLine>();
+        foreach (var s in stubs)
         {
-            var result = showPass
-                ? await m.SendPassAsync(phone!, title, startsAt, endsAt, venue, name, reg.Token.ToString(), qrPng, editUrl, tag)
-                : await m.SendTextAsync(phone!, $"Registration confirmed — {title}",
-                    $"Hi {name}, your registration for \"{title}\" is confirmed.\n" +
-                    $"{ScheduleText.Text(startsAt, endsAt)}" +
-                    (meetingUrl is null ? "" : $"\nJoin online: {meetingUrl}") +
-                    (editUrl is null ? "" : $"\nEdit your response: {editUrl}"), tag);
-            if (!result.Delivered()) return result;
-            if (showPass && meetingUrl is not null)
-                await m.SendTextAsync(phone!, $"Registration confirmed — {title}", $"You can also join \"{title}\" online: {meetingUrl}");
-            if (stubs.Count > 0)
-                await m.SendMealStubsAsync(phone!, ev.Title, stubs
-                    .Select(s => (Caption: $"{s.Name} ₱{s.Denomination:0.00} · {ValidityFor(s)}", Control: s.ControlNumber))
-                    .ToList());
-            return result;
+            var caption = $"{s.Name} ₱{s.Denomination:0.00} · {ValidityFor(s)}";
+            stubLines.Add(new MessageTemplates.MealStubLine(caption, s.ControlNumber));
         }
+        var mobile = MessageTemplates.Pass(new MessageTemplates.PassDetails(
+            Title: title, StartsAt: startsAt, EndsAt: endsAt, Venue: venue, Name: name, Token: reg.Token, QrPng: qrPng,
+            EditUrl: editUrl, MeetingUrl: meetingUrl, ShowPass: showPass, EventTitle: ev.Title, Stubs: stubLines,
+            SmsPassUrl: _sms.PassUrl(reg.Token)));
 
         async Task<DeliveryResult> Email()
         {
@@ -176,8 +166,12 @@ public class PassService
             return await _email.SendAsync(email!, subject, html.ToString(), inlineImages: images, attachments: attachments);
         }
 
-        var delivery = await DeliverAsync(reg, channel, Mobile,
-            string.IsNullOrWhiteSpace(email) ? null : Email, EmailRetryKinds.Pass, isRetry);
+        Func<Task<DeliveryResult>>? sendEmail = null;
+        if (!string.IsNullOrWhiteSpace(email))
+            sendEmail = Email;
+
+        var message = new OutgoingMessage(EmailRetryKinds.Pass, mobile, sendEmail);
+        var delivery = await _dispatcher.SendAsync(To(reg, channel), message, isRetry);
         if (delivery.Sent) reg.PassEmailSentAt = DateTime.Now;
         return delivery;
     }
@@ -198,16 +192,23 @@ public class PassService
         var endsAt = reg.Session?.EndsAt ?? ev.EndsAt;
         var subject = $"Updated: {title}";
 
-        return await DeliverAsync(reg, ChannelOf(reg),
-            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, subject,
-                $"Hi {reg.DisplayName}, the event details for \"{title}\" have changed.\n" +
-                $"{ScheduleText.Text(startsAt, endsAt)}\nJoin: {url}", tag),
-            invite is null ? null : () => _email.SendAsync(invite.AttendeeEmail, subject,
-                EventFormats.HasOnline(ev.Format) ? EmailTemplates.MeetingUpdated(title, startsAt, endsAt, reg.DisplayName, url) :
-                    "<p>The event details have changed. The attached calendar invitation updates your existing event.</p>" +
-                    EmailTemplates.Invitation(ev, System.Net.WebUtility.HtmlEncode(url)),
-                attachments: new[] { new EmailAttachment(CalendarInvite.FileName, CalendarInvite.Request(invite), CalendarInvite.ContentType(false)) }),
-            EmailRetryKinds.MeetingUpdate, isRetry);
+        // No invite = no email address, so no email.
+        Func<Task<DeliveryResult>>? sendEmail = null;
+        if (invite is not null)
+        {
+            string html;
+            if (EventFormats.HasOnline(ev.Format))
+                html = EmailTemplates.MeetingUpdated(title, startsAt, endsAt, reg.DisplayName, url);
+            else
+                html = "<p>The event details have changed. The attached calendar invitation updates your existing event.</p>" +
+                       EmailTemplates.Invitation(ev, System.Net.WebUtility.HtmlEncode(url));
+            var ics = new EmailAttachment(CalendarInvite.FileName, CalendarInvite.Request(invite), CalendarInvite.ContentType(false));
+            sendEmail = () => _email.SendAsync(invite.AttendeeEmail, subject, html, attachments: new[] { ics });
+        }
+
+        var mobile = MessageTemplates.MeetingUpdate(title, startsAt, endsAt, reg.DisplayName, url);
+        var message = new OutgoingMessage(EmailRetryKinds.MeetingUpdate, mobile, sendEmail);
+        return await _dispatcher.SendAsync(To(reg, ChannelOf(reg)), message, isRetry);
     }
 
     /// <summary>
@@ -220,21 +221,25 @@ public class PassService
         if (reg.PassEmailSentAt is null) return PassDelivery.NoContact; // never received a pass or invite
         var invite = CalendarInvite.For(ev, reg, _email.FromName, _email.FromAddress, $"{FrontendBase}/e/{ev.PublicSlug}");
         var title = reg.Session is not null ? $"{ev.Title} — {reg.Session.Title}" : ev.Title;
-        var text = reason switch
+        // The email (CANCEL invite) is kept as a snapshot: the registration may be gone by the retry.
+        Func<Task<DeliveryResult>>? sendEmail = null;
+        string? snapshotJson = null;
+        if (invite is not null)
         {
-            MeetingCancelReason.EventCancelled => $"Hi {reg.DisplayName}, \"{title}\" has been cancelled.",
-            MeetingCancelReason.NowInPerson => $"Hi {reg.DisplayName}, the online meeting for \"{title}\" has been removed.",
-            _ => $"Hi {reg.DisplayName}, your registration for \"{title}\" has been cancelled.",
-        };
-        var snapshot = invite is null ? null : new MeetingCancelSnapshot(invite, reg.DisplayName, reason);
-        // The calendar entry is always withdrawn by email (when there is one); a mobile-channel
-        // registrant also gets a text, so it is sent as "Both".
-        var channel = NotificationChannels.UsesViber(ChannelOf(reg)) ? NotificationChannels.Both : NotificationChannels.Email;
-        return await DeliverAsync(reg, channel,
-            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, $"Cancelled: {title}", text, tag),
-            snapshot is null ? null : () => SendMeetingCancelEmailAsync(snapshot),
-            EmailRetryKinds.MeetingCancel, isRetry: false,
-            snapshot is null ? null : JsonSerializer.Serialize(snapshot));
+            var snapshot = new MeetingCancelSnapshot(invite, reg.DisplayName, reason);
+            sendEmail = () => SendMeetingCancelEmailAsync(snapshot);
+            snapshotJson = JsonSerializer.Serialize(snapshot);
+        }
+
+        // Documented exception (plan decision 5): the calendar entry is always withdrawn by email
+        // (when there is one); a mobile-channel registrant also gets a text, so it is sent as "Both".
+        var channel = NotificationChannels.Email;
+        if (NotificationChannels.UsesViber(ChannelOf(reg)))
+            channel = NotificationChannels.Both;
+
+        var mobile = MessageTemplates.MeetingCancel(title, reg.DisplayName, reason);
+        var message = new OutgoingMessage(EmailRetryKinds.MeetingCancel, mobile, sendEmail, snapshotJson);
+        return await _dispatcher.SendAsync(To(reg, channel), message);
     }
 
     /// <summary>The meeting-cancel email (CANCEL invite) from its snapshot; also used by the retry.</summary>
@@ -260,16 +265,16 @@ public class PassService
     public async Task<PassDelivery> SendKitClaimedAsync(Event ev, Registration reg, string? claimedBy, bool isRetry = false)
     {
         var name = reg.DisplayName;
-        var text = string.IsNullOrWhiteSpace(claimedBy)
-            ? $"Hi {name}, this confirms that your kit for \"{ev.Title}\" has already been claimed."
-            : $"Hi {name}, your kit for \"{ev.Title}\" has been claimed by {claimedBy}.";
         var subject = $"Event kit claimed — {ev.Title}";
         var email = reg.DisplayEmail;
 
-        return await DeliverAsync(reg, ChannelOf(reg),
-            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, subject, text, tag),
-            string.IsNullOrWhiteSpace(email) ? null : () => _email.SendAsync(email, subject, EmailTemplates.KitClaimed(ev.Title, name, claimedBy)),
-            EmailRetryKinds.KitClaimed, isRetry);
+        Func<Task<DeliveryResult>>? sendEmail = null;
+        if (!string.IsNullOrWhiteSpace(email))
+            sendEmail = () => _email.SendAsync(email, subject, EmailTemplates.KitClaimed(ev.Title, name, claimedBy));
+
+        var mobile = MessageTemplates.KitClaimed(ev.Title, name, claimedBy);
+        var message = new OutgoingMessage(EmailRetryKinds.KitClaimed, mobile, sendEmail);
+        return await _dispatcher.SendAsync(To(reg, ChannelOf(reg)), message, isRetry);
     }
 
     /// <summary>
@@ -284,80 +289,12 @@ public class PassService
         var subject = $"Edit your registration — {ev.Title}";
         var email = reg.DisplayEmail;
 
-        return await DeliverAsync(reg, ChannelOf(reg),
-            (m, tag) => m.SendTextAsync(reg.DisplayPhone!, subject,
-                $"Hi {name}, review or update your response for \"{ev.Title}\" here: {url}", tag),
-            string.IsNullOrWhiteSpace(email) ? null : () => _email.SendAsync(email, subject, EmailTemplates.EditLink(ev.Title, name, url)),
-            EmailRetryKinds.EditLink, isRetry);
-    }
+        Func<Task<DeliveryResult>>? sendEmail = null;
+        if (!string.IsNullOrWhiteSpace(email))
+            sendEmail = () => _email.SendAsync(email, subject, EmailTemplates.EditLink(ev.Title, name, url));
 
-    /// <summary>
-    /// Sends one registrant message by channel, each channel tried once:
-    /// mobile preferred = the active mobile provider only, then email when its FallbackToEmail is on;
-    /// email preferred = email only; Both = mobile and email, each sent, neither falls back.
-    /// A mobile-preferred registrant with no phone, or whose country code is not listed for the
-    /// active channel (Phone country table), gets email whatever FallbackToEmail says. A failed email never falls back to
-    /// mobile; it is queued for a background retry instead (unless this is that retry, which is
-    /// email only). <paramref name="email"/> is null when there is no address. When a Viber
-    /// failure reported later must still send the email (mobile preferred, FallbackToEmail on,
-    /// has an address), the mobile send gets a <see cref="MobileTag"/>.
-    /// </summary>
-    private async Task<PassDelivery> DeliverAsync(Registration reg, string channel,
-        Func<IMobileSender, MobileTag?, Task<DeliveryResult>> mobile, Func<Task<DeliveryResult>>? email,
-        string retryKind, bool isRetry, string? snapshotJson = null)
-    {
-        if (isRetry) channel = NotificationChannels.Email;
-        var route = NotificationChannels.UsesViber(channel) && !string.IsNullOrWhiteSpace(reg.DisplayPhone)
-            ? await _mobile.RouteAsync() : null;
-        var emailAttempt = email is null ? null : new ChannelAttempt("email", email);
-        var tag = channel == NotificationChannels.Viber && emailAttempt is not null && route?.Sender.FallbackToEmail == true
-            ? new MobileTag(reg.Id, retryKind) : null;
-        var mobileChain = route is not null && route.Supports(reg.DisplayPhone)
-            ? new List<ChannelAttempt> { new(route.Name, () => mobile(route.Sender, tag)) }
-            : new List<ChannelAttempt>();
-
-        var chains = new List<ChainResult>();
-        if (channel == NotificationChannels.Both)
-        {
-            if (mobileChain.Count > 0) chains.Add(await _delivery.DeliverAsync(mobileChain));
-            if (emailAttempt is not null) chains.Add(await _delivery.DeliverAsync([emailAttempt]));
-        }
-        else
-        {
-            // Mobile preferred: email is the last fallback. Email preferred: the only channel.
-            var chain = channel == NotificationChannels.Viber ? mobileChain : new List<ChannelAttempt>();
-            if (emailAttempt is not null) chain.Add(emailAttempt with { AfterFailure = route?.Sender.FallbackToEmail ?? true });
-            if (chain.Count > 0) chains.Add(await _delivery.DeliverAsync(chain));
-        }
-
-        var emailFailed = chains.Any(c => c.Tried.Any(t => t.Channel == "email" && t.Result == DeliveryResult.Failed));
-        var queued = emailFailed && !isRetry && await QueueEmailRetryAsync(reg.Id, retryKind, snapshotJson);
-        var delivered = chains.Where(c => c.Delivered).ToList();
-        return new PassDelivery(
-            delivered.Select(c => c.DeliveredBy!).ToList(),
-            delivered.Select(c => c.FirstFailed).FirstOrDefault(f => f is not null),
-            delivered.Count > 0 && delivered.All(c => c.DeliveredDisabled),
-            queued,
-            chains.Count > 0);
-    }
-
-    // One pending retry per registration + kind (a meeting cancel always gets its own snapshot row).
-    // Saved in its own scope so the caller's unsaved changes are not committed with it.
-    private async Task<bool> QueueEmailRetryAsync(int registrationId, string kind, string? snapshotJson)
-    {
-        using var scope = _scopes.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        if (snapshotJson is null && await db.EmailRetries.AnyAsync(r => r.RegistrationId == registrationId && r.Kind == kind &&
-                (r.Status == EmailRetryStatus.Queued || r.Status == EmailRetryStatus.Sending)))
-            return true;
-        db.EmailRetries.Add(new EmailRetry
-        {
-            RegistrationId = registrationId,
-            Kind = kind,
-            SnapshotJson = snapshotJson,
-            NextAttemptAt = DateTimeOffset.UtcNow.AddMinutes(EmailRetryDispatcher.RetryMinutes),
-        });
-        await db.SaveChangesAsync();
-        return true;
+        var mobile = MessageTemplates.EditLink(ev.Title, name, url);
+        var message = new OutgoingMessage(EmailRetryKinds.EditLink, mobile, sendEmail);
+        return await _dispatcher.SendAsync(To(reg, ChannelOf(reg)), message, isRetry);
     }
 }

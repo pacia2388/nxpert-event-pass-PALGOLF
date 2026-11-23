@@ -105,6 +105,9 @@ public class AppDbContext : DbContext
         b.Entity<EmailRetry>().HasIndex(r => new { r.Status, r.NextAttemptAt });
         b.Entity<EmailRetry>().HasIndex(r => new { r.RegistrationId, r.Kind });
         b.Entity<ViberMessage>().HasIndex(m => m.AcceptedAt);
+        b.Entity<ViberMessage>().HasIndex(m => m.GroupId);
+        // The webhook checks whether a saved email is already queued.
+        b.Entity<EmailRetry>().HasIndex(r => r.EmailFile);
 
         b.Entity<PhoneCountry>().HasIndex(c => c.CountryCode).IsUnique();
         b.Entity<PhoneCountry>().HasData(new PhoneCountry { Id = 1, CountryCode = "63", Viber = true, Sms = true });

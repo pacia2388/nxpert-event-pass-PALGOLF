@@ -13,7 +13,7 @@ using MimeKit;
 namespace EventRegistration.Api.Tests;
 
 // Locks the wording of every registrant / receiver message on every channel (email, Viber, SMS),
-// so the template refactor (plans/uniform-message-delivery.md) can prove nothing changed.
+// so the template refactor (plans/completed/20261123_uniform-message-delivery.md) can prove nothing changed.
 // Each case sends one message through the real code, reads what the channels wrote to test/sent,
 // normalizes run-specific values (addresses, ids, tokens, timestamps) and compares it with
 // Snapshots/Messages/<case>.txt. A missing snapshot is written and the test fails once: review

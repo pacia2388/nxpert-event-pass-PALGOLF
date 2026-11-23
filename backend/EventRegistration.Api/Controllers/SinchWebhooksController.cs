@@ -12,9 +12,9 @@ namespace EventRegistration.Api.Controllers;
 
 /// <summary>
 /// Receives Sinch Conversation API delivery reports (webhook trigger MESSAGE_DELIVERY) for Viber
-/// messages. Each report updates its <see cref="ViberMessage"/>; a FAILED report on a tagged
-/// message (the registrant would have got the email had the send failed straight away) queues that
-/// email once through <see cref="EmailRetry"/>. Viber is never re-sent.
+/// messages. Each report updates its <see cref="ViberMessage"/>; a FAILED report on any part of a
+/// tagged send (the receiver would have got the email had the send failed straight away) queues that
+/// email once for the whole group through <see cref="EmailRetry"/>. Viber is never re-sent.
 /// Anonymous, but every call must carry a valid Sinch HMAC signature over the raw body.
 /// </summary>
 [ApiController]
@@ -107,15 +107,16 @@ public class SinchWebhooksController(AppDbContext db, ViberSettings settings, IL
         log.LogInformation("Viber message {MessageId}: {OldStatus} → {NewStatus}", messageId, old, status);
 
         if (status != "FAILED") return;
-        var noEmail = row.RegistrationId is null || row.Kind is null ? "untagged"
+        var noEmail = row.Kind is null ? "untagged"
             : row.EmailQueuedAt is not null ? "already queued"
             : DateTimeOffset.UtcNow - row.AcceptedAt > FallbackCutoff ? "older than cutoff"
             : null;
         if (noEmail is null)
         {
-            // Claim in SQL so a duplicate report handled at the same time queues only once.
+            // Claim the whole group in SQL: a second failed part, or a duplicate report handled at the
+            // same time, finds nothing left to claim and queues no second email.
             var now = DateTimeOffset.UtcNow;
-            var claimed = await db.ViberMessages.Where(m => m.MessageId == messageId && m.EmailQueuedAt == null)
+            var claimed = await db.ViberMessages.Where(m => m.GroupId == row.GroupId && m.EmailQueuedAt == null)
                 .ExecuteUpdateAsync(s => s.SetProperty(m => m.EmailQueuedAt, now));
             if (claimed == 0) noEmail = "already queued";
         }
@@ -125,14 +126,48 @@ public class SinchWebhooksController(AppDbContext db, ViberSettings settings, IL
             return;
         }
 
-        // One pending retry per registration + kind, as for a failed send (PassService).
-        var retry = await db.EmailRetries.FirstOrDefaultAsync(r => r.RegistrationId == row.RegistrationId && r.Kind == row.Kind &&
-            (r.Status == EmailRetryStatus.Queued || r.Status == EmailRetryStatus.Sending));
-        if (retry is null)
+        EmailRetry? retry;
+        if (row.RegistrationId is null)
         {
-            retry = new EmailRetry { RegistrationId = row.RegistrationId, Kind = row.Kind!, NextAttemptAt = DateTimeOffset.UtcNow };
+            // Mail plan, reminder or broadcast: what to email was saved with the group's first message.
+            var saved = await db.ViberMessages
+                .Where(m => m.GroupId == row.GroupId && (m.EmailSnapshotJson != null || m.EmailFile != null))
+                .Select(m => new { m.EmailSnapshotJson, m.EmailFile })
+                .FirstOrDefaultAsync();
+            if (saved is null)
+            {
+                log.LogWarning("Viber message {MessageId} failed ({ReasonCode}); no email because none was saved", messageId, reasonCode);
+                return;
+            }
+            // A broadcast saves one email per address: two numbers with the same address that both
+            // fail later share it, so it is queued once.
+            if (saved.EmailFile is not null && await db.EmailRetries.AnyAsync(r => r.EmailFile == saved.EmailFile))
+            {
+                log.LogInformation("Viber message {MessageId} failed ({ReasonCode}); no email because {Why}",
+                    messageId, reasonCode, "the same email is already queued");
+                return;
+            }
+            retry = new EmailRetry
+            {
+                Kind = row.Kind!,
+                SnapshotJson = saved.EmailSnapshotJson,
+                EmailFile = saved.EmailFile,
+                NextAttemptAt = DateTimeOffset.UtcNow,
+            };
             db.EmailRetries.Add(retry);
             await db.SaveChangesAsync();
+        }
+        else
+        {
+            // One pending retry per registration + kind, as for a failed send (MessageDispatcher).
+            retry = await db.EmailRetries.FirstOrDefaultAsync(r => r.RegistrationId == row.RegistrationId && r.Kind == row.Kind &&
+                (r.Status == EmailRetryStatus.Queued || r.Status == EmailRetryStatus.Sending));
+            if (retry is null)
+            {
+                retry = new EmailRetry { RegistrationId = row.RegistrationId, Kind = row.Kind!, NextAttemptAt = DateTimeOffset.UtcNow };
+                db.EmailRetries.Add(retry);
+                await db.SaveChangesAsync();
+            }
         }
         log.LogWarning("Viber message {MessageId} failed ({ReasonCode}: {ReasonDescription}); email fallback queued (retry {EmailRetryId}, registration {RegistrationId}, {Kind})",
             messageId, reasonCode, reasonDescription, retry.Id, row.RegistrationId, row.Kind);

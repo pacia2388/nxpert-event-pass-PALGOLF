@@ -50,8 +50,8 @@ public class NotificationMatrixTests(ApiFixture api)
     private Task<int> RetriesAsync(int regId, string kind) => DbAsync(db => db.EmailRetries
         .CountAsync(r => r.RegistrationId == regId && r.Kind == kind && r.Status == EmailRetryStatus.Queued));
 
-    private Task<int> MessageRetriesAsync(string recipient) => DbAsync(db => db.EmailRetries
-        .CountAsync(r => r.Kind == EmailRetryKinds.Message && r.SnapshotJson!.Contains(recipient)));
+    private async Task<int> MessageRetriesAsync(string recipient) =>
+        (await api.RetriesMentioningAsync(recipient, EmailRetryKinds.Message)).Count;
 
     // Turns one channel off for +63 for the test (the number's country is then "not listed").
     private async Task<IAsyncDisposable> Unlisted(string channel)
@@ -164,9 +164,10 @@ public class NotificationMatrixTests(ApiFixture api)
 
         await api.ConfirmAsync(admin, reg.EventId, reg.Id);
 
-        Assert.Single(ApiFixture.Sent(V, reg.Phone), f => !f.Contains("meal-stubs"));
+        // One Viber message: the QR with the text, which lists the meal stubs (no separate send).
+        var pass = Assert.Single(ApiFixture.Sent(V, reg.Phone));
         Assert.Single(Directory.GetFiles(ApiFixture.SentDir(V), "*.png").Where(f => f.Contains(reg.Phone)));
-        Assert.Equal(1, Count(V, reg.Phone, "meal-stubs"));
+        Assert.Contains("meal stub", await File.ReadAllTextAsync(pass));
     }
 
     [Fact] // M03
@@ -212,7 +213,7 @@ public class NotificationMatrixTests(ApiFixture api)
     private record BroadcastBody(int Sent, int Emailed, int Failed, string Message);
 
     private const string NoViberSent = "Message could not be sent to any of the 1 Viber number. "
-        + "Check the Viber setup and try again or use the faillback to email.";
+        + "Check the Viber setup and try again, or tick Fallback to email.";
 
     // M28–M33: organizer Viber broadcast. Counts only numbers Viber accepted; a number whose country
     // is not enabled for Viber counts as failed; "Fallback to email" (dialog toggle) emails failed ones.
@@ -222,9 +223,9 @@ public class NotificationMatrixTests(ApiFixture api)
         { "M28", ChannelMode.Send, false, false, 1, 0, 0, "Message sent to 1 Viber number." },
         { "M29", ChannelMode.Fail, false, false, 0, 0, 1, NoViberSent },
         { "M30", ChannelMode.Off, false, false, 0, 0, 1, NoViberSent },
-        { "M31", ChannelMode.Fail, true, false, 0, 1, 0, "Message sent to 0 Viber numbers, emailed to 1 registrant instead." },
+        { "M31", ChannelMode.Fail, true, false, 0, 1, 0, "Message emailed to 1 registrant instead." },
         { "M32", ChannelMode.Send, false, true, 0, 0, 1, NoViberSent },
-        { "M33", ChannelMode.Send, true, true, 0, 1, 0, "Message sent to 0 Viber numbers, emailed to 1 registrant instead." },
+        { "M33", ChannelMode.Send, true, true, 0, 1, 0, "Message emailed to 1 registrant instead." },
     };
 
     [Theory]
@@ -490,7 +491,7 @@ public class NotificationMatrixTests(ApiFixture api)
         await client.PostAsync("/api/auth/resend-verification", null);
 
         Assert.True(Count(E, user.Email, "Confirm your email") == sentCount, $"{id}: email");
-        Assert.True(await DbAsync(db => db.EmailRetries.CountAsync(r => r.SnapshotJson!.Contains(user.Email))) == 0, $"{id}: no retry");
+        Assert.True((await api.RetriesMentioningAsync(user.Email)).Count == 0, $"{id}: no retry");
     }
 
     // ---------------- R: background email retry ----------------
@@ -534,7 +535,7 @@ public class NotificationMatrixTests(ApiFixture api)
         await using (await api.ChannelsAsync(email: ChannelMode.Fail))
             (await admin.PostAsJsonAsync($"/api/events/{ev.Id}/invitations", new { emails = new[] { address } })).EnsureSuccessStatusCode();
 
-        await DispatchRetriesAsync(r => r.Kind == EmailRetryKinds.Message && r.SnapshotJson!.Contains(address));
+        await DispatchRetriesAsync(r => r.Kind == EmailRetryKinds.Message && api.StoredEmail(r).Contains(address));
 
         var eml = await File.ReadAllTextAsync(ApiFixture.Sent(E, address).Single());
         Assert.Contains("invite.ics", eml); // attachments survive the retry

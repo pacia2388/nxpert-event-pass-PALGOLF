@@ -45,7 +45,7 @@ public class ViberSettings
 /// still works offline; a send failure also falls back to the outbox.
 /// A rejected request counts as failed straight away. Sinch reports later delivery failures by
 /// webhook (SinchWebhooksController): every accepted message is saved as a <see cref="ViberMessage"/>,
-/// and a failure of a tagged one (<see cref="MobileTag"/>) queues the email instead.
+/// and a failure of a tagged one (<see cref="MobileTag"/>) queues the email once for its group.
 /// </summary>
 public class SinchViberService : IMobileSender
 {
@@ -84,123 +84,128 @@ public class SinchViberService : IMobileSender
     private string? TestDir => TestSendFolder.Resolve(_s.TestSendDir, _env);
 
     /// <summary>
-    /// Sends the entry-pass message to a phone number over Viber. When a public API base URL is
-    /// configured, the QR pass follows as an image message pointing at the public pass-QR endpoint;
-    /// otherwise only the text is sent. Falls back to the outbox.
+    /// Sends a message's Viber part(s) as one group. Hard rule (cost: Sinch bills each message):
+    /// text only = one text message; text + one image = ONE card message (image with the text);
+    /// text + several images = one card with the text and the first image (the QR), then one image
+    /// message per other image. With no public HTTPS base the text-only version goes as one text.
+    /// Every message carries the same tag and group, so a later failure on any of them queues the
+    /// email once. A rejected message stops the group and fails the whole send. Falls back to the outbox.
     /// </summary>
-    public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
-        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null, MobileTag? tag = null)
-    {
-        var text =
-            $"Hi {attendeeName}, your registration for \"{title}\" is confirmed.\n" +
-            $"{ScheduleText.Text(startsAt, endsAt)}\n" +
-            $"Where: {venue}\n" +
-            "Present the QR entry pass at the entrance." +
-            (string.IsNullOrWhiteSpace(editUrl) ? "" : $"\n\nNeed to update your details? {editUrl}");
-
-        var to = NormalizePhone(phone);
-
-        if (TestDir is { } dir) return await TestSendFolder.WriteAsync(dir, _s.TestFail, to, title, text, qrPng);
-        if (!Configured) return await OffAsync(to, title, text, qrPng);
-
-        try
-        {
-            // Text first, image second: the details still arrive even if the image is rejected.
-            await SendAsync(to, new AppMessage(new TextMessage(text)), tag);
-            var mediaUrl = PublicUrl($"api/passes/{passToken}/qr.png");
-            if (mediaUrl is not null)
-                await SendAsync(to, new AppMessage(new MediaMessage { Url = mediaUrl }));
-
-            _log.LogInformation("Sent Viber pass to {Phone} ('{Title}') via Sinch ({Kind}).",
-                to, title, mediaUrl is null ? "text only" : "text + QR image");
-            return DeliveryResult.Sent;
-        }
-        catch (Exception ex)
-        {
-            _log.LogError(ex, "Failed to send Viber message to {Phone}. Falling back to outbox.", to);
-            await WriteToOutboxAsync(to, title, text, qrPng);
-            return DeliveryResult.Failed;
-        }
-    }
-
-    /// <summary>
-    /// Sends a plain text notification (no QR/image) to a phone number over Viber.
-    /// Falls back to the on-disk outbox when Sinch isn't configured or the send fails.
-    /// <paramref name="subject"/> is only used to label the outbox entry.
-    /// </summary>
-    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text, MobileTag? tag = null)
+    public async Task<DeliveryResult> SendAsync(string phone, OutgoingMessage message, MobileTag? tag = null)
     {
         var to = NormalizePhone(phone);
 
-        if (TestDir is { } dir) return await TestSendFolder.WriteAsync(dir, _s.TestFail, to, subject, text);
-        if (!Configured) return await OffAsync(to, subject, text, Array.Empty<byte>());
-
-        try
-        {
-            await SendAsync(to, new AppMessage(new TextMessage(text)), tag);
-            _log.LogInformation("Sent Viber message to {Phone} ('{Subject}') via Sinch.", to, subject);
-            return DeliveryResult.Sent;
-        }
-        catch (Exception ex)
-        {
-            _log.LogError(ex, "Failed to send Viber message to {Phone}. Falling back to outbox.", to);
-            await WriteToOutboxAsync(to, subject, text, Array.Empty<byte>());
-            return DeliveryResult.Failed;
-        }
-    }
-
-    /// <summary>
-    /// Sends the registrant's meal stubs over Viber: an intro text plus one full stub image message
-    /// per stub (when a public HTTPS base is configured). Falls back to a text summary / the outbox.
-    /// </summary>
-    public async Task<DeliveryResult> SendMealStubsAsync(string phone, string eventTitle,
-        IReadOnlyList<(string Caption, Guid Control)> stubs)
-    {
-        if (stubs.Count == 0) return DeliveryResult.Sent;
-        var to = NormalizePhone(phone);
-        var intro = $"Your {stubs.Count} meal stub{(stubs.Count == 1 ? "" : "s")} for \"{eventTitle}\" — " +
-                    "present each QR at the meal counter.";
         if (TestDir is { } dir)
-            return await TestSendFolder.WriteAsync(dir, _s.TestFail, to, $"meal-stubs_{eventTitle}",
-                intro + "\n" + string.Join("\n", stubs.Select(s => s.Caption)));
+            return await WriteToTestFolderAsync(dir, to, message);
 
-        // The full composed stub ticket (banner + QR + denomination), not just the QR.
-        var urls = stubs.Select(s => PublicUrl($"api/passes/meal-stub/{s.Control}/stub.png")).ToList();
-        if (!Configured || urls.Any(u => u is null))
-        {
-            var summary = intro + "\n" + string.Join("\n", stubs.Select(s => $"• {s.Caption} (No. {s.Control.ToString()[..8].ToUpperInvariant()})"));
-            if (!Configured) return await OffAsync(to, $"meal-stubs_{eventTitle}", summary, Array.Empty<byte>());
-            await WriteToOutboxAsync(to, $"meal-stubs_{eventTitle}", summary, Array.Empty<byte>());
-            _log.LogWarning("Viber meal stubs for {Phone}: no public image address; wrote summary to outbox.", to);
-            return DeliveryResult.Failed;
-        }
+        if (!Configured)
+            return await WriteOffAsync(to, message);
 
-        try
+        var group = Guid.NewGuid();
+        // What to email after a later failure is saved once per group, on its first message.
+        var firstOfGroup = true;
+        foreach (var part in message.Viber)
         {
-            await SendAsync(to, new AppMessage(new TextMessage(intro)));
-            foreach (var url in urls)
-                await SendAsync(to, new AppMessage(new MediaMessage { Url = url! }));
-            _log.LogInformation("Sent {Count} Viber meal stub image(s) to {Phone}.", stubs.Count, to);
-            return DeliveryResult.Sent;
+            var imageUrls = PublicImageUrls(part);
+            var text = part.Text;
+            if (imageUrls.Count == 0 && part.TextWithoutImages is not null)
+                text = part.TextWithoutImages;
+
+            try
+            {
+                if (imageUrls.Count == 0)
+                {
+                    // Rule 1: text only.
+                    await SendAsync(to, new AppMessage(new TextMessage(text)), tag, group, firstOfGroup);
+                }
+                else
+                {
+                    // Rules 2 and 3: the text with the first image (the QR) as one card, then each
+                    // other image as its own message.
+                    var card = new CardMessage
+                    {
+                        Description = text,
+                        MediaMessage = new MediaProperties { Url = imageUrls[0] },
+                    };
+                    await SendAsync(to, new AppMessage(card), tag, group, firstOfGroup);
+                    foreach (var url in imageUrls.Skip(1))
+                        await SendAsync(to, new AppMessage(new MediaMessage { Url = url }), tag, group, false);
+                }
+                firstOfGroup = false;
+
+                _log.LogInformation("Sent Viber message to {Phone} ('{Subject}') via Sinch ({Images} image(s)).",
+                    to, part.Subject, imageUrls.Count);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Failed to send Viber message to {Phone}. Falling back to outbox.", to);
+                await WriteToOutboxAsync(to, part.Subject, text, Png(part));
+                return DeliveryResult.Failed;
+            }
         }
-        catch (Exception ex)
+        return DeliveryResult.Sent;
+    }
+
+    // Absolute URLs of a part's images, or none when any of them has no public HTTPS address
+    // (then the text-only version is sent).
+    private List<string> PublicImageUrls(MobilePart part)
+    {
+        var urls = new List<string>();
+        if (part.Images is null)
+            return urls;
+        foreach (var image in part.Images)
         {
-            _log.LogError(ex, "Failed to send Viber meal stubs to {Phone}. Falling back to outbox.", to);
-            var summary = intro + "\n" + string.Join("\n", stubs.Select(s => $"• {s.Caption}"));
-            await WriteToOutboxAsync(to, $"meal-stubs_{eventTitle}", summary, Array.Empty<byte>());
-            return DeliveryResult.Failed;
+            var url = PublicUrl(image.Path);
+            if (url is null)
+                return [];
+            urls.Add(url);
         }
+        return urls;
+    }
+
+    // Tests only: every part is written to the test folder (with the QR image), as Viber would send it.
+    private async Task<DeliveryResult> WriteToTestFolderAsync(string dir, string to, OutgoingMessage message)
+    {
+        var result = DeliveryResult.NotConfigured;
+        foreach (var part in message.Viber)
+        {
+            result = await TestSendFolder.WriteAsync(dir, _s.TestFail, to, part.Subject, part.Text, Png(part));
+            if (!result.Delivered())
+                return result;
+        }
+        return result;
+    }
+
+    // Viber is off: each part goes to the outbox (Development) or is not sent at all.
+    private async Task<DeliveryResult> WriteOffAsync(string to, OutgoingMessage message)
+    {
+        var result = DeliveryResult.NotConfigured;
+        foreach (var part in message.Viber)
+        {
+            var text = part.TextWithoutImages ?? part.Text;
+            result = await OffAsync(to, part.Subject, text, Png(part));
+            if (result == DeliveryResult.NotConfigured)
+                return result;
+        }
+        return result;
+    }
+
+    // The image kept for the outbox / test folder (the QR pass), if any.
+    private static byte[] Png(MobilePart part)
+    {
+        var first = part.Images?.FirstOrDefault();
+        return first?.Png ?? [];
     }
 
     // One message to one phone on the Viber Business Messages channel. Throws SinchApiException
     // when Sinch rejects the request. An accepted message is saved for its delivery reports.
-    private async Task SendAsync(string to, AppMessage message, MobileTag? tag = null)
+    private async Task SendAsync(string to, AppMessage message, MobileTag? tag, Guid group, bool firstOfGroup)
     {
-        var resp = await _client.Value.Conversation.Messages.Send(new SendMessageRequest
+        var messageId = await PostAsync(new SendMessageRequest
         {
             AppId = _s.AppId,
             Message = message,
-            MessageMetadata = tag is null ? null : $"reg:{tag.RegistrationId};kind:{tag.Kind}",
+            MessageMetadata = Metadata(tag, group),
             Recipient = new Identified
             {
                 IdentifiedBy = new IdentifiedBy
@@ -210,12 +215,27 @@ public class SinchViberService : IMobileSender
             },
         });
         _log.LogInformation("Sinch accepted Viber message {MessageId} for {PhoneMasked} (registration {RegistrationId}, {Kind}, tagged {Tagged})",
-            resp.MessageId, PhoneNumber.Mask(to), tag?.RegistrationId, tag?.Kind, tag is not null);
-        await RecordAsync(resp.MessageId, to, tag);
+            messageId, PhoneNumber.Mask(to), tag?.RegistrationId, tag?.Kind, tag is not null);
+        await RecordAsync(messageId, to, tag, group, firstOfGroup);
+    }
+
+    // The one call to Sinch; returns the accepted message's id. Overridden by tests to stand in for Sinch.
+    protected virtual async Task<string?> PostAsync(SendMessageRequest request)
+    {
+        var response = await _client.Value.Conversation.Messages.Send(request);
+        return response.MessageId;
+    }
+
+    // Tagged messages carry their registration, kind and group, for reading Sinch's dashboard.
+    private static string? Metadata(MobileTag? tag, Guid group)
+    {
+        if (tag is null)
+            return null;
+        return $"reg:{tag.RegistrationId};kind:{tag.Kind};group:{group:N}";
     }
 
     // The message is already accepted: a save failure is logged, never turned into a send failure.
-    private async Task RecordAsync(string? messageId, string to, MobileTag? tag)
+    private async Task RecordAsync(string? messageId, string to, MobileTag? tag, Guid group, bool firstOfGroup)
     {
         if (_scopes is null || string.IsNullOrEmpty(messageId)) return;
         try
@@ -225,6 +245,9 @@ public class SinchViberService : IMobileSender
             db.ViberMessages.Add(new ViberMessage
             {
                 MessageId = messageId, Phone = to, RegistrationId = tag?.RegistrationId, Kind = tag?.Kind,
+                GroupId = group,
+                EmailSnapshotJson = firstOfGroup ? tag?.EmailSnapshotJson : null,
+                EmailFile = firstOfGroup ? tag?.EmailFile : null,
             });
             await db.SaveChangesAsync();
         }

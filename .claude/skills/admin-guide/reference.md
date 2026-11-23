@@ -187,7 +187,7 @@ meeting created in Teams or Outlook — copy its *join* link). The link must sta
   reminder (Teams links also get Outlook's own *Join* button).
 - **Online** events: no QR pass and no meal stubs (there's no door check-in).
   **Hybrid** events: the QR pass **plus** the meeting link and invite.
-- Viber / SMS users get the join link by text.
+- Viber / SMS users get the join link by text, in the same message as the pass.
 - In *My Events* they get a **Join meeting** button.
 
 **The link stays private:** it is never shown on the public registration page or in *Browse
@@ -216,7 +216,8 @@ checked-in counts, venue and/or **Online meeting link**, and the public link wit
 **Header buttons:**
 
 - **Viber blast** — send a typed message (up to 1,000 characters) to every registrant who chose
-  Viber and has a phone number. The dialog shows how many numbers it will reach.
+  Viber and has a phone number. The dialog shows how many numbers it will reach. With **Fallback
+  to email** ticked, a number Viber refuses, or reports later as undeliverable, gets the email.
 - **Edit**, **Close / Reopen** (stop or resume new registrations), **Delete** (permanent —
   removes the event and all its registrations).
 - **Offline bundle** — downloads the event's data file for offline check-in (see *Offline
@@ -257,7 +258,9 @@ If the mobile message fails, the pass goes by email at once (unless email fallba
 in the server config). Viber and SMS never stand in for each other. If the registrant's phone
 country is not ticked for the mobile channel in **Settings → Phone countries**, mobile is skipped
 and the pass goes by email (add a code by picking its country from the list; a country missing
-from the list is added by a developer). If Viber accepts the message but later reports that it
+from the list is added by a developer). The pass, the join link (hybrid) and the meal stubs are
+one message: if any part is refused (for example a meal stub picture), the registrant gets the
+full email instead, so nothing is missing. If Viber accepts the message but later reports that it
 could not deliver it (for example, the number has no Viber), the email is sent then, by the same
 rule; the Attendance message still reads as sent by Viber. Viber/SMS are tried once and never retried. A failed email
 is retried in the background 5 times, 5 minutes apart. The message tells you what happened, e.g.

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using EventRegistration.Api.Data;
 using EventRegistration.Api.Models;
 using EventRegistration.Api.Services;
@@ -19,9 +20,14 @@ public class EventsController : ControllerBase
     private readonly EmailSender _email;
     private readonly NotificationService _notify;
     private readonly CategoryCatalog _categories;
+    private readonly MessageDispatcher _dispatcher;
+    private readonly EmailFileStore _emailFiles;
     public EventsController(AppDbContext db, SinchViberService viber, PassService pass, ILogger<EventsController> log,
-        CalendarInvitationNotifier calendars, EmailSender email, NotificationService notify, CategoryCatalog categories)
+        CalendarInvitationNotifier calendars, EmailSender email, NotificationService notify, CategoryCatalog categories,
+        MessageDispatcher dispatcher, EmailFileStore emailFiles)
     {
+        _dispatcher = dispatcher;
+        _emailFiles = emailFiles;
         _categories = categories;
         _email = email;
         _notify = notify;
@@ -670,7 +676,8 @@ public class EventsController : ControllerBase
     // Sends the organizer's typed message as a plain Viber text to every registered Viber number
     // (registrants whose channel is Viber or Both and who have a phone on file), de-duplicated.
     // A number whose country code is not enabled for Viber (Phone country table) counts as failed.
-    // FallbackToEmail (dialog toggle): a failed number gets the message by email instead.
+    // FallbackToEmail (dialog toggle): a failed number gets the message by email instead, also when
+    // Viber reports the failure later. Sent through the shared flow with Viber forced (never SMS).
     [HttpPost("{id:int}/viber-broadcast"), Authorize(Policy = Permissions.ConfirmRegistrationsPolicy)]
     public async Task<IActionResult> ViberBroadcast(int id, [FromBody] ViberBroadcastRequest req)
     {
@@ -686,33 +693,77 @@ public class EventsController : ControllerBase
             return BadRequest(new { message = "No registrations with a Viber number were found for this event." });
 
         var viberCodes = await _db.PhoneCountries.AsNoTracking().Where(c => c.Viber).Select(c => c.CountryCode).ToListAsync();
-        var subject = $"broadcast_{ev.Title}";
+        var route = new MobileRoute("Viber", _viber, viberCodes);
+        var mobile = MessageTemplates.Broadcast(ev.Title, message);
         var html = EmailTemplates.Broadcast(ev.Title, message);
         var emailed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         int sent = 0, failed = 0, done = 0;
+        // One saved email per address for the whole broadcast (an address can have several numbers),
+        // and the addresses with at least one number Viber took (only those can fail later).
+        var savedEmails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var takenByViber = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var userId = this.UserId();
         await _notify.ViberBroadcastProgressAsync(userId, new(req.BroadcastId, id, 0, recipients.Count, 0, 0, 0));
         foreach (var (phone, email) in recipients)
         {
+            // Fallback email only when the organizer ticked it. An address shared by two numbers
+            // is emailed once. The email is saved as an .eml file for a later Viber failure, once
+            // per address, and not at all when the address was already emailed.
+            Func<Task<DeliveryResult>>? sendEmail = null;
+            string? emailFile = null;
+            var fallbackAddress = req.FallbackToEmail ? email : null;
+            if (fallbackAddress is not null)
+            {
+                sendEmail = async () =>
+                {
+                    if (emailed.Contains(fallbackAddress))
+                        return DeliveryResult.Sent;
+                    var emailResult = await _email.SendAsync([fallbackAddress], ev.Title, html);
+                    return emailResult.Accepted ? DeliveryResult.Sent : DeliveryResult.Failed;
+                };
+                if (!emailed.Contains(fallbackAddress))
+                {
+                    if (!savedEmails.TryGetValue(fallbackAddress, out emailFile))
+                    {
+                        emailFile = await _email.SaveAsync(new QueuedEmail([fallbackAddress], [], ev.Title, html, null, null));
+                        savedEmails[fallbackAddress] = emailFile;
+                    }
+                }
+            }
+
+            var broadcast = new OutgoingMessage(EmailRetryKinds.Message, mobile, sendEmail, emailFile: emailFile);
+            var result = await _dispatcher.SendAsync(new Recipient(phone, NotificationChannels.Viber), broadcast,
+                route: route, fallbackToEmail: req.FallbackToEmail);
+
             // Failed / NotConfigured (provider error, Viber not set up) must not be reported as sent.
-            if (PhoneNumber.Supported(phone, viberCodes) && (await _viber.SendTextAsync(phone, subject, message)).Delivered())
+            if (result.Channels.Contains(route.Name))
+            {
                 sent++;
-            else if (req.FallbackToEmail && email is not null
-                     && (emailed.Contains(email) || (await _email.SendAsync([email], ev.Title, html)).Accepted))
-                emailed.Add(email);
+                if (fallbackAddress is not null)
+                    takenByViber.Add(fallbackAddress);
+            }
+            else if (fallbackAddress is not null && result.Sent)
+                emailed.Add(fallbackAddress);
             else
                 failed++;
             await _notify.ViberBroadcastProgressAsync(userId,
                 new(req.BroadcastId, id, ++done, recipients.Count, sent, emailed.Count, failed));
         }
 
+        // Viber took none of an address's numbers, so no later failure report can need its saved email.
+        foreach (var (address, file) in savedEmails)
+        {
+            if (!takenByViber.Contains(address))
+                _emailFiles.Delete(file);
+        }
+
         string Numbers(int n) => $"{n} Viber number{(n == 1 ? "" : "s")}";
         var reached = sent + emailed.Count;
         var parts = new List<string>();
-        if (sent >= 0) parts.Add($"sent to {Numbers(sent)}");
+        if (sent > 0) parts.Add($"sent to {Numbers(sent)}");
         if (emailed.Count > 0) parts.Add($"emailed to {emailed.Count} registrant{(emailed.Count == 1 ? "" : "s")} instead");
         var text = reached == 0
-            ? $"Message could not be sent to any of the {Numbers(failed)}. Check the Viber setup and try again or use the faillback to email."
+            ? $"Message could not be sent to any of the {Numbers(failed)}. Check the Viber setup and try again, or tick Fallback to email."
             : "Message " + string.Join(", ", parts) + (failed > 0 ? $"; {failed} could not be reached." : ".");
         return Ok(new { sent, emailed = emailed.Count, failed, message = text });
     }

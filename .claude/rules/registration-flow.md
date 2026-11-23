@@ -9,12 +9,23 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
   country code is not in the Phone country table for the active channel skips mobile and always
   gets email. Viber/SMS are tried once and never retried (mail plans included); failed registrant
   emails retry 5× in the background. An email failure never falls back to Viber/SMS.
-  A Viber failure Sinch reports later (delivery webhook, within 24 h) on the message that decides
-  delivery (pass / confirmation, meeting update, kit claimed, edit link) also queues the email
-  once, under the same rule (mobile preferred, `Viber:FallbackToEmail` on, has an email).
+  Every message is one template (SMS, Viber, email) sent by `MessageDispatcher`: Mobile preferred →
+  fall back to email; Both → mobile and email, no fallback (the email has its own retry); Email →
+  email only. The pass carries its join link (hybrid) and meal stubs as one message: a refused
+  part (e.g. a stub image) fails the whole message, so the email goes out.
+  **Viber send rule (hard rule, cost: Sinch bills each message):** text only = one text message;
+  text + QR (one image) = one message (image with the text, a card); text + several images = one
+  message with the text and the QR, each other image (meal stubs) as its own message. Never split a
+  message's text across several Viber sends.
+  A Viber failure Sinch reports later (delivery webhook, within 24 h) on any part of a message
+  also queues the email once per message, under the same rule (mobile preferred, email fallback
+  on, has an email); mail plans, reminders and the broadcast included (saved email copy).
+  Exception: a cancellation to a mobile-preferred registrant is sent as Both, so the CANCEL
+  calendar email always removes the entry.
   The mobile channel is the admin's Settings choice only when both Viber and SMS are set up;
   otherwise the one that is set up is used, and the choice is not offered.
-  Exception: the organizer **Viber broadcast** is Viber only (optional fallback); it reports failed numbers, never counts them as sent.
+  Exception: the organizer **Viber broadcast** is Viber only (optional fallback, the dialog's tick
+  box, also for later failures); it reports failed numbers, never counts them as sent.
 - Every phone entry (user master, My Account, sign-up, guest registration and edit) is a
   country-code dropdown + number (`app-phone-field`) and accepts only codes in the Phone country
   table (server too); CSV import accepts any valid number. Unsupported numbers are flagged on the user list and My Account.

@@ -26,7 +26,10 @@ Source: `security-assessment` skill. Apply to every change in `backend/` and `fr
 - **Authorization:** keep `[Authorize(Roles=…)]` on admin endpoints and ownership checks on
   cancel/resend. Never bind `Role` from input.
 - **Outbox** (`outbox/` dir of unencrypted emails and QR passes): disabled or protected in
-  Production.
+  Production. The same applies to **`mail-queue/`** (`.eml` files of emails waiting for a retry).
+- **Stored emails:** an email kept for later is saved as an `.eml` file; the database stores only the
+  bare file name (`EmailFileStore.PathOf` refuses anything else, so a database value cannot point
+  outside the folder).
 - **Register responses** must not reveal whether an email already exists.
 - **Dependencies:** run `dotnet list package --vulnerable` and `npm audit`; patch on a schedule.
 - **Do not run dynamic/attack tests** against a live instance without the user's explicit go-ahead.

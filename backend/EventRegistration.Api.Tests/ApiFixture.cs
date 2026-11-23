@@ -32,14 +32,40 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
     public static readonly string SentRoot = Path.Combine(AppContext.BaseDirectory, "test", "sent");
     public static string SentDir(string channel) => Path.Combine(SentRoot, channel);
+    // Emails saved for a later send (EmailFileStore), kept apart from the sent messages.
+    public static readonly string MailQueueDir = Path.Combine(AppContext.BaseDirectory, "test", "mail-queue");
 
-    // Start each run with empty folders, once per process: fixtures run in parallel, and a later
+    /// <summary>The text of a retry's saved email (.eml file), or its older JSON snapshot.</summary>
+    public string StoredEmail(EmailRetry retry)
+    {
+        var path = Services.GetRequiredService<EmailFileStore>().PathOf(retry.EmailFile);
+        if (path is not null && File.Exists(path))
+            return File.ReadAllText(path);
+        return retry.SnapshotJson ?? "";
+    }
+
+    /// <summary>Email retry rows whose saved email mentions <paramref name="text"/> (an address or subject).</summary>
+    public async Task<List<EmailRetry>> RetriesMentioningAsync(string text, string? kind = null)
+    {
+        using var scope = Services.CreateScope();
+        var rows = await scope.ServiceProvider.GetRequiredService<AppDbContext>().EmailRetries.AsNoTracking()
+            .Where(r => kind == null || r.Kind == kind)
+            .ToListAsync();
+        return rows.Where(r => StoredEmail(r).Contains(text)).ToList();
+    }
+
+    // Start each run with empty folders (sent messages and saved emails), once per process: fixtures run in parallel, and a later
     // one must not delete files an earlier one is still writing (files only: an open folder must
     // not fail the run).
     private static readonly Lazy<bool> ClearSentOnce = new(() =>
     {
-        if (Directory.Exists(SentRoot))
-            foreach (var file in Directory.GetFiles(SentRoot, "*", SearchOption.AllDirectories)) File.Delete(file);
+        foreach (var root in new[] { SentRoot, MailQueueDir })
+        {
+            if (!Directory.Exists(root))
+                continue;
+            foreach (var file in Directory.GetFiles(root, "*", SearchOption.AllDirectories))
+                File.Delete(file);
+        }
         return true;
     });
 
@@ -62,6 +88,7 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Email:TestSendDir", SentDir("email"));
         builder.UseSetting("Viber:TestSendDir", SentDir("viber"));
         builder.UseSetting("Sms:TestSendDir", SentDir("sms"));
+        builder.UseSetting("App:MailQueueDir", MailQueueDir);
         builder.ConfigureTestServices(services =>
         {
             // The background mail schedulers have nothing to do in a test run.

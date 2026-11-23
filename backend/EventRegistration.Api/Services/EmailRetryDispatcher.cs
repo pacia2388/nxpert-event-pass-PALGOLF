@@ -10,7 +10,8 @@ namespace EventRegistration.Api.Services;
 /// <see cref="MaxAttempts"/> times, <see cref="RetryMinutes"/> apart. Email only: Viber/SMS are
 /// never re-sent. The email is rebuilt from the registration at each try (current details).
 /// </summary>
-public class EmailRetryDispatcher(AppDbContext db, PassService pass, EmailSender sender, ILogger<EmailRetryDispatcher> log)
+public class EmailRetryDispatcher(AppDbContext db, PassService pass, EmailSender sender, EmailService email,
+    EmailFileStore files, MailPlanDispatcher mailPlans, ILogger<EmailRetryDispatcher> log)
 {
     public const int MaxAttempts = 5;
     public const int RetryMinutes = 5;
@@ -58,6 +59,11 @@ public class EmailRetryDispatcher(AppDbContext db, PassService pass, EmailSender
             row.LastError = "Email could not be built or sent.";
         }
         await db.SaveChangesAsync();
+
+        // A saved email is no longer needed once the retry is over.
+        var finished = row.Status == EmailRetryStatus.Sent || row.Status == EmailRetryStatus.Failed;
+        if (finished)
+            files.Delete(row.EmailFile);
     }
 
     // Rebuilds and sends the email. Returns a reason instead when the message no longer applies.
@@ -65,8 +71,27 @@ public class EmailRetryDispatcher(AppDbContext db, PassService pass, EmailSender
     {
         if (row.Kind == EmailRetryKinds.Message)
         {
+            if (row.EmailFile is not null)
+            {
+                var saved = await files.LoadAsync(row.EmailFile);
+                if (saved is null)
+                    return (DeliveryResult.Failed, "The saved email file is missing.");
+                return (await email.SendMimeAsync(saved), null);
+            }
+
+            // Rows queued before emails were saved as files.
             var message = JsonSerializer.Deserialize<QueuedEmail>(row.SnapshotJson ?? "null");
-            return message is null ? (DeliveryResult.Failed, "No message to send.") : (await sender.SendAsync(message), null);
+            if (message is null)
+                return (DeliveryResult.Failed, "No message to send.");
+            return (await sender.SendAsync(message), null);
+        }
+        if (row.Kind is EmailRetryKinds.MailPlan or EmailRetryKinds.MailReminder)
+        {
+            var reference = JsonSerializer.Deserialize<MailPlanEmailRef>(row.SnapshotJson ?? "null");
+            if (reference is null)
+                return (DeliveryResult.Failed, "No mail plan receiver to email.");
+            var reminder = row.Kind == EmailRetryKinds.MailReminder;
+            return await mailPlans.SendLateEmailAsync(reference.DeliveryId, reminder);
         }
         if (row.Kind == EmailRetryKinds.MeetingCancel)
         {
@@ -101,6 +126,7 @@ public class EmailRetryScheduler(IServiceScopeFactory scopes, ILogger<EmailRetry
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+        var lastCleanup = DateTimeOffset.MinValue;
         do
         {
             try
@@ -112,6 +138,11 @@ public class EmailRetryScheduler(IServiceScopeFactory scopes, ILogger<EmailRetry
                 await db.EmailRetries.Where(r => r.Status == EmailRetryStatus.Sending && r.LastAttemptAt < now.AddMinutes(-10))
                     .ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, EmailRetryStatus.Failed)
                         .SetProperty(r => r.LastError, "Delivery was interrupted."), stoppingToken);
+                if (DateTimeOffset.UtcNow - lastCleanup > TimeSpan.FromHours(1))
+                {
+                    await DeleteOldEmailFilesAsync(scope.ServiceProvider, db, stoppingToken);
+                    lastCleanup = DateTimeOffset.UtcNow;
+                }
                 var ids = await db.EmailRetries.AsNoTracking()
                     .Where(r => r.Status == EmailRetryStatus.Queued && r.NextAttemptAt <= now && r.Attempts < EmailRetryDispatcher.MaxAttempts)
                     .OrderBy(r => r.NextAttemptAt).Select(r => r.Id).Take(20).ToListAsync(stoppingToken);
@@ -125,5 +156,16 @@ public class EmailRetryScheduler(IServiceScopeFactory scopes, ILogger<EmailRetry
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception ex) { log.LogError(ex, "Email retry scheduler failed; retrying on the next poll."); }
         } while (await timer.WaitForNextTickAsync(stoppingToken));
+    }
+
+    // Saved emails nothing can send any more (finished retries, Viber sends past the 24 h report
+    // window, broadcasts that never failed) are deleted once old enough.
+    private static async Task DeleteOldEmailFilesAsync(IServiceProvider services, AppDbContext db, CancellationToken stoppingToken)
+    {
+        var pending = await db.EmailRetries.AsNoTracking()
+            .Where(r => r.EmailFile != null && (r.Status == EmailRetryStatus.Queued || r.Status == EmailRetryStatus.Sending))
+            .Select(r => r.EmailFile!)
+            .ToListAsync(stoppingToken);
+        services.GetRequiredService<EmailFileStore>().DeleteOld(pending.ToHashSet());
     }
 }

@@ -13,11 +13,8 @@ public interface IMobileSender
 {
     // Send the email when this channel fails (config Viber:/Sms:FallbackToEmail).
     bool FallbackToEmail { get; }
-    Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
-        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null, MobileTag? tag = null);
-    Task<DeliveryResult> SendTextAsync(string phone, string subject, string text, MobileTag? tag = null);
-    Task<DeliveryResult> SendMealStubsAsync(string phone, string eventTitle,
-        IReadOnlyList<(string Caption, Guid Control)> stubs);
+    // Sends this channel's parts of the message (OutgoingMessage.Sms or .Viber), in order, as one group.
+    Task<DeliveryResult> SendAsync(string phone, OutgoingMessage message, MobileTag? tag = null);
 }
 
 /// <summary>
@@ -55,8 +52,6 @@ public class MobileMessenger
 
     private async Task<bool> SmsActiveAsync() => await ActiveProviderAsync() == MobileProviders.Sms;
 
-    private async Task<IMobileSender> ResolveAsync() => await SmsActiveAsync() ? _sms : _viber;
-
     /// <summary>
     /// The active mobile channel only (Viber or SMS; the other one is never tried), with the
     /// country codes it may send to from the Phone country table.
@@ -68,24 +63,15 @@ public class MobileMessenger
             .Where(c => sms ? c.Sms : c.Viber).Select(c => c.CountryCode).ToListAsync();
         return new MobileRoute(sms ? "SMS" : "Viber", sms ? _sms : _viber, codes);
     }
-
-    public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
-        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null, MobileTag? tag = null) =>
-        await (await ResolveAsync()).SendPassAsync(phone, title, startsAt, endsAt, venue, attendeeName, passToken, qrPng, editUrl, tag);
-
-    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text, MobileTag? tag = null) =>
-        await (await ResolveAsync()).SendTextAsync(phone, subject, text, tag);
-
-    public async Task<DeliveryResult> SendMealStubsAsync(string phone, string eventTitle,
-        IReadOnlyList<(string Caption, Guid Control)> stubs) =>
-        await (await ResolveAsync()).SendMealStubsAsync(phone, eventTitle, stubs);
 }
 
 /// <summary>
-/// Marks the message that decides a registrant's delivery when a later Viber failure report must
-/// still send the email (mobile preferred, FallbackToEmail on, has an email). SMS ignores it.
+/// Marks a message whose later Viber failure report must still send the email (mobile preferred,
+/// email fallback on, has an email). The email is rebuilt from the registration, or, with no
+/// registration, rebuilt from <paramref name="EmailSnapshotJson"/> (mail plan / reminder delivery)
+/// or loaded from <paramref name="EmailFile"/> (broadcast, an .eml file). SMS ignores it.
 /// </summary>
-public sealed record MobileTag(int RegistrationId, string Kind);
+public sealed record MobileTag(int? RegistrationId, string Kind, string? EmailSnapshotJson = null, string? EmailFile = null);
 
 /// <summary>The active mobile channel: display name, sender and the country codes it may reach.</summary>
 public sealed record MobileRoute(string Name, IMobileSender Sender, IReadOnlyList<string> CountryCodes)

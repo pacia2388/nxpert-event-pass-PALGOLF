@@ -9,7 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EventRegistration.Api.Tests;
 
-// Sinch delivery reports for Viber: a later FAILED on a tagged message queues the email once.
+// Sinch delivery reports for Viber: a later FAILED on any part of a tagged send queues the email
+// once for the whole group.
 [Collection("api")]
 public class SinchWebhookTests(ApiFixture api)
 {
@@ -46,20 +47,21 @@ public class SinchWebhookTests(ApiFixture api)
         return await api.Anonymous().SendAsync(req);
     }
 
-    private async Task<(string Id, int RegistrationId)> SeedAsync(bool tagged = true, DateTimeOffset? acceptedAt = null)
+    private async Task<(string Id, int RegistrationId)> SeedAsync(bool tagged = true, DateTimeOffset? acceptedAt = null,
+        Guid? group = null, int? regId = null)
     {
         var id = Guid.NewGuid().ToString("N");
-        var regId = Random.Shared.Next(1_000_000, int.MaxValue);
+        regId ??= Random.Shared.Next(1_000_000, int.MaxValue);
         using var scope = api.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.ViberMessages.Add(new ViberMessage
         {
             MessageId = id, Phone = "+639171234567",
             RegistrationId = tagged ? regId : null, Kind = tagged ? EmailRetryKinds.Pass : null,
-            AcceptedAt = acceptedAt ?? DateTimeOffset.UtcNow,
+            AcceptedAt = acceptedAt ?? DateTimeOffset.UtcNow, GroupId = group ?? Guid.NewGuid(),
         });
         await db.SaveChangesAsync();
-        return (id, regId);
+        return (id, regId.Value);
     }
 
     private async Task<(ViberMessage? Row, int Retries)> StateAsync(string id, int regId)
@@ -161,6 +163,77 @@ public class SinchWebhookTests(ApiFixture api)
         Assert.Equal("FAILED", row!.Status);
         Assert.Null(row.EmailQueuedAt);
         Assert.Equal(0, retries);
+    }
+
+    [Fact]
+    public async Task Two_failed_parts_of_one_group_queue_one_email()
+    {
+        // The pass text and its QR image: both fail, one email.
+        var group = Guid.NewGuid();
+        var (text, reg) = await SeedAsync(group: group);
+        var (image, _) = await SeedAsync(group: group, regId: reg);
+
+        await PostAsync(text, "FAILED");
+        await PostAsync(image, "FAILED");
+
+        Assert.Equal(1, (await StateAsync(image, reg)).Retries);
+        Assert.NotNull((await StateAsync(image, reg)).Row!.EmailQueuedAt);
+    }
+
+    [Fact]
+    public async Task Failed_broadcast_message_queues_its_saved_email_file()
+    {
+        // No registration: the .eml file saved with the group's first part is queued by name.
+        var group = Guid.NewGuid();
+        var file = $"{Guid.NewGuid():N}.eml";
+        var id = Guid.NewGuid().ToString("N");
+        using (var scope = api.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.ViberMessages.Add(new ViberMessage
+            {
+                MessageId = id, Phone = "+639171234567", Kind = EmailRetryKinds.Message, GroupId = group,
+                EmailFile = file,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        await PostAsync(id, "FAILED");
+        await PostAsync(id, "FAILED");
+
+        using var check = api.Services.CreateScope();
+        var rows = await check.ServiceProvider.GetRequiredService<AppDbContext>().EmailRetries
+            .Where(r => r.EmailFile == file).ToListAsync();
+        Assert.Single(rows);
+        Assert.Null(rows[0].RegistrationId);
+        Assert.Null(rows[0].SnapshotJson);
+    }
+
+    [Fact]
+    public async Task Two_numbers_sharing_a_saved_broadcast_email_queue_it_once()
+    {
+        // Two numbers with the same address: two Viber groups, one saved email.
+        var file = $"{Guid.NewGuid():N}.eml";
+        var ids = new[] { Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N") };
+        using (var scope = api.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            foreach (var id in ids)
+                db.ViberMessages.Add(new ViberMessage
+                {
+                    MessageId = id, Phone = "+639171234567", Kind = EmailRetryKinds.Message, GroupId = Guid.NewGuid(),
+                    EmailFile = file,
+                });
+            await db.SaveChangesAsync();
+        }
+
+        foreach (var id in ids)
+            await PostAsync(id, "FAILED");
+
+        using var check = api.Services.CreateScope();
+        var retries = await check.ServiceProvider.GetRequiredService<AppDbContext>().EmailRetries
+            .CountAsync(r => r.EmailFile == file);
+        Assert.Equal(1, retries);
     }
 
     [Theory]

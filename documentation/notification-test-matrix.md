@@ -63,7 +63,7 @@ Every P case also checks `PassEmailSentAt`: stamped when something was delivered
 | Id | Message | Trigger in test | Setup | Expected |
 |---|---|---|---|---|
 | M01 | Pass email | Confirm | Email, hybrid event | ✉ with inline QR (`Content-Id`) and `invite.ics` (`method=REQUEST`) |
-| M02 | Viber pass + meal stubs | Confirm | Mobile, event with a meal | V: pass text + QR `.png`, and a `meal-stubs` message |
+| M02 | Viber pass + meal stubs | Confirm | Mobile, event with a meal | V: **one** message (text with the stub list + QR `.png`); no separate `meal-stubs` message |
 | M03 | Resend pass | `POST …/attendance/{id}/resend-pass` | Mobile registrant | ✉ only; Viber not sent again |
 | M04 | Kit claimed | `POST …/attendance/claim-kit` | Both | ✉ + V "Event kit claimed" |
 | M05 | Edit link | `POST /api/registrations/public/{slug}/edit-link` | Both | ✉ + V "Edit your registration" |
@@ -92,7 +92,7 @@ Every P case also checks `PassEmailSentAt`: stamped when something was delivered
 | M28 | Organizer Viber broadcast | `POST /api/events/{id}/viber-broadcast` | Viber Send | V "broadcast"; sent 1 |
 | M29 | Broadcast, Viber fails, fallback toggle off | same | Viber **Fail** | nothing; failed 1, "could not be sent" message |
 | M30 | Broadcast, Viber off, toggle off | same | Viber **Off** | nothing; failed 1 |
-| M31 | Broadcast, Viber fails, **toggle on** | same | Viber **Fail** | ✉ (subject = event title); emailed 1 |
+| M31 | Broadcast, Viber fails, **toggle on** | same | Viber **Fail** | ✉ (subject = event title); emailed 1; "Message emailed to 1 registrant instead." |
 | M32 | Broadcast, +63 not enabled for Viber, toggle off | same | unlisted for Viber | nothing (Viber not tried); failed 1 |
 | M33 | Broadcast, +63 not enabled for Viber, **toggle on** | same | unlisted for Viber | ✉; emailed 1 |
 
@@ -116,15 +116,20 @@ Every P case also checks `PassEmailSentAt`: stamped when something was delivered
 | V02 | `Viber:WebhookSecret` not set | 401 for every call |
 | V03 | `FAILED` on a tagged pass, reported twice | Status FAILED, reason saved, `EmailQueuedAt` set, exactly one `EmailRetry` (Pass) |
 | V04 | `DELIVERED`, then `READ` | Status updated each time; no email |
-| V05 | `FAILED` on an untagged message (Both channel, fallback off, follow-up image) | Status FAILED; no email |
+| V05 | `FAILED` on an untagged message (Both channel or fallback off) | Status FAILED; no email |
 | V06 | Unknown `message_id` | 200; no row |
 | V07 | `FAILED` more than 24 h after the send | Status FAILED; no email |
+| V08 | `FAILED` on two parts of one group (pass text + QR image) | one `EmailRetry` for the group |
+| V09 | `FAILED` on a mail-plan / broadcast message (no registration), reported twice | one `EmailRetry` (Message) with the saved email |
+| V10 | `FAILED` on two broadcast numbers sharing one address (one saved email) | one `EmailRetry` for that email |
 
 ## Also covered (other test classes)
 
 | Area | Test class |
 |---|---|
 | Chain order, stop at first delivery, `AfterFailure` (fallback switch), off = skipped | `NotificationChainTests` |
+| Shared flow: preference × rejected / off × listed country × fallback; Viber tag only when a late failure must email; broadcast tick box covers unlisted countries; pass template carries join link + meal stubs | `MessageDispatcherTests` |
+| Wording of every message on every channel | `MessageTemplateSnapshotTests` |
 | Outbox rule per channel: Dev off / Dev failed / Prod off / Prod failed / delivered | `OutboxRuleTests` |
 | Every channel off end to end, phone-country API, retry dispatcher edge cases | `NotificationFallbackApiTests` |
 

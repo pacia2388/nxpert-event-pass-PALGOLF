@@ -31,12 +31,21 @@ public class SmsSettings
     public string TestSendDir { get; set; } = "";
     // Tests only, with TestSendDir: every send fails, to exercise fallback.
     public bool TestFail { get; set; }
+
+    // Clickable link to the entry-pass page (shows the QR), or null when no public base URL is set.
+    public string? PassUrl(Guid token)
+    {
+        if (string.IsNullOrWhiteSpace(PublicApiBaseUrl))
+            return null;
+        var baseUrl = PublicApiBaseUrl.Trim().TrimEnd('/');
+        return $"{baseUrl}/api/passes/{token}";
+    }
 }
 
 /// <summary>
 /// Delivers text notifications over SMS via Infobip. SMS carries no images, so the entry-pass and
-/// meal-stub messages are sent as plain text (the QR itself still reaches the registrant by email
-/// when they use it). When Infobip isn't configured, messages are written to the on-disk outbox so
+/// meal-stub messages are sent as plain text with a pass page link (<see cref="SmsSettings.PassUrl"/>).
+/// When Infobip isn't configured, messages are written to the on-disk outbox so
 /// the demo still works; a send failure also falls back to the outbox. Mirrors <see cref="SinchViberService"/>.
 /// </summary>
 public class SmsService : IMobileSender
@@ -65,48 +74,20 @@ public class SmsService : IMobileSender
         (IsMovider ? !string.IsNullOrWhiteSpace(_s.ApiSecret) : !string.IsNullOrWhiteSpace(_s.Sender));
 
     /// <summary>
-    /// Sends the entry-pass details to a phone over SMS (text only — no QR image). Falls back to the outbox.
+    /// Sends a message's SMS parts in order (text only); a rejected part stops and fails the message.
+    /// SMS has no delivery reports, so the tag is ignored.
     /// </summary>
-    public async Task<DeliveryResult> SendPassAsync(string phone, string title, DateTime startsAt, DateTime endsAt, string venue,
-        string attendeeName, string passToken, byte[] qrPng, string? editUrl = null, MobileTag? tag = null)
+    public async Task<DeliveryResult> SendAsync(string phone, OutgoingMessage message, MobileTag? tag = null)
     {
-        // Clickable link to the entry-pass page (opens in the recipient's browser and shows the QR).
-        var passUrl = BuildPassUrl(passToken);
-        var text =
-            $"Hi {attendeeName}, your registration for \"{title}\" is confirmed.\n" +
-            $"{ScheduleText.Text(startsAt, endsAt)}\n" +
-            $"Where: {venue}\n" +
-            (passUrl is null
-                ? "Please present your QR entry pass at the entrance."
-                : $"View your QR entry pass: {passUrl}") +
-            (string.IsNullOrWhiteSpace(editUrl) ? "" : $"\nUpdate details: {editUrl}");
-
-        return await SendAsync(NormalizePhone(phone), title, text);
-    }
-
-    // Absolute URL to the entry-pass view page, or null when no public base URL is configured.
-    private string? BuildPassUrl(string passToken)
-    {
-        var baseUrl = _s.PublicApiBaseUrl?.Trim();
-        if (string.IsNullOrWhiteSpace(baseUrl)) return null;
-        return $"{baseUrl.TrimEnd('/')}/api/passes/{passToken}";
-    }
-
-    /// <summary>Sends a plain text SMS. <paramref name="subject"/> only labels the outbox entry.</summary>
-    public async Task<DeliveryResult> SendTextAsync(string phone, string subject, string text, MobileTag? tag = null) =>
-        await SendAsync(NormalizePhone(phone), subject, text);
-
-    /// <summary>
-    /// Sends a text summary of the registrant's meal stubs over SMS (no images). Falls back to the outbox.
-    /// </summary>
-    public async Task<DeliveryResult> SendMealStubsAsync(string phone, string eventTitle,
-        IReadOnlyList<(string Caption, Guid Control)> stubs)
-    {
-        if (stubs.Count == 0) return DeliveryResult.Sent;
-        var text = $"Your {stubs.Count} meal stub{(stubs.Count == 1 ? "" : "s")} for \"{eventTitle}\" — " +
-                   "present each at the meal counter:\n" +
-                   string.Join("\n", stubs.Select(s => $"• {s.Caption} (No. {s.Control.ToString()[..8].ToUpperInvariant()})"));
-        return await SendAsync(NormalizePhone(phone), $"meal-stubs_{eventTitle}", text);
+        var to = NormalizePhone(phone);
+        var result = DeliveryResult.NotConfigured;
+        foreach (var part in message.Sms)
+        {
+            result = await SendAsync(to, part.Subject, part.Text);
+            if (!result.Delivered())
+                return result;
+        }
+        return result;
     }
 
     private bool IsUniSms => string.Equals(_s.Provider, "UniSMS", StringComparison.OrdinalIgnoreCase);

@@ -161,6 +161,13 @@ public class EmailService
         return await TransmitAsync(msg, subject, htmlBody, inlineQrPng, inlineImages, attachments);
     }
 
+    /// <summary>Sends an email saved earlier as a whole message (EmailFileStore).</summary>
+    public virtual Task<DeliveryResult> SendMimeAsync(MimeMessage msg)
+    {
+        var html = msg.HtmlBody ?? "";
+        return TransmitAsync(msg, msg.Subject!, html, null, null, null);
+    }
+
     /// <summary>
     /// One message to many receivers, each hidden from the others (BCC). CC addresses appear in the
     /// Cc header; with deliverCc false they are shown but not sent a copy (already sent one).

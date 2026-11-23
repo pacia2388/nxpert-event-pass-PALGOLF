@@ -1121,6 +1121,16 @@ namespace EventRegistration.Api.Migrations
                     b.Property<DateTimeOffset?>("EmailQueuedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("EmailFile")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EmailSnapshotJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Kind")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -1148,6 +1158,8 @@ namespace EventRegistration.Api.Migrations
                     b.HasKey("MessageId");
 
                     b.HasIndex("AcceptedAt");
+
+                    b.HasIndex("GroupId");
 
                     b.ToTable("ViberMessages");
                 });
