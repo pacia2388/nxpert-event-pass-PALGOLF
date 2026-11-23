@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { LoginComponent } from './login';
+import { ACTIVE_THEME, PALGOLF_THEME, ThemeDefinition } from '../../core/theme';
 
 describe('Login page', () => {
   let fixture: ComponentFixture<LoginComponent>;
@@ -104,5 +105,50 @@ describe('Login page', () => {
   it('links to participant account creation', () => {
     const link = root().querySelector<HTMLAnchorElement>('a[href="/register"]');
     expect(link?.textContent).toContain('Create a participant account');
+  });
+});
+
+describe('Login page in another theme', () => {
+  const nxpass: ThemeDefinition = {
+    ...PALGOLF_THEME,
+    name: 'NXPass',
+    colors: { ...PALGOLF_THEME.colors, sky: '#0d9488' },
+    logos: { ...PALGOLF_THEME.logos, loginImage: 'nxpax-logo.png' },
+    login: {
+      imageAlt: 'NXPass logo',
+      title: 'NXPass',
+      lines: ['Events, check-ins and passes, all in one place.'],
+      caption: 'Event Management',
+    },
+  };
+  let fixture: ComponentFixture<LoginComponent>;
+
+  beforeEach(() => {
+    ACTIVE_THEME.current = nxpass;
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+    });
+    fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => (ACTIVE_THEME.current = PALGOLF_THEME));
+
+  const root = () => fixture.nativeElement as HTMLElement;
+
+  it("shows the theme's login image and its words instead of the tournament poster", () => {
+    const img = root().querySelector<HTMLImageElement>('.login-poster img')!;
+    const text = (root().textContent ?? '').replace(/\s+/g, ' ');
+    expect(img.getAttribute('src')).toBe('nxpax-logo.png');
+    expect(img.alt).toBe('NXPass logo');
+    expect(text).toContain('Events, check-ins and passes, all in one place.');
+    expect(text).toContain('Event Management');
+    expect(text).not.toContain('PAL Interclub');
+  });
+
+  it("tints the phone toolbar with the theme's sky", () => {
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe(
+      '#0d9488',
+    );
   });
 });

@@ -9,9 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth.service';
 import { homeFor } from '../../core/guards';
 import { ToastService } from '../../core/toast.service';
-
-// The top of the page's sky, for the phone toolbar. Same value as --pg-sky in styles.scss.
-const SKY = '#1a5aa8';
+import { ACTIVE_THEME } from '../../core/theme';
 
 @Component({
   selector: 'app-login',
@@ -32,12 +30,23 @@ export class LoginComponent {
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
 
+  /** The theme's login image and the words that go with it. */
+  protected readonly poster = ACTIVE_THEME.current;
+  /** "Label: value" lines show the value emphasised, like the poster's dates. */
+  protected readonly posterLines = this.poster.login.lines.map((line) => {
+    const at = line.indexOf(': ');
+    return at < 0
+      ? { label: line, value: '' }
+      : { label: line.slice(0, at), value: line.slice(at + 2) };
+  });
+
   constructor() {
     // Phones tint the browser toolbar from this tag. Match the page's sky while login is open,
     // then hand back the app's own colour.
     const meta = inject(Meta);
     const appColor = meta.getTag('name="theme-color"')?.content;
-    meta.updateTag({ name: 'theme-color', content: SKY });
+    // The top of the page's sky (the theme's --pg-sky).
+    meta.updateTag({ name: 'theme-color', content: ACTIVE_THEME.current.colors.sky });
     inject(DestroyRef).onDestroy(() => {
       if (appColor) meta.updateTag({ name: 'theme-color', content: appColor });
     });
