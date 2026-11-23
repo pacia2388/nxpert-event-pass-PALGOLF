@@ -42,6 +42,7 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("default", Str(theme, "source"));
         Assert.Equal("#0f5fb8", Str(theme, "colors", "primary"));
         Assert.Equal("brand/pal-interclub-2027-poster.jpg", Str(theme, "logos", "loginImage"));
+        Assert.Equal("poster", Str(theme, "layout", "loginImage"));
     }
 
     [Fact]
@@ -59,6 +60,7 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("nxpax-logo.png", Str(theme, "logos", "loginImage"));
         Assert.Equal("gradient", Str(theme, "layout", "buttons"));
         Assert.Equal("glass", Str(theme, "layout", "footer"));
+        Assert.Equal("logo", Str(theme, "layout", "loginImage"));
     }
 
     [Fact]
@@ -93,7 +95,7 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
               "colors": { "primary": "red;}body{display:none" },
               "gradients": { "brand": "linear-gradient(url(https://evil.example/x.png))" },
               "fonts": { "display": "Roboto; color: red" },
-              "layout": { "buttons": "sparkly" },
+              "layout": { "buttons": "sparkly", "loginImage": "banner" },
               "logos": { "favicon": "javascript:alert(1)", "tabIcon": "//evil.example/x.png", "loginImage": "../secret.png" },
               "appName": "   "
             }
@@ -105,6 +107,7 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("linear-gradient(135deg, #0d9488 0%, #22c55e 100%)", Str(theme, "gradients", "brand"));
         Assert.Equal("'Roboto', sans-serif", Str(theme, "fonts", "display"));
         Assert.Equal("gradient", Str(theme, "layout", "buttons"));
+        Assert.Equal("logo", Str(theme, "layout", "loginImage"));
         Assert.Equal("themes/nxpass/favicon.ico", Str(theme, "logos", "favicon"));
         Assert.Equal("themes/nxpass/icon-192.png", Str(theme, "logos", "tabIcon"));
         Assert.Equal("nxpax-logo.png", Str(theme, "logos", "loginImage"));

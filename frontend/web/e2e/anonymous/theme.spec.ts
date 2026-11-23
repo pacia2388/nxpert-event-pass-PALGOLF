@@ -24,7 +24,7 @@ test.describe('theme', () => {
       source: 'file',
       appName: 'NXPass',
       colors: { ...palgolf.colors, primary: '#0d9488', browserBar: '#0d9488' },
-      layout: { buttons: 'gradient', footer: 'glass', authBackground: 'glow' },
+      layout: { buttons: 'gradient', footer: 'glass', authBackground: 'glow', loginImage: 'logo' },
       logos: {
         ...palgolf.logos,
         favicon: 'themes/nxpass/favicon.ico',

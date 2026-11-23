@@ -42,6 +42,8 @@ export interface ThemeDefinition {
     buttons: 'solid' | 'gradient';
     footer: 'solid' | 'glass';
     authBackground: 'gradient' | 'glow';
+    /** "poster": the image fills the login panel. "logo": centred on a light panel, words shown. */
+    loginImage: 'poster' | 'logo';
   };
   logos: { favicon: string; tabIcon: string; header: string | null; loginImage: string };
   login: { imageAlt: string; title: string; lines: string[]; caption: string };
@@ -85,7 +87,7 @@ export const PALGOLF_THEME: ThemeDefinition = {
     button: 'linear-gradient(135deg, #0a2d7a 0%, #0f5fb8 100%)',
   },
   fonts: { display: "'Montserrat', 'Roboto', sans-serif" },
-  layout: { buttons: 'solid', footer: 'solid', authBackground: 'gradient' },
+  layout: { buttons: 'solid', footer: 'solid', authBackground: 'gradient', loginImage: 'poster' },
   logos: {
     favicon: 'favicon.ico?v=3',
     tabIcon: 'icons/tab-192.png?v=3',

@@ -71,6 +71,11 @@ public sealed class ThemeLayout
     public string Footer { get; init; } = "solid";
     /// <summary>"gradient" (navy sky) or "glow" (light with soft glows) behind sign-up pages.</summary>
     public string AuthBackground { get; init; } = "gradient";
+    /// <summary>
+    /// "poster" (the image fills the panel; its words are baked in) or "logo" (a logo centred on a
+    /// light panel, with the login title and lines shown as text).
+    /// </summary>
+    public string LoginImage { get; init; } = "poster";
 }
 
 /// <summary>Image paths relative to the web app's root, or https URLs.</summary>

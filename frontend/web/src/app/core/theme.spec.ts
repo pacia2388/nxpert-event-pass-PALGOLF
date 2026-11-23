@@ -9,7 +9,7 @@ const NXPASS: ThemeDefinition = {
   appName: 'NXPass',
   footerText: 'Powered by @NOW — NXPERT OFFICE WORKSPACE',
   colors: { ...PALGOLF_THEME.colors, primary: '#0d9488', browserBar: '#0d9488' },
-  layout: { buttons: 'gradient', footer: 'glass', authBackground: 'glow' },
+  layout: { buttons: 'gradient', footer: 'glass', authBackground: 'glow', loginImage: 'logo' },
   logos: {
     ...PALGOLF_THEME.logos,
     favicon: 'themes/nxpass/favicon.ico',

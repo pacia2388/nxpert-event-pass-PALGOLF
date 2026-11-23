@@ -46,7 +46,7 @@ public static class BuiltInThemes
             Button = "linear-gradient(135deg, #0a2d7a 0%, #0f5fb8 100%)",
         },
         Fonts = new() { Display = "'Montserrat', 'Roboto', sans-serif" },
-        Layout = new() { Buttons = "solid", Footer = "solid", AuthBackground = "gradient" },
+        Layout = new() { Buttons = "solid", Footer = "solid", AuthBackground = "gradient", LoginImage = "poster" },
         Logos = new()
         {
             Favicon = "favicon.ico?v=3",
@@ -102,7 +102,7 @@ public static class BuiltInThemes
             Button = "linear-gradient(135deg, #0d9488 0%, #22b07d 100%)",
         },
         Fonts = new() { Display = "'Roboto', sans-serif" },
-        Layout = new() { Buttons = "gradient", Footer = "glass", AuthBackground = "glow" },
+        Layout = new() { Buttons = "gradient", Footer = "glass", AuthBackground = "glow", LoginImage = "logo" },
         Logos = new()
         {
             Favicon = "themes/nxpass/favicon.ico",

@@ -80,6 +80,9 @@ import { ACTIVE_THEME } from '../../../core/theme';
         align-items: flex-start;
         gap: 12px;
       }
+      .theme-head {
+        margin-top: 40px;
+      }
       .theme-current {
         display: flex;
         align-items: center;

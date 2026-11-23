@@ -396,3 +396,111 @@
     @include visually-hidden;
   }
 }
+
+// ---- Logo (theme layout.loginImage "logo"): the image is a logo, centred on a light panel, and
+// the theme's login words are shown under it on every width. ----
+.login-poster.is-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 48px 40px;
+  background: var(--brand-grad-soft);
+  text-align: center;
+
+  &::after {
+    content: none;
+  }
+
+  img {
+    width: min(50%, 240px);
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    border-radius: 28px;
+    box-shadow: 0 12px 32px var(--pg-blue-a14);
+  }
+
+  .poster-text {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    color: var(--pg-ink-soft);
+    font-family: var(--pg-display);
+  }
+
+  .poster-title {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--pg-blue-deep);
+  }
+
+  .poster-dates {
+    display: grid;
+    gap: 4px;
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.4;
+
+    li {
+      display: block;
+    }
+
+    span {
+      font-weight: 700;
+    }
+  }
+
+  .poster-venue {
+    margin-top: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--pg-blue);
+  }
+}
+
+@media (max-width: 900px) {
+  .login-poster.is-logo {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    text-align: left;
+
+    img {
+      width: 72px;
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+    }
+
+    .poster-title {
+      font-size: 22px;
+    }
+
+    .poster-dates {
+      margin-top: 4px;
+      font-size: 13px;
+    }
+
+    .poster-venue {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--pg-blue);
+    }
+  }
+}

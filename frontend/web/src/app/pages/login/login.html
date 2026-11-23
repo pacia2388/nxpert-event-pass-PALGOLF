@@ -1,10 +1,10 @@
 <!-- auth-shell keeps the app shell's full-bleed layout (see app.scss); login-shell carries the look. -->
 <div class="auth-shell login-shell">
   <div class="login-frame">
-    <!-- The theme's login image (PALGOLF: the tournament poster). Its wording is baked into the
-         image, so the same wording follows as text: hidden on wide screens (read by screen
-         readers), shown on phones where the image is cropped. -->
-    <aside class="login-poster">
+    <!-- The theme's login image. As a poster (PALGOLF) its wording is baked into the image, so the
+         same wording follows as text: hidden on wide screens (read by screen readers), shown on
+         phones where the image is cropped. As a logo (NXPass) the wording is always shown. -->
+    <aside class="login-poster" [class.is-logo]="poster.layout.loginImage === 'logo'">
       <img
         [src]="poster.logos.loginImage"
         width="1200"

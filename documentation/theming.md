@@ -5,7 +5,7 @@ One build can wear either of two looks:
 | Theme | Look |
 |-------|------|
 | **PALGOLF** (default) | Navy/blue PAL Interclub look: tournament poster on the login page, solid buttons and footer |
-| **NXPass** | The original teal/green NXPass look: green "N" logo, gradient buttons, glass footer, soft glow behind sign-in pages, app name "NXPass" |
+| **NXPass** | The original teal/green NXPass look: green "N" logo on the login page, gradient buttons, glass footer, soft glow behind sign-in pages, app name "NXPass" |
 
 The theme covers the web app's colours, fonts, logos, tab icon, browser bar colour, login image
 and its words, header logo, the app name and footer text, emails, the pass page and the voucher
@@ -67,6 +67,7 @@ A customised one:
 | `layout.buttons` | `solid` \| `gradient` |
 | `layout.footer` | `solid` \| `glass` |
 | `layout.authBackground` | `gradient` \| `glow` (sign-in, sign-up and similar pages) |
+| `layout.loginImage` | `poster` (the image fills the login panel; its words are read by screen readers and shown on phones) \| `logo` (the image is centred on a light panel with the title, lines and caption shown under it) |
 | `logos.favicon`, `logos.tabIcon`, `logos.loginImage` | A path on the web app (e.g. `brand/logo.png`) or an `https://` URL |
 | `logos.header` | Same, or `null` for the square badge in the header. Also shown at the top of emails |
 | `login.imageAlt`, `login.title`, `login.caption` | Text, 1–200 characters |

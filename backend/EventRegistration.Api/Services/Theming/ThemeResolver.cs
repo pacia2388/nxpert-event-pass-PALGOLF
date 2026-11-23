@@ -46,6 +46,7 @@ public static partial class ThemeResolver
             ["buttons"] = new(Kind.Choice, "solid", "gradient"),
             ["footer"] = new(Kind.Choice, "solid", "glass"),
             ["authBackground"] = new(Kind.Choice, "gradient", "glow"),
+            ["loginImage"] = new(Kind.Choice, "poster", "logo"),
         },
         ["logos"] = new()
         {

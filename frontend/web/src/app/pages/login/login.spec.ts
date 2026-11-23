@@ -106,6 +106,10 @@ describe('Login page', () => {
     const link = root().querySelector<HTMLAnchorElement>('a[href="/register"]');
     expect(link?.textContent).toContain('Create a participant account');
   });
+
+  it('shows the PALGOLF poster full-bleed', () => {
+    expect(root().querySelector('.login-poster')?.classList).not.toContain('is-logo');
+  });
 });
 
 describe('Login page in another theme', () => {
@@ -113,6 +117,7 @@ describe('Login page in another theme', () => {
     ...PALGOLF_THEME,
     name: 'NXPass',
     colors: { ...PALGOLF_THEME.colors, sky: '#0d9488' },
+    layout: { ...PALGOLF_THEME.layout, loginImage: 'logo' },
     logos: { ...PALGOLF_THEME.logos, loginImage: 'nxpax-logo.png' },
     login: {
       imageAlt: 'NXPass logo',
@@ -144,6 +149,10 @@ describe('Login page in another theme', () => {
     expect(text).toContain('Events, check-ins and passes, all in one place.');
     expect(text).toContain('Event Management');
     expect(text).not.toContain('PAL Interclub');
+  });
+
+  it('sets a logo on a light panel with the words shown, not as a full-bleed poster', () => {
+    expect(root().querySelector('.login-poster')?.classList).toContain('is-logo');
   });
 
   it("tints the phone toolbar with the theme's sky", () => {

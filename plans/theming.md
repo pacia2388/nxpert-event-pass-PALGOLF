@@ -1,6 +1,6 @@
 # Theming: PALGOLF / NXPass
 
-Status: 🚧 In progress (2026-11-23)
+Status: ✅ Done (2026-11-23) — implemented and tested (API, unit, e2e, browser)
 
 One build wears either the current look (**PALGOLF**, default) or the original look
 (**NXPass**). A developer picks it with a `theme.json` in the API site folder after publishing;
@@ -32,16 +32,17 @@ reference: [documentation/theming.md](../documentation/theming.md).
 - [x] Emails, pass page and meal stubs use theme colours; header logo in emails
 - [x] API tests (`ThemeTests`, 10)
 
-### Frontend 🚧 In progress
+### Frontend ✅ Done (2026-11-23)
 
 - [x] `core/theme.ts`: load before boot, apply CSS variables, layout variants, icons, browser bar, name
 - [x] Brand literals in SCSS replaced with tokens; NXPass layout variants
 - [x] Login poster, header logo, voucher colours from the theme
+- [x] `layout.loginImage` `poster` / `logo`: NXPass shows its logo centred with the words, not full-bleed
 - [x] NXPass icons in `public/themes/nxpass/`
 - [x] Settings → Theme: name, source, template download
 - [x] Unit tests (theme, login, app, settings)
-- [ ] Playwright specs
-- [ ] Browser check at 1440px and 375px in both themes
+- [x] Playwright specs
+- [x] Browser check at 1440px and 375px in both themes (login, Home, Settings)
 
 ### Docs ✅ Done (2026-11-23)
 
@@ -58,3 +59,4 @@ reference: [documentation/theming.md](../documentation/theming.md).
 | Date | Change |
 |------|--------|
 | 2026-11-23 | Plan created; backend, frontend theme loading, recolour, login/header/voucher, Settings template and docs landed |
+| 2026-11-23 | Playwright specs (4); browser check found the NXPass logo filling the whole login panel, so `layout.loginImage` (`poster` / `logo`) was added |
