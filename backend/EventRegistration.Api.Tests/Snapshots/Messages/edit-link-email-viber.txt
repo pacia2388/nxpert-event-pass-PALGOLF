@@ -7,6 +7,7 @@ Subject: Edit your registration — Snapshot Open
 <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;
      border:1px solid #e0e0e0;border-radius:12px;overflow:hidden">
   <div style="background:#0f5fb8;color:#fff;padding:20px 28px">
+
     <h1 style="margin:0;font-size:20px">Edit your registration</h1>
   </div>
   <div style="padding:28px;color:#333;font-size:15px;line-height:1.55">
