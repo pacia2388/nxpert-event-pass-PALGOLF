@@ -25,7 +25,7 @@ public class BrandingTests
     [Fact]
     public void Emails_are_sent_under_the_name_PAL_GOLF_unless_configured_otherwise()
     {
-        Assert.Equal("PAL GOLF", new EmailSettings().FromName);
+        Assert.Equal("PAL GOLF", new EmailSettings().SenderName);
     }
 
     [Fact]

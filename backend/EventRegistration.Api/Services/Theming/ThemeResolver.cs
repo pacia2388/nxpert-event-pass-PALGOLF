@@ -181,7 +181,6 @@ public static partial class ThemeResolver
         string? result = field.Kind switch
         {
             Kind.Color when HexColor().IsMatch(s) => s.ToLowerInvariant(),
-            Kind.Color when RgbColor().IsMatch(s) => s,
             Kind.Gradient when s.Length <= 500 && GradientPattern().IsMatch(s) && !Forbidden(s) => s,
             Kind.Font when FontPattern().IsMatch(s) => s,
             Kind.Path or Kind.NullablePath when IsSafePath(s) => s,
@@ -215,7 +214,7 @@ public static partial class ThemeResolver
 
     private static string Describe(Field field) => field.Kind switch
     {
-        Kind.Color => "must be a #hex, rgb() or rgba() colour",
+        Kind.Color => "must be a #rgb or #rrggbb colour",
         Kind.Gradient => "must be a linear-gradient() or radial-gradient() of colours",
         Kind.Font => "must be a font list of letters, digits, spaces, quotes, commas and hyphens",
         Kind.Path or Kind.NullablePath => "must be a path on the web app (e.g. brand/logo.png) or an https URL",
@@ -225,11 +224,9 @@ public static partial class ThemeResolver
         _ => "is not valid",
     };
 
-    [GeneratedRegex("^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")]
+    // Opaque hex only: the meal-stub renderer (Skia) and email clients read nothing else as CSS does.
+    [GeneratedRegex("^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")]
     private static partial Regex HexColor();
-
-    [GeneratedRegex(@"^rgba?\(\s*\d{1,3}%?\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?\s*(?:,\s*(?:0|1|0?\.\d+|\d{1,3}%)\s*)?\)$")]
-    private static partial Regex RgbColor();
 
     [GeneratedRegex(@"^(?:linear|radial)-gradient\([#a-zA-Z0-9.,%\s()-]+\)$")]
     private static partial Regex GradientPattern();

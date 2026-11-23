@@ -89,6 +89,11 @@ import { ACTIVE_THEME } from '../../../core/theme';
         gap: 8px;
         margin: 0 0 12px;
       }
+      .theme-current mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
       .pc-code {
         width: 260px;
         /* Same height as the Add button (40px). */

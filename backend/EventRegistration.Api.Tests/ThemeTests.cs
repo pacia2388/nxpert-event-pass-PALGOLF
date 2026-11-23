@@ -92,7 +92,7 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         WriteTheme("""
             {
               "base": "NXPass",
-              "colors": { "primary": "red;}body{display:none" },
+              "colors": { "primary": "red;}body{display:none", "tint": "rgb(1,2,3)", "accent": "#0d948880" },
               "gradients": { "brand": "linear-gradient(url(https://evil.example/x.png))" },
               "fonts": { "display": "Roboto; color: red" },
               "layout": { "buttons": "sparkly", "loginImage": "banner" },
@@ -104,6 +104,9 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         var theme = await ThemeAsync();
 
         Assert.Equal("#0d9488", Str(theme, "colors", "primary"));
+        // Only #rgb / #rrggbb: the meal-stub renderer and email clients read nothing else the same way.
+        Assert.Equal("#e6f6f3", Str(theme, "colors", "tint"));
+        Assert.Equal("#3dbb8a", Str(theme, "colors", "accent"));
         Assert.Equal("linear-gradient(135deg, #0d9488 0%, #22c55e 100%)", Str(theme, "gradients", "brand"));
         Assert.Equal("'Roboto', sans-serif", Str(theme, "fonts", "display"));
         Assert.Equal("gradient", Str(theme, "layout", "buttons"));
@@ -190,6 +193,16 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.DoesNotContain("#0f5fb8", html);
         Assert.Contains("NXPass · this is an automated message", html);
         Assert.Matches("<img [^>]*src=\"https?://[^\"]+/brand/n-logo.png\"", html);
+    }
+
+    [Fact]
+    public async Task Emails_come_from_the_theme_name_unless_a_sender_name_is_configured()
+    {
+        WriteTheme("""{ "base": "NXPass" }""");
+        await ThemeAsync();
+
+        Assert.Equal("NXPass", new EventRegistration.Api.Services.EmailSettings().SenderName);
+        Assert.Equal("Ops Desk", new EventRegistration.Api.Services.EmailSettings { FromName = "Ops Desk" }.SenderName);
     }
 
     [Fact]

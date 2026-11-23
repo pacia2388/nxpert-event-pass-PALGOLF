@@ -12,10 +12,14 @@ public class EmailSettings
     public int Port { get; set; } = 587;
     public string User { get; set; } = "";
     public string Password { get; set; } = "";
-    public string FromName { get; set; } = "PAL GOLF";
+    // Blank (the default): the app's name, so it follows theme.json's appName.
+    public string FromName { get; set; } = "";
     public string FromAddress { get; set; } = "";
     // Tests only (ignored in Production): write messages to this folder instead of sending them.
     public string TestSendDir { get; set; } = "";
+
+    /// <summary>The sender's display name: <see cref="FromName"/> when set, else <see cref="Branding.AppName"/>.</summary>
+    public string SenderName => string.IsNullOrWhiteSpace(FromName) ? Branding.AppName : FromName.Trim();
     // Tests only, with TestSendDir: every send fails, to exercise fallback.
     public bool TestFail { get; set; }
 }
@@ -54,7 +58,7 @@ public class EmailService
     }
 
     // Sender identity — also used as the ORGANIZER of calendar invites.
-    public string FromName => _s.FromName;
+    public string FromName => _s.SenderName;
     public string FromAddress => string.IsNullOrWhiteSpace(_s.FromAddress) ? _s.User : _s.FromAddress;
 
     /// <summary>
@@ -79,7 +83,7 @@ public class EmailService
         IReadOnlyCollection<string>? bcc = null)
     {
         var msg = new MimeMessage();
-        msg.From.Add(new MailboxAddress(_s.FromName, FromAddress));
+        msg.From.Add(new MailboxAddress(FromName, FromAddress));
         var recipients = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var address in to)
         {

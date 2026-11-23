@@ -62,7 +62,9 @@ public static class ThemeStore
                 var stamp = (info.LastWriteTimeUtc, info.Length);
                 // File times tick coarsely: a same-size rewrite within a tick keeps its stamp, so a
                 // file written in the last few seconds is read again until it settles.
-                var settled = DateTime.UtcNow - info.LastWriteTimeUtc > TimeSpan.FromSeconds(2);
+                // A time stamp in the future (a file copied from a machine whose clock runs ahead)
+                // counts as settled too, or the file would be read on every request.
+                var settled = (DateTime.UtcNow - info.LastWriteTimeUtc).Duration() > TimeSpan.FromSeconds(2);
                 if (_stamp == stamp && settled) return _current;
                 string text;
                 try

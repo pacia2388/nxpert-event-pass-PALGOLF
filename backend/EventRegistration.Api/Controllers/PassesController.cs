@@ -119,7 +119,8 @@ public class PassesController : ControllerBase
         var validity = MealStubImageService.ValidityLabel(stub.ValidFrom, stub.ValidTo);
         var png = _stubImages.Render(
             stub.Color ?? ThemeStore.Current.Theme.Colors.Primary, ev.Title, ev.BannerImage, validity, stub.Denomination, stub.ControlNumber);
-        Response.Headers.CacheControl = "public, max-age=86400";
+        // A stub without its own colour wears the theme's, which can change: no day-long cache then.
+        Response.Headers.CacheControl = stub.Color is null ? "no-cache" : "public, max-age=86400";
         return File(png, "image/png");
     }
 }
