@@ -71,12 +71,16 @@ Task<DeliveryResult> SendAsync(string phone, OutgoingMessage message, MobileTag?
 `PassService.DeliverAsync`, the mail-plan mobile loop and the broadcast loop. The rules stay the
 same as `DeliverAsync` today:
 
-- **Mobile preferred:** the active provider only, then email when `Viber:FallbackToEmail` /
-  `Sms:FallbackToEmail` is on.
+The three channel choices (confirmed 2026-11-23):
+
+| Preference | Sends | On failure |
+|---|---|---|
+| **Mobile** (Viber/SMS) | Active provider only | Email, when `Viber:FallbackToEmail` / `Sms:FallbackToEmail` is on (also for a late Viber failure) |
+| **Both** | Viber/SMS **and** email | No fallback: the email already went out with its own retry, so a Viber/SMS failure needs nothing more |
+| **Email** | Email only | Background retry (5×) |
+
 - **Country not listed or no phone:** mobile is skipped, email is always sent.
-- **Email preferred:** email only.
-- **Both:** mobile and email, neither falls back.
-- **Failed email:** queued for the background retry (5×). It never falls back to mobile.
+- **Failed email (any preference):** queued for the background retry (5×). It never falls back to mobile.
 
 `Recipient` = phone, email, channel preference, optional `RegistrationId` (for the retry and the
 Viber tag).
@@ -116,10 +120,10 @@ preference.
 | # | Question | Recommendation |
 |---|---|---|
 | 1 | Viber group: text accepted, an image rejected. Fall back to email (registrant gets the text and the full email) or count as sent? | Fall back. Duplicate details are better than a missing QR or meal stub |
-| 2 | Mail plans (#11): the email part today goes out as BCC batches to email-preferred receivers. Keep the batches and send only mobile-preferred receivers through the dispatcher? | Yes. Batches keep SMTP load low; the per-receiver dispatcher is only for mobile-preferred receivers |
+| 2 | Mail plans (#11): the email part today goes out as BCC batches to email-preferred receivers. Keep the batches and send only mobile-preferred receivers through the dispatcher? | Yes. Batches keep SMTP load low; the per-receiver dispatcher is only for mobile-preferred receivers. A **Both** plan (channel set per plan): every receiver is in the BCC batches and the mobile send never falls back, as today (no second email) |
 | 3 | Viber broadcast (#13): today Viber only, even when SMS is active, with a per-broadcast "Fallback to email" tick box | ✅ Decided 2026-11-23: stays **Viber only** by design (not renamed, never SMS). It uses the shared template and dispatcher with the channel forced to Viber; the dialog's tick box, not `Viber:FallbackToEmail`, decides the email fallback |
-| 4 | Late Viber failure for mail plans and broadcasts | Include it: tag with the plan delivery / broadcast, queue a `Message` retry with the email snapshot |
-| 5 | Cancellation (#8): sent as "Both" so the calendar entry is always removed. Keep? | Keep the email (it removes the calendar entry), and send the mobile text by preference. A documented exception, not a separate path |
+| 4 | Late Viber failure for mail plans and broadcasts | Include it: tag with the plan delivery / broadcast, queue a `Message` retry with the email snapshot. Viber-only plans only: a Both plan has already emailed everyone |
+| 5 | Cancellation (#8): sent as "Both" so the calendar entry is always removed. Keep? | ✅ Decided 2026-11-23: **keep the exception.** A mobile-preferred registrant's cancellation goes as **Both** (text + CANCEL email, no fallback) so the calendar entry is always removed; email-preferred stays email only. A documented exception, not a separate path |
 | 6 | Meeting update (#7) without a calendar invite | Always build an email ("details changed" without `.ics`), so the fallback works |
 | 7 | `GroupId` column: new migration, or fold it into `20261122155946_ViberMessages`? | ✅ Decided 2026-11-23: **fold it in** (not deployed to any server). The migration is already pushed (`e518c3c` on `origin/DEV_1783`), so every database that applied it, the local dev DB included, must be dropped and re-created after the fold (`dotnet ef database drop --force`; ask before running) |
 | 8 | Reminder (#12): today Viber/SMS by preference, result ignored | Normal message: preference → fallback |
@@ -184,3 +188,6 @@ preference.
 | 2026-11-23 | Decision 3: Viber broadcast stays Viber only and keeps its name; fallback stays the dialog tick box |
 | 2026-11-23 | Decision 7: fold `GroupId` into the existing `ViberMessages` migration; databases that applied it must be reset |
 | 2026-11-23 | Mail-plan Viber/SMS text now keeps link addresses (`InvitationMessageBuilder.PlainText`, test `PlainTextLinkTests`); `mail-plan-viber` / `mail-plan-sms` snapshots updated, so the refactor carries the fix |
+| 2026-11-23 | Decision 5: cancellation keeps its exception (mobile-preferred sent as Both, so the CANCEL email always removes the calendar entry) |
+| 2026-11-23 | Shared rule written as the three channel choices (Mobile → fallback to email; Both → mobile + email with retry; Email → email with retry) |
+| 2026-11-23 | Both: no fallback and no late-failure email, since the email channel already went out with its retry (shared rule, decisions 2 and 4) |
