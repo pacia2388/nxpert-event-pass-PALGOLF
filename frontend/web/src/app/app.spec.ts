@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { loadAppSettings } from './core/config';
 import { RealtimeService } from './core/realtime.service';
+import { ACTIVE_THEME, PALGOLF_THEME } from './core/theme';
 
 describe('App shell', () => {
   let fixture: ComponentFixture<App>;
@@ -43,6 +44,28 @@ describe('App shell', () => {
   it('credits N-PAX in the footer on every page, signed in or not', () => {
     open();
     expect(words(root().querySelector('footer'))).toBe('Powered by N-PAX - NXPERT SYSTEM');
+  });
+
+  it('shows the badge icon in the header when the theme has no logo', () => {
+    open(true);
+    expect(root().querySelector('header .brand-badge mat-icon')).not.toBeNull();
+    expect(root().querySelector('header .brand-logo')).toBeNull();
+  });
+
+  it("shows the theme's header logo in place of the badge", () => {
+    ACTIVE_THEME.current = {
+      ...PALGOLF_THEME,
+      logos: { ...PALGOLF_THEME.logos, header: 'brand/n-logo.png' },
+    };
+    try {
+      open(true);
+      expect(root().querySelector('header .brand-logo')?.getAttribute('src')).toBe(
+        'brand/n-logo.png',
+      );
+      expect(root().querySelector('header .brand-badge')).toBeNull();
+    } finally {
+      ACTIVE_THEME.current = PALGOLF_THEME;
+    }
   });
 
   it('names the app PAL GOLF in the header once signed in', () => {

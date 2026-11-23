@@ -60,6 +60,14 @@
   min-width: 0;
 }
 
+// A theme's own logo, the same size as the badge it replaces.
+.brand-logo {
+  display: block;
+  height: 52px;
+  max-width: 160px;
+  object-fit: contain;
+}
+
 .brand-badge {
   @extend %glass;
   display: grid;
