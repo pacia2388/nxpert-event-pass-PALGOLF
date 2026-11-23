@@ -25,11 +25,7 @@ export async function loadAppSettings(): Promise<void> {
   BRANDING.appName = wording(s, 'appName', DEFAULT_APP_NAME);
   BRANDING.footerText = wording(s, 'footerText', DEFAULT_FOOTER_TEXT);
 
-  document.title = BRANDING.appName;
-  // iOS names the home-screen icon from this tag.
-  document
-    .querySelector('meta[name="apple-mobile-web-app-title"]')
-    ?.setAttribute('content', BRANDING.appName);
+  // The tab is named once the theme is known (core/theme.ts), so it never flashes a wrong name.
 }
 
 // An optional line of wording: missing or blank keeps the built-in text.

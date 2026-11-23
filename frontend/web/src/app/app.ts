@@ -11,6 +11,7 @@ import { RealtimeService } from './core/realtime.service';
 import { PwaInstallService } from './core/pwa-install.service';
 import { AppNotification } from './core/models';
 import { BRANDING } from './core/config';
+import { ACTIVE_THEME } from './core/theme';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +38,8 @@ export class App {
   // Wording from appSettings.json.
   protected readonly appName = BRANDING.appName;
   protected readonly footerText = BRANDING.footerText;
+  /** The theme's header logo; none shows the badge icon. */
+  protected readonly headerLogo = ACTIVE_THEME.current.logos.header;
 
   // "Vien Dexter" -> "VD" for the header avatar.
   protected readonly initials = computed(() => {

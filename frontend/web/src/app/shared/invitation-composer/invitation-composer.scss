@@ -2,8 +2,8 @@
 // Compact density so the whole composer (fields, editor, summary) fits a laptop screen.
 @use '@angular/material' as mat;
 
-$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
-$soft-surface: #f8fafd;
+$hairline-brand: 1px solid var(--pg-blue-a14);
+$soft-surface: var(--mat-sys-surface-container-low);
 
 :host {
   display: block;
@@ -141,7 +141,7 @@ p.muted {
     background: $soft-surface;
   }
   &:focus-visible {
-    outline: 2px solid rgba(15, 95, 184, 0.45);
+    outline: 2px solid var(--pg-blue-a45);
   }
 }
 
@@ -149,7 +149,7 @@ p.muted {
   min-width: 20px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
   font-size: 11.5px;
   font-weight: 700;
@@ -249,7 +249,7 @@ p.muted {
     cursor: default;
   }
   &:focus-visible {
-    outline: 2px solid rgba(15, 95, 184, 0.45);
+    outline: 2px solid var(--pg-blue-a45);
     outline-offset: -2px;
   }
   .history-chevron {
@@ -419,8 +419,8 @@ mat-chip-row {
   max-width: 100%;
 }
 .group-chip {
-  --mdc-chip-elevated-container-color: #e8f0fb;
-  --mat-chip-elevated-container-color: #e8f0fb;
+  --mdc-chip-elevated-container-color: var(--pg-tint);
+  --mat-chip-elevated-container-color: var(--pg-tint);
   font-weight: 700;
 }
 
@@ -494,7 +494,7 @@ mat-chip-row {
   gap: 4px;
   height: 28px;
   padding: 0 10px;
-  border: 1.5px solid rgba(15, 95, 184, 0.45);
+  border: 1.5px solid var(--pg-blue-a45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
@@ -544,7 +544,7 @@ mat-chip-row {
   width: 1px;
   height: 20px;
   margin: 0 4px;
-  background: rgba(15, 95, 184, 0.2);
+  background: color-mix(in srgb, var(--pg-blue) 20%, transparent);
 }
 
 .link-row {
@@ -579,7 +579,7 @@ mat-chip-row {
   line-height: 1.6;
 
   &:focus {
-    box-shadow: inset 0 0 0 2px rgba(15, 95, 184, 0.45);
+    box-shadow: inset 0 0 0 2px var(--pg-blue-a45);
   }
   &:empty::before {
     content: attr(data-placeholder);
@@ -682,7 +682,7 @@ mat-chip-row {
   color: #333;
 
   &:focus-visible {
-    outline: 2px solid rgba(15, 95, 184, 0.45);
+    outline: 2px solid var(--pg-blue-a45);
     outline-offset: -2px;
   }
   p {
@@ -692,7 +692,7 @@ mat-chip-row {
 
 .mail-meta {
   padding: 8px 10px;
-  border-bottom: 1px solid #eef2f8;
+  border-bottom: 1px solid var(--pg-wash-8);
   background: #fbfcfe;
 }
 
@@ -807,7 +807,7 @@ mat-chip-row {
   padding: 6px 8px;
   border-left: 2px solid var(--pg-blue);
   border-radius: 4px;
-  background: #f5f8fc;
+  background: var(--pg-wash-4);
   white-space: pre-line;
   overflow-wrap: anywhere;
   display: -webkit-box;

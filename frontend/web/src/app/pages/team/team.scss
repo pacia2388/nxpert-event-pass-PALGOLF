@@ -48,7 +48,7 @@
 .tp-count {
   padding: 6px 14px;
   border-radius: 999px;
-  border: 1.5px solid rgba(15, 95, 184, 0.35);
+  border: 1.5px solid var(--pg-blue-a35);
   font-size: 13.5px;
   color: #334155;
   font-variant-numeric: tabular-nums;
@@ -115,7 +115,7 @@
 
   th {
     padding: 11px 20px;
-    background: #f5f8fc;
+    background: var(--pg-wash-4);
     border-top: 1px solid rgba(15, 23, 42, 0.12);
     border-bottom: 1px solid rgba(15, 23, 42, 0.12);
     text-align: left;
@@ -274,8 +274,8 @@
   margin: 16px 0 0;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #f5f8fc;
-  border: 1px solid rgba(15, 95, 184, 0.12);
+  background: var(--pg-wash-4);
+  border: 1px solid var(--pg-blue-a12);
   font-size: 13px;
   line-height: 1.5;
   color: #475569;

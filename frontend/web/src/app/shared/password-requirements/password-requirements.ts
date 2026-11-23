@@ -26,7 +26,7 @@ import { passwordChecks } from '../password';
       margin: 0 0 16px;
       padding: 10px 12px;
       border-radius: 8px;
-      background: #f0f5fc;
+      background: var(--pg-tint-soft);
       font-size: 13px;
       color: var(--pg-ink-soft);
     }

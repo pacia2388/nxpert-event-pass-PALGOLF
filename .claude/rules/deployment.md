@@ -21,6 +21,10 @@ Source: `deploy-iis` skill.
 - **`mail-queue/`** (API site root, or `App:MailQueueDir`) holds emails waiting for a retry as
   `.eml` files; the database keeps only their file names. It contains personal data: never serve it,
   and never delete it on deploy (no `robocopy /MIR`). Old files are removed automatically after 26 h.
+- **`theme.json` lives in the API site folder and is never published** (excluded in the `.csproj`):
+  add it by hand after the first deploy; redeploys keep it. Edits apply without a restart. No file =
+  PALGOLF. Custom logo images go in the App site and must be restored after each frontend build.
+  See `documentation/theming.md`.
 - Use `npm ci` (not `npm install`) for production builds.
 - Production config lives in `appsettings.Production.json` with `ASPNETCORE_ENVIRONMENT=Production`;
   real values only, never dev secrets, never committed.

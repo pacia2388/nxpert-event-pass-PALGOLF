@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using EventRegistration.Api.Data;
 using EventRegistration.Api.Models;
+using EventRegistration.Api.Services.Theming;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventRegistration.Api.Services;
@@ -236,7 +237,7 @@ public class MailPlanDispatcher(AppDbContext db, EmailService email, EmailSender
 
         var subject = "Reminder: " + send.Subject;
         if (subject.Length > 200) subject = subject[..200];
-        var intro = "<p style=\"margin:0 0 16px;padding:10px 14px;border-radius:8px;background:#e8f0fb;color:#0b4a94\">" +
+        var intro = $"<p style=\"margin:0 0 16px;padding:10px 14px;border-radius:8px;background:{ThemeStore.Current.Theme.Colors.Tint};color:{ThemeStore.Current.Theme.Colors.PrimaryDeep}\">" +
             "You asked to be reminded about this mail.</p>";
         return (subject, Template(plan, intro + body, email.FromName), images);
     }

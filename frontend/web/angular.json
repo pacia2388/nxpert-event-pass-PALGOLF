@@ -52,12 +52,8 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
-            "allowedCommonJsDependencies": [
-              "qrcode"
-            ],
+            "styles": ["src/styles.scss"],
+            "allowedCommonJsDependencies": ["qrcode"],
             "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
@@ -70,7 +66,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "16kB",
+                  "maximumWarning": "18kB",
                   "maximumError": "20kB"
                 }
               ],
@@ -95,9 +91,7 @@
                 {
                   "glob": "**/*",
                   "input": "public",
-                  "ignore": [
-                    "appSettings.json"
-                  ]
+                  "ignore": ["appSettings.json"]
                 },
                 {
                   "glob": "appSettings.json",

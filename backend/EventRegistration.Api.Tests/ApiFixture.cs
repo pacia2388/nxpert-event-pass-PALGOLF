@@ -30,6 +30,13 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
     private readonly string _database = $"EventPassTests_{Guid.NewGuid():N}";
 
+    /// <summary>
+    /// The theme.json every test host reads (not created: no file means the default PALGOLF theme).
+    /// One per run: the API keeps the theme path in static state, shared by all hosts in the process.
+    /// Theme tests write it and delete it when done.
+    /// </summary>
+    public static string ThemeFile { get; } = Path.Combine(Path.GetTempPath(), $"eventpass-theme-{Guid.NewGuid():N}.json");
+
     public static readonly string SentRoot = Path.Combine(AppContext.BaseDirectory, "test", "sent");
     public static string SentDir(string channel) => Path.Combine(SentRoot, channel);
     // Emails saved for a later send (EmailFileStore), kept apart from the sent messages.
@@ -89,6 +96,7 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Viber:TestSendDir", SentDir("viber"));
         builder.UseSetting("Sms:TestSendDir", SentDir("sms"));
         builder.UseSetting("App:MailQueueDir", MailQueueDir);
+        builder.UseSetting("Theme:Path", ThemeFile);
         builder.ConfigureTestServices(services =>
         {
             // The background mail schedulers have nothing to do in a test run.
@@ -107,6 +115,7 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     {
         using (var scope = Services.CreateScope())
             await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureDeletedAsync();
+        if (File.Exists(ThemeFile)) File.Delete(ThemeFile);
         await base.DisposeAsync();
     }
 

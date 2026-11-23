@@ -1,5 +1,6 @@
 import * as QRCode from 'qrcode';
 import { BRANDING } from './config';
+import { ACTIVE_THEME } from './theme';
 
 /** The QR payload matches the emailed pass and what the scanner expects. */
 export function passPayload(token: string): string {
@@ -77,7 +78,7 @@ export async function voucherPngDataUrl(v: VoucherImageData): Promise<string> {
   ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
-  ctx.fillStyle = '#051f63';
+  ctx.fillStyle = ACTIVE_THEME.current.colors.navy; // the theme's header band
   ctx.fillRect(0, 0, W, 110);
   text(22, BRANDING.appName, 40, '#ffffff', true);
   text(70, 'Airline Baggage Voucher — Golf Equipment', 24, '#ffffff');
@@ -98,7 +99,7 @@ export async function voucherPngDataUrl(v: VoucherImageData): Promise<string> {
   ctx.lineTo(W - 60, 900);
   ctx.stroke();
   text(920, `Voucher No. ${v.voucherNo}  ·  Generated ${voucherDate(v.createdAt)}`, 20, '#666666');
-  ctx.strokeStyle = '#051f63';
+  ctx.strokeStyle = ACTIVE_THEME.current.colors.navy;
   ctx.lineWidth = 4;
   ctx.strokeRect(2, 2, W - 4, H - 4);
   return canvas.toDataURL('image/png');

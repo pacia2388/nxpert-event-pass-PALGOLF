@@ -1,8 +1,8 @@
 // Event detail (admin): header card with key figures, then a carded tab panel.
 // Colours come from the global brand tokens (blue primary, soft blue tiles).
 
-$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
-$soft-surface: #f8fafd;
+$hairline-brand: 1px solid var(--pg-blue-a14);
+$soft-surface: var(--mat-sys-surface-container-low);
 
 .ed-page {
   display: flex;
@@ -50,7 +50,7 @@ $soft-surface: #f8fafd;
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
 
   mat-icon {
@@ -168,7 +168,7 @@ $soft-surface: #f8fafd;
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
 
   mat-icon {
@@ -244,7 +244,7 @@ $soft-surface: #f8fafd;
   margin-top: 16px;
   padding: 4px 6px 4px 14px;
   border-radius: 12px;
-  background: #f0f4fa;
+  background: var(--mat-sys-surface-container-high);
 }
 
 .ed-link-label {
@@ -382,7 +382,7 @@ $soft-surface: #f8fafd;
     max-width: 280px;
   }
   tr.row-selected {
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
   }
 }
 

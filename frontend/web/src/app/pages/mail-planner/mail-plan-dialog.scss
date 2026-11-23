@@ -1,7 +1,7 @@
 // Mail plan modal: header, step bar, step content, sticky footer.
 
-$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
-$soft-surface: #f8fafd;
+$hairline-brand: 1px solid var(--pg-blue-a14);
+$soft-surface: var(--mat-sys-surface-container-low);
 $ink: #0f172a;
 $muted: #64748b;
 
@@ -102,13 +102,13 @@ $muted: #64748b;
     .num {
       background: var(--brand-grad);
       color: #fff;
-      box-shadow: 0 4px 10px rgba(15, 95, 184, 0.3);
+      box-shadow: 0 4px 10px var(--pg-blue-a30);
     }
   }
   &.done {
     color: var(--pg-blue-deep);
     .num {
-      background: #d6e4f7;
+      background: var(--mat-sys-primary-container);
       color: var(--pg-blue-deep);
     }
   }
@@ -224,9 +224,9 @@ $muted: #64748b;
   }
   &.active {
     border-color: var(--pg-blue);
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
     color: var(--pg-blue-deep);
-    box-shadow: 0 0 0 3px rgba(15, 95, 184, 0.12);
+    box-shadow: 0 0 0 3px var(--pg-blue-a12);
   }
 }
 
@@ -313,7 +313,7 @@ $muted: #64748b;
 
   &:hover:not(:disabled):not(.selected) {
     border-color: #8fb8ea;
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
   }
   &.today {
     border-color: var(--pg-blue);
@@ -321,7 +321,7 @@ $muted: #64748b;
   &.selected {
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(15, 95, 184, 0.3);
+    box-shadow: 0 4px 12px var(--pg-blue-a30);
   }
   &:disabled {
     color: #cbd5e1;
@@ -365,7 +365,7 @@ $muted: #64748b;
   gap: 6px;
   height: 34px;
   padding: 0 12px;
-  border: 1.5px dashed rgba(15, 95, 184, 0.45);
+  border: 1.5px dashed var(--pg-blue-a45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
@@ -392,7 +392,7 @@ $muted: #64748b;
 .count-pill {
   padding: 1px 8px;
   border-radius: 999px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
   font-size: 11.5px;
   letter-spacing: 0;
@@ -413,7 +413,7 @@ $muted: #64748b;
     width: 100%;
   }
   mat-chip-row.saved {
-    --mat-chip-elevated-container-color: #e8f0fb;
+    --mat-chip-elevated-container-color: var(--pg-tint);
   }
   .event-hint {
     margin-top: 10px;
@@ -536,7 +536,7 @@ $muted: #64748b;
   overflow-wrap: anywhere;
 
   &.group {
-    background: #e8f0fb;
+    background: var(--pg-tint);
     border-color: transparent;
     color: var(--pg-blue-deep);
   }
@@ -614,7 +614,7 @@ $muted: #64748b;
   display: flex;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid #eef2f8;
+  border-bottom: 1px solid var(--pg-wash-8);
   font-size: 13.5px;
   color: #334155;
 
@@ -706,7 +706,7 @@ $muted: #64748b;
   gap: 4px;
   height: 28px;
   padding: 0 10px;
-  border: 1.5px solid rgba(15, 95, 184, 0.45);
+  border: 1.5px solid var(--pg-blue-a45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
@@ -774,7 +774,7 @@ $muted: #64748b;
   flex-direction: column;
   gap: 10px;
   padding: 12px 14px 14px;
-  border: 1.5px solid #dde4f0;
+  border: 1.5px solid var(--pg-wash-16);
   border-left: 4px solid var(--pg-blue);
   border-radius: 14px;
   background: #fff;
@@ -957,7 +957,7 @@ $muted: #64748b;
   justify-content: center;
   gap: 8px;
   padding: 14px;
-  border: 2px dashed rgba(15, 95, 184, 0.4);
+  border: 2px dashed color-mix(in srgb, var(--pg-blue) 40%, transparent);
   border-radius: 14px;
   background: #fff;
   font: inherit;
@@ -970,11 +970,11 @@ $muted: #64748b;
     border-color 0.15s ease;
 
   &:hover {
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
     border-color: var(--pg-blue);
   }
   &:focus-visible {
-    outline: 3px solid rgba(15, 95, 184, 0.35);
+    outline: 3px solid var(--pg-blue-a35);
     outline-offset: 2px;
   }
 }
@@ -1000,7 +1000,7 @@ $muted: #64748b;
     top: 18px;
     bottom: -14px;
     width: 2px;
-    background: #dde4f0;
+    background: var(--pg-wash-16);
   }
 
   &:last-child::before {
@@ -1016,7 +1016,7 @@ $muted: #64748b;
   height: 12px;
   border-radius: 50%;
   background: var(--pg-blue);
-  box-shadow: 0 0 0 4px #e8f0fb;
+  box-shadow: 0 0 0 4px var(--pg-tint);
 }
 
 .review-facts {
@@ -1029,7 +1029,7 @@ $muted: #64748b;
     align-items: center;
     gap: 8px;
     padding: 9px 0;
-    border-bottom: 1px solid #eef2f8;
+    border-bottom: 1px solid var(--pg-wash-8);
     font-size: 13.5px;
     color: #334155;
   }
@@ -1049,7 +1049,7 @@ $muted: #64748b;
   flex-wrap: wrap;
   gap: 8px;
   padding: 14px 24px 18px;
-  border-top: 1px solid #eef2f8;
+  border-top: 1px solid var(--pg-wash-8);
   background: #fff;
 }
 

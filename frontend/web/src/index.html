@@ -3,6 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <title>PAL GOLF</title>
+    <!-- Names the tab with the last theme's app name until /api/theme answers (core/theme.ts) -->
+    <script>
+      try {
+        document.title = localStorage.getItem('evt_app_name') || document.title;
+      } catch {}
+    </script>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- ?v= busts browser + service-worker favicon caches; bump it whenever the icon changes -->

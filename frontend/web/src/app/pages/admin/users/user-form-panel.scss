@@ -98,9 +98,9 @@
   height: 64px;
   border-radius: 50%;
   overflow: hidden;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
-  border: 2px solid rgba(15, 95, 184, 0.25);
+  border: 2px solid color-mix(in srgb, var(--pg-blue) 25%, transparent);
 
   img {
     width: 100%;
@@ -140,8 +140,8 @@
   margin-top: 4px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #f5f8fc;
-  border: 1px solid rgba(15, 95, 184, 0.12);
+  background: var(--pg-wash-4);
+  border: 1px solid var(--pg-blue-a12);
 }
 
 .uf-face {
