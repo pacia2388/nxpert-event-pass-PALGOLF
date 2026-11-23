@@ -164,5 +164,7 @@ Output lands in **`dist/web/browser`** (includes the `web.config` from `public/`
   restarts on file change; `iisreset` if a DLL is locked.
 - **Frontend:** re-run `npm run build`, replace the contents of `C:\inetpub\EventReg\web`
   (hashed filenames avoid stale-cache issues).
+- `categories.json` (API folder, event/team categories) is left out of `dotnet publish`, so a
+  deploy never overwrites it. Copy it once on a new install; never delete it when copying files.
 - Changed `apiBaseUrl`? Edit `appSettings.json` on the server and reload — no rebuild. A new build
   overwrites it with dev values: restore the server copy after each frontend deploy.

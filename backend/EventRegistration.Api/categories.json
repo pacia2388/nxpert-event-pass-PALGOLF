@@ -1,0 +1,10 @@
+{
+  "Categories": {
+    "// Items": "Who events are for and what teams are. Name: 1-20 characters, unique. Icon: Material icon name (blank = label). TeamMaxMembers: most members a team holds, Captain not counted (blank = DefaultTeamMaxMembers). An empty list turns categories off. Not published: edit the copy on each server.",
+    "Items": [
+      { "Name": "Senior", "Icon": "elderly", "TeamMaxMembers": 8 },
+      { "Name": "Regular", "Icon": "person", "TeamMaxMembers": 10 }
+    ],
+    "DefaultTeamMaxMembers": 10
+  }
+}

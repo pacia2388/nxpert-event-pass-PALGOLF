@@ -27,9 +27,11 @@ public class TeamsController : ControllerBase
     private readonly AppDbContext _db;
     private readonly EmailSender _email;
     private readonly IConfiguration _config;
+    private readonly CategoryCatalog _categories;
 
-    public TeamsController(AppDbContext db, EmailSender email, IConfiguration config)
+    public TeamsController(AppDbContext db, EmailSender email, IConfiguration config, CategoryCatalog categories)
     {
+        _categories = categories;
         _db = db;
         _email = email;
         _config = config;
@@ -38,9 +40,9 @@ public class TeamsController : ControllerBase
     private static TeamMemberDto ToMemberDto(TeamMember m) =>
         new(m.UserId, m.User!.FullName, m.User.Email, m.AddedAt, m.NotificationFlag, m.RegistrationToken is null);
 
-    private static TeamDetailDto ToDetailDto(Team t) => new(
+    private TeamDetailDto ToDetailDto(Team t) => new(
         t.Id, t.Description, t.Category, t.TeamLeadUserId, t.TeamLead?.FullName ?? "",
-        t.Members.Count, TeamCategories.MaxMembers(t.Category), t.CreatedAt,
+        t.Members.Count, _categories.TeamMaxMembers(t.Category), t.CreatedAt,
         t.Members.OrderBy(m => m.User!.FullName).Select(ToMemberDto).ToList());
 
     private IQueryable<Team> TeamsWithMembers() =>
@@ -67,7 +69,7 @@ public class TeamsController : ControllerBase
             .ToListAsync();
         return Ok(rows.Select(r => new TeamDto(
             r.Id, r.Description, r.Category, r.TeamLeadUserId, r.LeadName,
-            r.Count, TeamCategories.MaxMembers(r.Category), r.CreatedAt)));
+            r.Count, _categories.TeamMaxMembers(r.Category), r.CreatedAt)));
     }
 
     [HttpGet("{id:int}")]
@@ -78,14 +80,22 @@ public class TeamsController : ControllerBase
         return team is null ? NotFound() : Ok(ToDetailDto(team));
     }
 
+    // The category to save, or null with an error message. A team may keep a category that was
+    // taken off categories.json since (stored).
+    private string? TeamCategory(TeamUpsertRequest req, string? stored, out string error)
+    {
+        error = _categories.Enabled
+            ? $"Category must be {_categories.Names}."
+            : "Teams have no categories; leave Category blank.";
+        return _categories.TryTeamCategory(req.Category, stored, out var saved) ? saved : null;
+    }
+
     // Shared create/update checks. Returns an error result, or null when the request is valid.
     private async Task<ActionResult?> ValidateUpsert(TeamUpsertRequest req, int? teamId)
     {
         var description = (req.Description ?? "").Trim();
         if (description.Length < 2 || description.Length > 200 || UserAccountHelper.HasControlChars(description))
             return BadRequest(new { message = "Team name must be 2 to 200 characters." });
-        if (!TeamCategories.IsValid(req.Category))
-            return BadRequest(new { message = "Category must be Senior or Regular." });
 
         var lead = await _db.Users.FindAsync(req.TeamLeadUserId);
         if (lead is null || lead.Role != Roles.Captain)
@@ -101,11 +111,13 @@ public class TeamsController : ControllerBase
     {
         var error = await ValidateUpsert(req, null);
         if (error is not null) return error;
+        var category = TeamCategory(req, null, out var categoryError);
+        if (category is null) return BadRequest(new { message = categoryError });
 
         var team = new Team
         {
             Description = req.Description.Trim(),
-            Category = req.Category,
+            Category = category,
             TeamLeadUserId = req.TeamLeadUserId,
             CompanyId = 1,
             CreatedByUserId = this.UserId(),
@@ -131,17 +143,19 @@ public class TeamsController : ControllerBase
 
         var error = await ValidateUpsert(req, id);
         if (error is not null) return error;
+        var category = TeamCategory(req, team.Category, out var categoryError);
+        if (category is null) return BadRequest(new { message = categoryError });
 
         // A category change must not leave the team over its new cap.
-        var max = TeamCategories.MaxMembers(req.Category);
+        var max = _categories.TeamMaxMembers(category);
         if (team.Members.Count > max)
             return Conflict(new
             {
-                message = $"This team has {team.Members.Count} members. A {req.Category} team holds at most {max}; remove members first.",
+                message = $"This team has {team.Members.Count} members. {TeamLabel(category)} holds at most {max}; remove members first.",
             });
 
         team.Description = req.Description.Trim();
-        team.Category = req.Category;
+        team.Category = category;
         team.TeamLeadUserId = req.TeamLeadUserId;
         try
         {
@@ -213,7 +227,8 @@ public class TeamsController : ControllerBase
             .Where(t => t.TeamLeadUserId == userId || t.Members.Any(m => m.UserId == userId))
             .Select(t => t.Category)
             .FirstOrDefaultAsync();
-        return category is null ? NoContent() : Ok(new TeamCategoryDto(category));
+        // A team with no category ("") gets no warning either.
+        return string.IsNullOrEmpty(category) ? NoContent() : Ok(new TeamCategoryDto(category));
     }
 
     // Add a Participant to the caller's team by name + email. An email that is not in the system
@@ -374,9 +389,9 @@ public class TeamsController : ControllerBase
             return NotFound();
         var team = await _db.Teams.FirstAsync(t => t.Id == teamId);
 
-        var max = TeamCategories.MaxMembers(team.Category);
+        var max = _categories.TeamMaxMembers(team.Category);
         if (await _db.TeamMembers.CountAsync(m => m.TeamId == teamId) >= max)
-            return Conflict(new { message = $"This {team.Category} team is full ({max} members)." });
+            return Conflict(new { message = $"This {(team.Category == "" ? "" : team.Category + " ")}team is full ({max} members)." });
 
         if (!isNew)
         {
@@ -408,4 +423,7 @@ public class TeamsController : ControllerBase
         }
         return Ok(new TeamMemberAddResult(ToMemberDto(member), isNew));
     }
+
+    // "A Senior team", or "This team" when teams have no category.
+    private static string TeamLabel(string category) => category == "" ? "This team" : $"A {category} team";
 }

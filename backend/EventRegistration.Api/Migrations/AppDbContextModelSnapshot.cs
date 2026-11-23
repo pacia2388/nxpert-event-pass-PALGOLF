@@ -103,8 +103,8 @@ namespace EventRegistration.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Category")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int?>("CompanyId")
                         .HasColumnType("int");

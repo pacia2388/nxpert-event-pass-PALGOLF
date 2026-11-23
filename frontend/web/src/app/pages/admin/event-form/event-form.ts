@@ -14,7 +14,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../core/api.service';
 import { ToastService } from '../../../core/toast.service';
 import { EventFormat, EventUpsert, FieldType, SessionUpsert } from '../../../core/models';
-import { EVENT_CATEGORY_LABELS, EventCategory } from '../../../core/event-category';
+import { CategoryService } from '../../../core/category.service';
+import { EventCategory } from '../../../core/event-category';
 
 interface BuilderField {
   key: string;
@@ -135,13 +136,16 @@ export class EventFormComponent implements OnInit {
     { value: 'Online', label: 'Online', icon: 'videocam' },
     { value: 'Hybrid', label: 'Hybrid', icon: 'devices' },
   ];
-  // Who the event is for: '' = no category, Senior (65+) or Regular.
+  // Who the event is for: '' = no category, else a name from categories.json.
   category: EventCategory | '' = '';
-  readonly categories: { value: EventCategory | ''; label: string }[] = [
-    { value: '', label: 'No category' },
-    { value: 'Senior', label: EVENT_CATEGORY_LABELS.Senior },
-    { value: 'Regular', label: EVENT_CATEGORY_LABELS.Regular },
-  ];
+  private readonly categoryList = inject(CategoryService);
+  // The listed categories (and this event's own, if it was taken off the list since).
+  get categories(): { value: EventCategory | ''; label: string }[] {
+    return [
+      { value: '', label: 'No category' },
+      ...this.categoryList.names(this.category).map((n) => ({ value: n, label: n })),
+    ];
+  }
   isPublicLinkEnabled = true;
   status = 'Published';
   capacity: number | null = null;

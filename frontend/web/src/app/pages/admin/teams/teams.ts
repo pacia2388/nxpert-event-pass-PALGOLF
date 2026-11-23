@@ -1,4 +1,14 @@
-import { Component, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,16 +20,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { forkJoin } from 'rxjs';
 import { ApiService } from '../../../core/api.service';
+import { CategoryService } from '../../../core/category.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { ToastService } from '../../../core/toast.service';
-import {
-  TEAM_CATEGORIES,
-  TeamCategory,
-  TeamDetailDto,
-  TeamDto,
-  TeamMemberDto,
-  UserDto,
-} from '../../../core/models';
+import { TeamCategory, TeamDetailDto, TeamDto, TeamMemberDto, UserDto } from '../../../core/models';
 
 // Team master: list of teams on the left, the selected (or new) team's form and members on the
 // right. Shares the User Master look (users.scss / user-form-panel.scss).
@@ -47,7 +51,7 @@ export class TeamsComponent implements OnInit {
   private readonly form = viewChild(NgForm);
   private readonly formPane = viewChild<ElementRef<HTMLElement>>('formPane');
 
-  readonly categories = TEAM_CATEGORIES;
+  protected readonly categoryList = inject(CategoryService);
 
   loading = signal(true);
   saving = signal(false);
@@ -59,7 +63,7 @@ export class TeamsComponent implements OnInit {
   selected = signal<TeamDetailDto | null>(null);
 
   description = '';
-  category: TeamCategory = 'Regular';
+  category: TeamCategory = '';
   teamLeadUserId: number | null = null;
   memberToAdd: number | null = null;
 
@@ -89,10 +93,33 @@ export class TeamsComponent implements OnInit {
     this.users().filter((u) => u.role === 'Participant' && u.teamId == null),
   );
 
+  // Category choices with their member caps: the listed ones, plus this team's own if it was taken
+  // off the list since (with the team's current cap).
+  get categories(): { name: string; maxMembers: number }[] {
+    const caps = new Map(this.categoryList.list().map((c) => [c.name, c.teamMaxMembers]));
+    return this.categoryList.names(this.category).map((name) => ({
+      name,
+      maxMembers: caps.get(name) ?? this.selected()?.maxMembers ?? 0,
+    }));
+  }
+
+  // A new team starts in the first listed category ('' when the installation has none).
+  private get defaultCategory(): TeamCategory {
+    return this.categoryList.list()[0]?.name ?? '';
+  }
+
   isFull = computed(() => {
     const t = this.selected();
     return !!t && t.memberCount >= t.maxMembers;
   });
+
+  constructor() {
+    // The list loads after the form opens: give a still-untouched new team its default category.
+    effect(() => {
+      const first = this.categoryList.list()[0]?.name;
+      if (first && !untracked(this.selected) && !this.category) this.category = first;
+    });
+  }
 
   ngOnInit(): void {
     this.load();
@@ -121,7 +148,7 @@ export class TeamsComponent implements OnInit {
   private show(t: TeamDetailDto | null): void {
     this.selected.set(t);
     this.description = t?.description ?? '';
-    this.category = t?.category ?? 'Regular';
+    this.category = t?.category ?? this.defaultCategory;
     this.teamLeadUserId = t?.teamLeadUserId ?? null;
     this.memberToAdd = null;
     this.form()?.form.markAsUntouched();
@@ -131,7 +158,7 @@ export class TeamsComponent implements OnInit {
     const t = this.selected();
     return (
       this.description.trim() !== (t?.description ?? '') ||
-      this.category !== (t?.category ?? 'Regular') ||
+      this.category !== (t?.category ?? this.defaultCategory) ||
       this.teamLeadUserId !== (t?.teamLeadUserId ?? null)
     );
   }

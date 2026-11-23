@@ -1,12 +1,7 @@
 import type { TeamCategory } from './models';
 
-// Who an event is for. null = no category (everyone).
-export type EventCategory = 'Senior' | 'Regular';
-
-export const EVENT_CATEGORY_LABELS: Record<EventCategory, string> = {
-  Senior: 'Senior',
-  Regular: 'Regular',
-};
+// Who an event is for: a name from the server's categories.json (CategoryService). null = none.
+export type EventCategory = string;
 
 /**
  * The warning to show before someone registers for an event whose category differs from their

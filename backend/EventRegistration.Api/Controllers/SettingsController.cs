@@ -13,9 +13,11 @@ public class SettingsController : ControllerBase
 {
     private readonly SettingsService _settings;
     private readonly MobileMessenger _mobile;
+    private readonly CategoryCatalog _categories;
 
-    public SettingsController(SettingsService settings, MobileMessenger mobile)
+    public SettingsController(SettingsService settings, MobileMessenger mobile, CategoryCatalog categories)
     {
+        _categories = categories;
         _settings = settings;
         _mobile = mobile;
     }
@@ -36,6 +38,11 @@ public class SettingsController : ControllerBase
     [HttpGet("mobile-channel"), AllowAnonymous]
     public async Task<ActionResult<MobileChannelDto>> MobileChannel() =>
         Ok(new MobileChannelDto(await _mobile.ActiveProviderAsync()));
+
+    // Event / team categories from categories.json (empty = none). Public: Browse Events shows the
+    // category pill to everyone.
+    [HttpGet("categories"), AllowAnonymous]
+    public ActionResult<List<CategoryDto>> Categories() => Ok(_categories.List());
 
     [HttpPut]
     public async Task<ActionResult<AppSettingsDto>> Update(UpdateSettingsRequest req)

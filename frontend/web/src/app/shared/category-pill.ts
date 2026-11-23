@@ -1,18 +1,17 @@
-import { Component, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { EVENT_CATEGORY_LABELS, EventCategory } from '../core/event-category';
+import { CategoryService } from '../core/category.service';
+import { EventCategory } from '../core/event-category';
 
-const ICONS: Record<EventCategory, string> = { Senior: 'elderly', Regular: 'person' };
-
-// The "Senior" / "Regular" pill shown beside an event's status pill on event cards.
+// The category pill (e.g. "Senior") shown beside an event's status pill on event cards. The icon
+// comes from categories.json.
 @Component({
   selector: 'app-category-pill',
   imports: [MatIconModule],
   host: { class: 'ev-tag brand' },
-  template: `<mat-icon>{{ icons[category()] }}</mat-icon> {{ labels[category()] }}`,
+  template: `<mat-icon>{{ categories.icon(category()) }}</mat-icon> {{ category() }}`,
 })
 export class CategoryPillComponent {
   readonly category = input.required<EventCategory>();
-  protected readonly icons = ICONS;
-  protected readonly labels = EVENT_CATEGORY_LABELS;
+  protected readonly categories = inject(CategoryService);
 }

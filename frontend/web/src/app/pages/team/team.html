@@ -5,7 +5,9 @@
     <header class="tp-head">
       <div class="tp-heading">
         <h1 class="tp-title">{{ t.description }}</h1>
-        <span class="tp-cat">{{ t.category }} team</span>
+        @if (t.category) {
+          <span class="tp-cat">{{ t.category }} team</span>
+        }
       </div>
       <div class="tp-actions">
         <div class="tp-count" [class.full]="isFull()">
@@ -114,7 +116,8 @@
           @if (isFull()) {
             <p class="tp-full">
               <mat-icon>block</mat-icon>
-              This team is full. A {{ t.category }} team holds {{ t.maxMembers }} members.
+              This team is full. {{ t.category ? 'A ' + t.category + ' team' : 'It' }} holds
+              {{ t.maxMembers }} members.
             </p>
           }
 

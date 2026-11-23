@@ -25,7 +25,8 @@ Source: `validation-spec` skill. The server is authoritative; the client is UX o
 | Start / End | Both required; **End > Start**; new events Start ≥ today (warn, don't block, when editing past events) |
 | Capacity | Blank = unlimited, else integer ≥ 1; on edit ≥ current registration count |
 | Status | `Draft` \| `Published` \| `Closed` |
-| Event category | Optional: `Senior` \| `Regular` \| blank = none; trimmed, matched ignoring case, saved canonical |
+| Event category | Optional: a name from `categories.json` (Senior / Regular here) \| blank = none; trimmed, matched ignoring case, saved as listed; an edit may keep a name taken off the list. No categories configured = blank only |
+| Team category | A name from `categories.json`, required while any are listed; blank when none are configured; an edit may keep a name taken off the list. Cap = its `TeamMaxMembers` (else `DefaultTeamMaxMembers`) |
 | Rating | Integer 1–5 |
 | Feedback comment | Optional, ≤ 1000 |
 | Token / slug | Tokens parse as GUID; slug `^[a-z0-9-]{1,100}$` |

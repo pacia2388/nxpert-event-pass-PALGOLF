@@ -42,9 +42,9 @@ export interface UserDto {
 }
 
 // ---- Teams ----
-// The category sets the member cap (maxMembers comes from the server; the lead is not counted).
-export type TeamCategory = 'Senior' | 'Regular';
-export const TEAM_CATEGORIES: TeamCategory[] = ['Senior', 'Regular'];
+// A name from categories.json, or '' when the installation has none. It sets the member cap
+// (maxMembers comes from the server; the lead is not counted).
+export type TeamCategory = string;
 
 export interface TeamMemberDto {
   userId: number;

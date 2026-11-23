@@ -18,9 +18,11 @@ public class EventsController : ControllerBase
     private readonly CalendarInvitationNotifier _calendars;
     private readonly EmailSender _email;
     private readonly NotificationService _notify;
+    private readonly CategoryCatalog _categories;
     public EventsController(AppDbContext db, SinchViberService viber, PassService pass, ILogger<EventsController> log,
-        CalendarInvitationNotifier calendars, EmailSender email, NotificationService notify)
+        CalendarInvitationNotifier calendars, EmailSender email, NotificationService notify, CategoryCatalog categories)
     {
+        _categories = categories;
         _email = email;
         _notify = notify;
         _db = db;
@@ -150,8 +152,9 @@ public class EventsController : ControllerBase
         return null;
     }
 
-    private static string? ValidateCategory(EventUpsertRequest req) =>
-        EventCategories.IsValid(req.Category) ? null : "Category must be Senior, Regular, or none.";
+    private string CategoryError => _categories.Enabled
+        ? $"Category must be {_categories.Names}, or none."
+        : "Events have no categories; leave Category blank.";
 
     // Meeting links must be http(s) URLs when given.
     private static string? ValidateMeetingLinks(EventUpsertRequest req)
@@ -462,8 +465,10 @@ public class EventsController : ControllerBase
     {
         var validationError = ValidateTitleAndSchedule(req)
             ?? ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
-            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
+            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req);
         if (validationError is not null) return BadRequest(new { message = validationError });
+        if (!_categories.TryEventCategory(req.Category, null, out var category))
+            return BadRequest(new { message = CategoryError });
 
         var format = EventFormats.Normalize(req.Format);
         var e = new Event
@@ -474,7 +479,7 @@ public class EventsController : ControllerBase
             EndsAt = req.EndsAt,
             Venue = VenueFor(format, req.Venue),
             Format = format,
-            Category = EventCategories.Clean(req.Category),
+            Category = category,
             MeetingUrl = CleanUrl(req.MeetingUrl),
             IsPublicLinkEnabled = req.IsPublicLinkEnabled,
             Status = string.IsNullOrWhiteSpace(req.Status) ? EventStatus.Published : req.Status,
@@ -506,8 +511,11 @@ public class EventsController : ControllerBase
 
         var validationError = ValidateTitleAndSchedule(req, e)
             ?? ValidateBanner(req.BannerImage) ?? ValidateSessionPosters(req.Sessions)
-            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req) ?? ValidateCategory(req);
+            ?? ValidateMeals(req) ?? ValidateMeetingLinks(req);
         if (validationError is not null) return BadRequest(new { message = validationError });
+        // An event may keep a category that was taken off categories.json since.
+        if (!_categories.TryEventCategory(req.Category, e.Category, out var category))
+            return BadRequest(new { message = CategoryError });
 
         // Snapshot what a calendar invite is built from, to detect changes worth re-inviting for.
         var before = InviteSnapshot.Of(e);
@@ -519,7 +527,7 @@ public class EventsController : ControllerBase
         e.EndsAt = req.EndsAt;
         e.Venue = VenueFor(format, req.Venue);
         e.Format = format;
-        e.Category = EventCategories.Clean(req.Category);
+        e.Category = category;
         e.MeetingUrl = CleanUrl(req.MeetingUrl);
         e.IsPublicLinkEnabled = req.IsPublicLinkEnabled;
         e.Status = req.Status;

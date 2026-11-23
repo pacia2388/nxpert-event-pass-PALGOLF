@@ -10,6 +10,10 @@ Source: `deploy-iis` skill.
 - **`appSettings.json` is read at runtime** — edit it on the server and reload; no rebuild. It is
   public (served to every browser), so never put secrets there. A new build overwrites it with the
   dev values: keep the server copy and restore it after each deploy.
+- **`categories.json`** (API site root, source `backend/EventRegistration.Api/categories.json`)
+  sets the event/team categories per installation. `dotnet publish` leaves it out, so a deploy
+  never overwrites it: copy it once on a new install and never delete it (no `robocopy /MIR`).
+  Steps: `documentation/configuration-and-publishing.md`.
 - Use `npm ci` (not `npm install`) for production builds.
 - Production config lives in `appsettings.Production.json` with `ASPNETCORE_ENVIRONMENT=Production`;
   real values only, never dev secrets, never committed.

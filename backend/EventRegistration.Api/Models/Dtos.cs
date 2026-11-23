@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace EventRegistration.Api.Models;
 
 // ---- Teams ----
-// MaxMembers comes from the team's category (TeamCategories.MaxMembers); the lead is not counted.
+// MaxMembers comes from the team's category (CategoryCatalog.TeamMaxMembers); the lead is not counted.
 // Registered = false while the account a Captain created is not yet completed by the member.
 public record TeamMemberDto(int UserId, string FullName, string Email, DateTime AddedAt, bool NotificationFlag, bool Registered);
 public record TeamDto(
@@ -15,7 +15,7 @@ public record TeamDetailDto(
 // The caller's team category only (event-category registration warning).
 public record TeamCategoryDto(string Category);
 public record TeamUpsertRequest(
-    [StringLength(200)] string Description, [StringLength(20)] string Category,
+    [StringLength(200)] string Description, [StringLength(20)] string? Category,
     [Range(1, int.MaxValue)] int TeamLeadUserId);
 // Admin: add an existing Participant to a team.
 public record TeamAddMemberRequest([Range(1, int.MaxValue)] int UserId);
@@ -189,7 +189,7 @@ public record EventDto(
     // Format: InPerson / Online / Hybrid. MeetingUrl is only filled for admin responses — public
     // and browse responses never expose the join link (confirmed registrants get it via My Events).
     string Format = EventFormats.InPerson, string? MeetingUrl = null, bool VerifyOnly = false,
-    // Senior / Regular / null (no category).
+    // A name from categories.json, or null (no category).
     string? Category = null);
 // Turn an event's verify-only mode on or off (scanner switch).
 public record VerifyOnlyRequest(bool Enabled);
