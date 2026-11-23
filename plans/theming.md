@@ -61,3 +61,4 @@ reference: [documentation/theming.md](../documentation/theming.md).
 | 2026-11-23 | Plan created; backend, frontend theme loading, recolour, login/header/voucher, Settings template and docs landed |
 | 2026-11-23 | Playwright specs (4); browser check found the NXPass logo filling the whole login panel, so `layout.loginImage` (`poster` / `logo`) was added |
 | 2026-11-23 | Review fixes: colours `#rgb`/`#rrggbb` only; sender name follows the theme unless `Email:FromName` is set; default-colour stub images not cached; future file time stamps settle; 18px Settings icon. "How to set the theme" added to `documentation/theming.md` |
+| 2026-11-23 | Tab title no longer flashes the default name on reload: the last theme's app name is remembered and set by `index.html` before the app starts |

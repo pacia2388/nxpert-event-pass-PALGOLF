@@ -160,10 +160,27 @@ export function applyTheme(theme: ThemeDefinition, doc: Document = document): vo
 
   if (theme.appName) BRANDING.appName = theme.appName;
   if (theme.footerText) BRANDING.footerText = theme.footerText;
+  nameTab(doc);
+  rememberAppName(BRANDING.appName);
+}
+
+/** Names the tab and the iOS home-screen icon after the app. */
+function nameTab(doc: Document): void {
   doc.title = BRANDING.appName;
   doc
     .querySelector('meta[name="apple-mobile-web-app-title"]')
     ?.setAttribute('content', BRANDING.appName);
+}
+
+/** Read by the inline script in index.html, which names the tab before the theme arrives. */
+export const APP_NAME_STORAGE_KEY = 'evt_app_name';
+
+function rememberAppName(name: string): void {
+  try {
+    localStorage.setItem(APP_NAME_STORAGE_KEY, name);
+  } catch {
+    // Storage blocked (private mode, policy): the tab shows the default name until the theme loads.
+  }
 }
 
 /** Fetches and applies the deployment's theme. Never fails: a problem keeps the default look. */
@@ -177,5 +194,6 @@ export async function loadTheme(): Promise<void> {
     applyTheme((await res.json()) as ThemeDefinition);
   } catch (err) {
     console.warn('Theme not loaded; using the default look.', err);
+    nameTab(document);
   }
 }

@@ -6,7 +6,7 @@ import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { loadAppSettings } from './core/config';
 import { RealtimeService } from './core/realtime.service';
-import { ACTIVE_THEME, PALGOLF_THEME } from './core/theme';
+import { ACTIVE_THEME, PALGOLF_THEME, loadTheme } from './core/theme';
 
 describe('App shell', () => {
   let fixture: ComponentFixture<App>;
@@ -77,13 +77,18 @@ describe('App shell', () => {
   describe('when appSettings.json sets its own wording', () => {
     const realFetch = globalThis.fetch;
 
-    // Boot the way main.ts does: read appSettings.json, then start the app.
+    // Boot the way main.ts does: read appSettings.json, then the theme (PALGOLF, no names), then start.
     async function boot(settings: Record<string, unknown>): Promise<void> {
-      globalThis.fetch = (async () =>
+      globalThis.fetch = (async (url: RequestInfo | URL) =>
         new Response(
-          JSON.stringify({ apiBaseUrl: '', faceEngineBaseUrl: '', ...settings }),
+          JSON.stringify(
+            String(url).endsWith('/api/theme')
+              ? PALGOLF_THEME
+              : { apiBaseUrl: '', faceEngineBaseUrl: '', ...settings },
+          ),
         )) as typeof fetch;
       await loadAppSettings();
+      await loadTheme();
     }
 
     afterEach(async () => {

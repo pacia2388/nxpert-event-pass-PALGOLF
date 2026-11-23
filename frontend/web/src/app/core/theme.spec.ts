@@ -84,7 +84,9 @@ describe('theme', () => {
     expect(document.documentElement.style.getPropertyValue('--pg-blue')).toBe('#0d9488');
   });
 
-  it('starts in the default look when the API cannot be reached', async () => {
+  it('starts in the default look, named from appSettings.json, when the API cannot be reached', async () => {
+    BRANDING.appName = 'Demo Cup';
+    document.title = 'NXPass';
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => {
@@ -96,5 +98,6 @@ describe('theme', () => {
 
     expect(document.documentElement.style.getPropertyValue('--pg-blue')).toBe('');
     expect(ACTIVE_THEME.current.name).toBe('PALGOLF');
+    expect(document.title).toBe('Demo Cup');
   });
 });

@@ -1,4 +1,23 @@
+import type { APIRequestContext } from '@playwright/test';
 import { test, expect } from '../fixtures';
+
+/** The PALGOLF theme from the e2e API, turned into NXPass the way BuiltInThemes does. */
+async function nxpassTheme(publicApi: APIRequestContext) {
+  const palgolf = await (await publicApi.get('/api/theme')).json();
+  return {
+    ...palgolf,
+    name: 'NXPass',
+    source: 'file',
+    appName: 'NXPass',
+    colors: { ...palgolf.colors, primary: '#0d9488', browserBar: '#0d9488' },
+    layout: { buttons: 'gradient', footer: 'glass', authBackground: 'glow', loginImage: 'logo' },
+    logos: {
+      ...palgolf.logos,
+      favicon: 'themes/nxpass/favicon.ico',
+      loginImage: 'nxpax-logo.png',
+    },
+  };
+}
 
 // The look comes from GET /api/theme (theme.json beside the API). These tests stand in for the
 // server's file by answering that request, so they never change the shared e2e API.
@@ -17,20 +36,7 @@ test.describe('theme', () => {
     page,
     publicApi,
   }) => {
-    const palgolf = await (await publicApi.get('/api/theme')).json();
-    const nxpass = {
-      ...palgolf,
-      name: 'NXPass',
-      source: 'file',
-      appName: 'NXPass',
-      colors: { ...palgolf.colors, primary: '#0d9488', browserBar: '#0d9488' },
-      layout: { buttons: 'gradient', footer: 'glass', authBackground: 'glow', loginImage: 'logo' },
-      logos: {
-        ...palgolf.logos,
-        favicon: 'themes/nxpass/favicon.ico',
-        loginImage: 'nxpax-logo.png',
-      },
-    };
+    const nxpass = await nxpassTheme(publicApi);
     await page.route('**/api/theme', (route) => route.fulfill({ json: nxpass }));
 
     await page.goto('/login');
@@ -59,5 +65,22 @@ test.describe('theme', () => {
       'src',
       'brand/pal-interclub-2027-poster.jpg',
     );
+  });
+
+  test('a returning visitor sees the last theme name in the tab before the theme loads', async ({
+    page,
+    publicApi,
+  }) => {
+    const nxpass = await nxpassTheme(publicApi);
+    await page.route('**/api/theme', (route) => route.fulfill({ json: nxpass }));
+    await page.goto('/login');
+    await expect(page).toHaveTitle('NXPass');
+
+    // The next load: the theme answer is held back, so only the page itself can name the tab.
+    await page.unroute('**/api/theme');
+    await page.route('**/api/theme', () => {});
+    await page.reload({ waitUntil: 'domcontentloaded' });
+
+    await expect(page).toHaveTitle('NXPass', { timeout: 1000 });
   });
 });

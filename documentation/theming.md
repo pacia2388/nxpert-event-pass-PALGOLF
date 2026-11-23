@@ -60,6 +60,9 @@ A value the API refuses is skipped (the base value stays) and logged as a warnin
 - The API serves the resolved theme at **`GET /api/theme`** (public). The web app reads it before it
   starts, so the page never flashes the wrong look. If the API can't be reached, the web app stays
   on PALGOLF.
+- The browser remembers the last theme's app name, so on a reload the tab shows it straight away
+  instead of the default name. Only a browser's very first visit shows "PAL GOLF" until the theme
+  arrives.
 
 `backend/EventRegistration.Api/theme.json` is git-ignored, so each developer can switch looks
 locally without committing it.
