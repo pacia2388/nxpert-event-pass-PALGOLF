@@ -16,7 +16,12 @@ public class ViberGroupSendTests
 
     private static readonly ViberSettings Settings = new()
     {
-        Enabled = true, ProjectId = "p", KeyId = "k", KeySecret = "s", AppId = "a", Region = "us",
+        Enabled = true,
+        ProjectId = "p",
+        KeyId = "k",
+        KeySecret = "s",
+        AppId = "a",
+        Region = "us",
         PublicApiBaseUrl = "https://events.example.com",
     };
 

@@ -244,7 +244,10 @@ public class SinchViberService : IMobileSender
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.ViberMessages.Add(new ViberMessage
             {
-                MessageId = messageId, Phone = to, RegistrationId = tag?.RegistrationId, Kind = tag?.Kind,
+                MessageId = messageId,
+                Phone = to,
+                RegistrationId = tag?.RegistrationId,
+                Kind = tag?.Kind,
                 GroupId = group,
                 EmailSnapshotJson = firstOfGroup ? tag?.EmailSnapshotJson : null,
                 EmailFile = firstOfGroup ? tag?.EmailFile : null,

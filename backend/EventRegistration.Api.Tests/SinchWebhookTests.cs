@@ -56,9 +56,12 @@ public class SinchWebhookTests(ApiFixture api)
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.ViberMessages.Add(new ViberMessage
         {
-            MessageId = id, Phone = "+639171234567",
-            RegistrationId = tagged ? regId : null, Kind = tagged ? EmailRetryKinds.Pass : null,
-            AcceptedAt = acceptedAt ?? DateTimeOffset.UtcNow, GroupId = group ?? Guid.NewGuid(),
+            MessageId = id,
+            Phone = "+639171234567",
+            RegistrationId = tagged ? regId : null,
+            Kind = tagged ? EmailRetryKinds.Pass : null,
+            AcceptedAt = acceptedAt ?? DateTimeOffset.UtcNow,
+            GroupId = group ?? Guid.NewGuid(),
         });
         await db.SaveChangesAsync();
         return (id, regId.Value);
@@ -192,7 +195,10 @@ public class SinchWebhookTests(ApiFixture api)
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.ViberMessages.Add(new ViberMessage
             {
-                MessageId = id, Phone = "+639171234567", Kind = EmailRetryKinds.Message, GroupId = group,
+                MessageId = id,
+                Phone = "+639171234567",
+                Kind = EmailRetryKinds.Message,
+                GroupId = group,
                 EmailFile = file,
             });
             await db.SaveChangesAsync();
@@ -221,7 +227,10 @@ public class SinchWebhookTests(ApiFixture api)
             foreach (var id in ids)
                 db.ViberMessages.Add(new ViberMessage
                 {
-                    MessageId = id, Phone = "+639171234567", Kind = EmailRetryKinds.Message, GroupId = Guid.NewGuid(),
+                    MessageId = id,
+                    Phone = "+639171234567",
+                    Kind = EmailRetryKinds.Message,
+                    GroupId = Guid.NewGuid(),
                     EmailFile = file,
                 });
             await db.SaveChangesAsync();
