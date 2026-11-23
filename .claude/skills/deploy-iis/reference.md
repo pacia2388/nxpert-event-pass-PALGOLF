@@ -96,6 +96,11 @@ in the site — below). Put real values there — never ship dev secrets:
    ```
 4. Verify: browse `https://SERVER:5001/` → `{"service":"EventRegistration.Api","status":"ok"}`.
 
+**Theme:** the look comes from `theme.json` in the API site folder. `dotnet publish` never outputs
+it, so it survives redeploys. First deploy: download the template from **Settings → Theme**, keep
+the keys to change, save it as `theme.json` beside the DLL (`{ "base": "NXPass" }` for the old
+look). No file = PALGOLF. Edits apply without a restart. See `documentation/theming.md`.
+
 > The API listens through IIS on these ports — leave the app's own Kestrel ports (the dev
 > `launchSettings.json` 5088/7088) alone; they're ignored under IIS/ANCM.
 
@@ -166,3 +171,5 @@ Output lands in **`dist/web/browser`** (includes the `web.config` from `public/`
   (hashed filenames avoid stale-cache issues).
 - Changed `apiBaseUrl`? Edit `appSettings.json` on the server and reload — no rebuild. A new build
   overwrites it with dev values: restore the server copy after each frontend deploy.
+- `theme.json` (API folder) is never overwritten by a publish. Custom logo images in the App site
+  are: restore them after each frontend deploy.

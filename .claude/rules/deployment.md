@@ -10,6 +10,10 @@ Source: `deploy-iis` skill.
 - **`appSettings.json` is read at runtime** — edit it on the server and reload; no rebuild. It is
   public (served to every browser), so never put secrets there. A new build overwrites it with the
   dev values: keep the server copy and restore it after each deploy.
+- **`theme.json` lives in the API site folder and is never published** (excluded in the `.csproj`):
+  add it by hand after the first deploy; redeploys keep it. Edits apply without a restart. No file =
+  PALGOLF. Custom logo images go in the App site and must be restored after each frontend build.
+  See `documentation/theming.md`.
 - Use `npm ci` (not `npm install`) for production builds.
 - Production config lives in `appsettings.Production.json` with `ASPNETCORE_ENVIRONMENT=Production`;
   real values only, never dev secrets, never committed.

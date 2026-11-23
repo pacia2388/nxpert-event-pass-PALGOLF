@@ -163,7 +163,14 @@ Do not reuse the key from the repo; treat it as compromised.
    </aspNetCore>
    ```
 
-### 1.5 Check
+### 1.5 Theme
+
+The look comes from `theme.json` in `C:\inetpub\wwwroot\PalGolf_API`. Publishing never outputs
+it. With no file the app is PALGOLF. For another look, sign in as admin, download the template from
+**Settings → Theme**, and save the edited file there as `theme.json` (`{ "base": "NXPass" }` is
+enough for the old look). It applies on the next page load. See [theming.md](theming.md).
+
+### 1.6 Check
 
 Open `https://SERVER:8000/` → `{"service":"EventRegistration.Api","status":"ok"}`.
 If it fails, enable `stdoutLogEnabled="true"` in the site `web.config` and read `logs\`.
@@ -370,9 +377,9 @@ Both 443 and 8000 face the internet, so all items apply before go-live.
 ## 7. Updating later
 
 - **Backend:** `dotnet publish` again, stop the `PalGolf_API` app pool, copy over the files
-  (keep `appsettings.Production.json`), start the pool.
+  (keep `appsettings.Production.json` and `theme.json`), start the pool.
 - **Frontend:** `npm ci` + `npm run build`, replace the site contents, then restore the server's
-  `appSettings.json` and `web.config` (port 8001 proxy rule).
+  `appSettings.json`, `web.config` (port 8001 proxy rule) and any custom theme logos.
 - **Face Engine:** `nssm stop PalGolf_FaceEngine`, copy the new code over (keep `.venv`, `.env`,
   `.env.local`, `datasets\`, `start_service.bat`), run `.venv\Scripts\pip install -r requirements.txt`
   if requirements changed, then `nssm start PalGolf_FaceEngine`.
