@@ -22,7 +22,9 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
   Participants cannot cancel after check-in.
 - Each sub-event is its own registration/pass/confirmation/check-in; a sub-event with
   registrations cannot be removed; check-in opens only on its own dates.
-- Event **category** (Senior / Regular) only **warns** a signed-in player whose **team category**
+- Categories come from the API's `categories.json` (Senior / Regular here; each installation sets
+  its own list, or none, which hides every category choice, pill and warning).
+- Event **category** only **warns** a signed-in player whose **team category**
   differs before registering (Cancel pre-selected); it never blocks, and guests, admins and
   players not on a team get no warning. The message names both categories, not ages. It shows
   on the event page's Register and on Browse Events' Register (card and Details); accepting it on

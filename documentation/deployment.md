@@ -87,6 +87,11 @@ Copy `C:\deploy\PalGolf_API` to `C:\inetpub\wwwroot\PalGolf_API` on the server.
 
 ### 1.2 Production config
 
+Also copy `backend/EventRegistration.Api/categories.json` next to `EventRegistration.Api.dll`
+and set this installation's categories (or `"Items": []` for none). `dotnet publish` leaves it
+out so later deploys never overwrite it. See
+[configuration-and-publishing.md](configuration-and-publishing.md#22-api-categoriesjson).
+
 Create `appsettings.Production.json` next to `EventRegistration.Api.dll`. Real values only;
 never commit this file.
 
@@ -375,7 +380,8 @@ Both 443 and 8000 face the internet, so all items apply before go-live.
 ## 7. Updating later
 
 - **Backend:** `dotnet publish` again, stop the `PalGolf_API` app pool, copy over the files
-  (keep `appsettings.Production.json`), start the pool.
+  (keep `appsettings.Production.json` and `categories.json`; never `robocopy /MIR`), start the
+  pool. Step by step: [configuration-and-publishing.md](configuration-and-publishing.md#33-update-an-existing-installation).
 - **Frontend:** `npm ci` + `npm run build`, replace the site contents (keep `menu.json`, which the
   build leaves out), then restore the server's `appSettings.json` and `web.config` (port 8001
   proxy rule).

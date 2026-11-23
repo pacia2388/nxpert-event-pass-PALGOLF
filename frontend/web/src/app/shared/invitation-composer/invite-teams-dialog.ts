@@ -88,7 +88,9 @@ export interface InviteTeamsDialogData {
                 >
                   <span class="team-name">{{ t.description }}</span>
                   <span class="team-meta">
-                    {{ t.category }} ·
+                    @if (t.category) {
+                      {{ t.category }} ·
+                    }
                     {{
                       t.memberCount
                         ? t.memberCount + (t.memberCount === 1 ? ' member' : ' members')

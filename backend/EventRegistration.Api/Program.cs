@@ -10,6 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 // Machine-local secrets (gitignored), e.g. appsettings.Development.Local.json.
 builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.Local.json", optional: true);
+// Event / team categories for this installation. Not published, so a deploy keeps the server's copy;
+// no file = no categories. Edits apply without a restart.
+builder.Configuration.AddJsonFile("categories.json", optional: true, reloadOnChange: true);
 
 // ---- Database ----
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -19,6 +22,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton<JwtService>();
+builder.Services.AddOptions<CategoryOptions>().Bind(builder.Configuration.GetSection("Categories")).ValidateOnStart();
+builder.Services.AddSingleton<Microsoft.Extensions.Options.IValidateOptions<CategoryOptions>, CategoryOptionsValidator>();
+builder.Services.AddSingleton<CategoryCatalog>();
 
 // The name on what the API sends out; blank keeps the built-in one.
 Branding.AppName = builder.Configuration["App:Name"] ?? "";

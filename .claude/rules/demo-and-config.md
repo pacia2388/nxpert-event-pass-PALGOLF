@@ -11,6 +11,8 @@ Source: `run-local-demo` skill.
 - Real SMTP credentials go in local, uncommitted config only.
 - Phone scanning needs HTTPS: tunnel API (`ngrok http 5088`) and web (`ngrok http 4200`), then set
   `apiBaseUrl` (`frontend/web/public/appSettings.json`, no rebuild) to the API URL and `App:FrontendBaseUrl` (backend) to the web URL.
+- Event / team categories live in `backend/EventRegistration.Api/categories.json` (edits apply
+  without a restart; empty `Items` = no categories).
 - Menus can be switched off for everyone in `frontend/web/public/menu.json` (read at runtime, no
   rebuild; see `documentation/menu-config.md`).
 - Email verification stays **off** for demos (`App:RequireEmailVerification: false`).

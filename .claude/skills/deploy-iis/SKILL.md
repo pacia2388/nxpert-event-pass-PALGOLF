@@ -107,6 +107,8 @@ Browse `https://SERVER:8443/` → sign-in page.
   restarts on file change; `iisreset` if a DLL is locked.
 - **Frontend:** re-run `npm run build`, replace contents of `C:\inetpub\EventReg\web` (hashed
   filenames avoid stale cache).
+- `categories.json` (API folder, event/team categories) is left out of `dotnet publish`, so a
+  deploy never overwrites it. Copy it once on a new install; never delete it when copying files.
 - Changed `apiBaseUrl`? Edit `appSettings.json` on the server and reload — no rebuild. A new build
   overwrites it with dev values: restore the server copy after each frontend deploy.
 - `menu.json` (next to `appSettings.json`, switches menus off) is left out of the production

@@ -34,7 +34,7 @@ The facerog-engine has no database. It reads registrant photos from the API
 | `MailPlanSavedCcs` | CC addresses saved from the mail planner, offered later. |
 | `Feedbacks` | Event rating and comment, one per user per event. |
 | `Vouchers` | Airline baggage vouchers (golf equipment); one per airline ticket number across all users. |
-| `Teams` | A team: name, category (Senior / Regular) and its Captain. |
+| `Teams` | A team: name, category (from `categories.json`) and its Captain. |
 | `TeamMembers` | The Participants in a team, one row per member. |
 | `AppSettings` | Key/value store for admin settings. |
 | `__EFMigrationsHistory` | EF Core's record of applied migrations (managed by EF). |
@@ -121,7 +121,7 @@ Null = column allows NULL.
 | NotifyOnKitClaim | bit | | Notify registrant when kit is claimed |
 | Format | nvarchar(10) | | **`InPerson` (default) · `Online` · `Hybrid`** |
 | MeetingUrl | nvarchar(1000) | ✓ | Online/Hybrid only; never shown publicly |
-| Category | nvarchar(10) | ✓ | **`Senior` · `Regular` · NULL (no category)**; a player whose team category differs gets a warning before registering, not a block |
+| Category | nvarchar(20) | ✓ | **A name from `categories.json` (here `Senior` · `Regular`) · NULL (no category)**; a player whose team category differs gets a warning before registering, not a block |
 | InviteSequence | int | | iCalendar SEQUENCE; bumped on time/title/link change |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
 
@@ -354,7 +354,7 @@ Derived registration state (not a column): **Pending** (ConfirmedAt NULL) → **
 | Id | int | | PK |
 | CompanyId | int | ✓ | Always 1 for now |
 | Description | nvarchar(200) | | Team name, 2–200 chars |
-| Category | nvarchar(20) | | **`Senior` (max 8 members) · `Regular` (max 10 members)** |
+| Category | nvarchar(20) | | **A name from `categories.json` (here `Senior`, max 8 members · `Regular`, max 10); `''` when the installation has none** |
 | TeamLeadUserId | int | | FK → Users (Restrict). **Unique**: a user leads at most one team. Must have role `Captain` |
 | CreatedAt | datetime2 | | DB default `GETUTCDATE()` |
 | CreatedByUserId | int | | Admin who created the team (no FK) |
@@ -411,7 +411,7 @@ delivery and gets email.
 | `Roles` | Admin, Participant, Captain, SuperAdmin, Merchant | Users.Role |
 | `NotificationChannels` | Email, Viber, Both | Users.NotificationChannel, Registrations.GuestNotificationChannel |
 | `EventStatus` | Draft, Published, Closed | Events.Status |
-| `TeamCategories` | Senior (max 8 members), Regular (max 10 members) | Teams.Category |
+| `categories.json` (not a code enum) | Per installation; here Senior (max 8 members), Regular (max 10 members) | Events.Category, Teams.Category |
 | `EventFormats` | InPerson, Online, Hybrid | Events.Format |
 | `CheckInMethods` | Scan, Face, Manual | Registrations.CheckInMethod, *RedeemedMethod / Method (Scan, Manual) |
 | `InvitationStatus` | Sent, Queued, Registered | Invitations.Status |

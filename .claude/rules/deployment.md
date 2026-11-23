@@ -10,6 +10,10 @@ Source: `deploy-iis` skill.
 - **`appSettings.json` is read at runtime** — edit it on the server and reload; no rebuild. It is
   public (served to every browser), so never put secrets there. A new build overwrites it with the
   dev values: keep the server copy and restore it after each deploy.
+- **`categories.json`** (API site root, source `backend/EventRegistration.Api/categories.json`)
+  sets the event/team categories per installation. `dotnet publish` leaves it out, so a deploy
+  never overwrites it: copy it once on a new install and never delete it (no `robocopy /MIR`).
+  Steps: `documentation/configuration-and-publishing.md`.
 - **`menu.json`** (App site root, source `frontend/web/public/menu.json`) switches menus off for
   the whole installation; read at runtime like `appSettings.json`. The production build leaves it
   out, so a deploy never overwrites it: copy it to the server once, and never delete it when

@@ -14,17 +14,6 @@ public static class Roles
     public const string Captain = "Captain";
 }
 
-// Team type. The category sets how many members a team may hold (the Captain is not counted).
-public static class TeamCategories
-{
-    public const string Senior = "Senior";
-    public const string Regular = "Regular";
-
-    public static bool IsValid(string? c) => c is Senior or Regular;
-
-    public static int MaxMembers(string? c) => c == Senior ? 8 : 10;
-}
-
 public static class Permissions
 {
     // Custom claim type + authorization policy name for the "confirm registrations" grant.
@@ -47,23 +36,6 @@ public static class EventFormats
 
     // Has a physical venue (QR entry pass + check-in).
     public static bool HasVenue(string? f) => f != Online;
-}
-
-// Who an event is for. null = no category (everyone). Compared with the player's team category.
-public static class EventCategories
-{
-    public const string Senior = "Senior";
-    public const string Regular = "Regular";
-
-    public static bool IsValid(string? c) => string.IsNullOrWhiteSpace(c) || Clean(c) is not null;
-
-    // Blank → null; otherwise the canonical value, trimmed and matched ignoring case (null if unknown).
-    public static string? Clean(string? c) => c?.Trim().ToLowerInvariant() switch
-    {
-        "senior" => Senior,
-        "regular" => Regular,
-        _ => null,
-    };
 }
 
 public static class EventStatus
@@ -152,7 +124,7 @@ public class Team
     public int Id { get; set; }
     public int? CompanyId { get; set; }
     [MaxLength(200)] public string Description { get; set; } = "";
-    [MaxLength(20)] public string Category { get; set; } = TeamCategories.Regular;
+    [MaxLength(20)] public string Category { get; set; } = "";
     // The lead is implied by this column and is not listed in Members.
     public int TeamLeadUserId { get; set; }
     public User? TeamLead { get; set; }
@@ -215,8 +187,8 @@ public class Event
     // Calendar-invite revision (iCalendar SEQUENCE). Bumped whenever an online event's time,
     // title or link changes, so re-sent invites replace the earlier calendar entry.
     public int InviteSequence { get; set; }
-    // Who the event is for: Senior, Regular, or null (no category). See EventCategories.
-    [MaxLength(10)] public string? Category { get; set; }
+    // Who the event is for: a name from categories.json, or null (no category). See CategoryCatalog.
+    [MaxLength(20)] public string? Category { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public ICollection<Invitation> Invitations { get; set; } = new List<Invitation>();

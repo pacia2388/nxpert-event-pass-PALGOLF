@@ -48,7 +48,9 @@
           <thead>
             <tr>
               <th>Team</th>
-              <th>Category</th>
+              @if (categoryList.enabled()) {
+                <th>Category</th>
+              }
               <th>Captain</th>
               <th class="col-num">Members</th>
             </tr>
@@ -56,15 +58,19 @@
           <tbody>
             @if (loading() && !teams().length) {
               <tr class="um-empty">
-                <td colspan="4"><mat-spinner diameter="32"></mat-spinner></td>
+                <td [attr.colspan]="categoryList.enabled() ? 4 : 3">
+                  <mat-spinner diameter="32"></mat-spinner>
+                </td>
               </tr>
             } @else if (!teams().length) {
               <tr class="um-empty">
-                <td colspan="4">No teams yet. Fill in the form to create the first one.</td>
+                <td [attr.colspan]="categoryList.enabled() ? 4 : 3">
+                  No teams yet. Fill in the form to create the first one.
+                </td>
               </tr>
             } @else if (!filtered().length) {
               <tr class="um-empty">
-                <td colspan="4">No teams match your search.</td>
+                <td [attr.colspan]="categoryList.enabled() ? 4 : 3">No teams match your search.</td>
               </tr>
             }
             @for (t of filtered(); track t.id) {
@@ -79,11 +85,13 @@
                 <td>
                   <span class="u-name">{{ t.description }}</span>
                 </td>
-                <td>
-                  <span class="role-pill" [class.admin]="t.category === 'Senior'">{{
-                    t.category
-                  }}</span>
-                </td>
+                @if (categoryList.enabled()) {
+                  <td>
+                    @if (t.category) {
+                      <span class="role-pill">{{ t.category }}</span>
+                    }
+                  </td>
+                }
                 <td>{{ t.teamLeadName }}</td>
                 <td class="col-num" [class.full]="t.memberCount >= t.maxMembers">
                   {{ t.memberCount }} / {{ t.maxMembers }}
@@ -136,13 +144,16 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Category</mat-label>
-          <mat-select name="category" [(ngModel)]="category">
-            <mat-option value="Senior">Senior (8 members)</mat-option>
-            <mat-option value="Regular">Regular (10 members)</mat-option>
-          </mat-select>
-        </mat-form-field>
+        @if (categories.length) {
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select name="category" [(ngModel)]="category">
+              @for (c of categories; track c.name) {
+                <mat-option [value]="c.name">{{ c.name }} ({{ c.maxMembers }} members)</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
 
         <mat-form-field appearance="outline">
           <mat-label>Captain</mat-label>
@@ -208,7 +219,8 @@
 
           @if (isFull()) {
             <p class="tm-note">
-              This team is full. A {{ t.category }} team holds {{ t.maxMembers }} members.
+              This team is full. {{ t.category ? 'A ' + t.category + ' team' : 'It' }} holds
+              {{ t.maxMembers }} members.
             </p>
           } @else {
             <div class="tm-add">

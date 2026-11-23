@@ -29,3 +29,25 @@ test("an admin changes an event's category on the event form", async ({ page, ad
     .poll(async () => (await (await adminApi.get(`/api/events/${event.id}`)).json()).category)
     .toBe('Regular');
 });
+
+test('an installation with no categories shows no Category choice on the event form', async ({
+  page,
+}) => {
+  await page.route('**/api/settings/categories', (route) => route.fulfill({ json: [] }));
+
+  await page.goto('/admin/events/new');
+
+  await expect(page.getByRole('textbox', { name: 'Title' }).first()).toBeVisible();
+  await expect(page.getByRole('radiogroup', { name: 'Event category' })).toHaveCount(0);
+});
+
+test('the event form lists the categories of this installation', async ({ page }) => {
+  await page.route('**/api/settings/categories', (route) =>
+    route.fulfill({ json: [{ name: 'Junior', icon: 'child_care', teamMaxMembers: 6 }] }),
+  );
+
+  await page.goto('/admin/events/new');
+  const category = page.getByRole('radiogroup', { name: 'Event category' });
+
+  await expect(category.getByRole('radio')).toHaveText(['No category', 'Junior']);
+});
