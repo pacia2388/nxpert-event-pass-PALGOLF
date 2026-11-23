@@ -14,6 +14,7 @@ import { ToastService } from '../../../core/toast.service';
 import { AppSettingsDto, MobileProvider, PhoneCountry } from '../../../core/models';
 import { PhoneCountryService } from '../../../core/phone-country.service';
 import { ConfirmService } from '../../../core/confirm.service';
+import { ACTIVE_THEME } from '../../../core/theme';
 
 @Component({
   selector: 'app-settings',
@@ -79,6 +80,20 @@ import { ConfirmService } from '../../../core/confirm.service';
         align-items: flex-start;
         gap: 12px;
       }
+      .theme-head {
+        margin-top: 40px;
+      }
+      .theme-current {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 12px;
+      }
+      .theme-current mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
       .pc-code {
         width: 260px;
         /* Same height as the Add button (40px). */
@@ -116,6 +131,11 @@ export class SettingsComponent implements OnInit {
   providerDown = computed(() =>
     this.mobileProvider() === 'Sms' ? !this.smsReady() : !this.viberReady(),
   );
+
+  // The look this deployment wears, from theme.json beside the API (or the default).
+  protected readonly theme = ACTIVE_THEME.current;
+  protected readonly themeSource =
+    ACTIVE_THEME.current.source === 'file' ? 'theme.json on the server' : 'default, no theme.json';
 
   private static readonly EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -215,6 +235,20 @@ export class SettingsComponent implements OnInit {
         );
       },
       error: (err) => this.toast.error(err?.error?.message ?? 'Could not remove the country code.'),
+    });
+  }
+
+  downloadThemeTemplate(): void {
+    this.api.downloadThemeTemplate().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'theme-template.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.toast.error('Could not download the theme template.'),
     });
   }
 }

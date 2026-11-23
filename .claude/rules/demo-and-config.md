@@ -11,6 +11,8 @@ Source: `run-local-demo` skill.
 - Real SMTP credentials go in local, uncommitted config only.
 - Phone scanning needs HTTPS: tunnel API (`ngrok http 5088`) and web (`ngrok http 4200`), then set
   `apiBaseUrl` (`frontend/web/public/appSettings.json`, no rebuild) to the API URL and `App:FrontendBaseUrl` (backend) to the web URL.
+- Switch the look locally with `backend/EventRegistration.Api/theme.json` (git-ignored):
+  `{ "base": "NXPass" }` or delete it for PALGOLF; reload the page, no restart.
 - Email verification stays **off** for demos (`App:RequireEmailVerification: false`).
 - Prerequisites: .NET SDK 10, Node 20+, SQL Server LocalDB (`sqllocaldb info` lists
   `MSSQLLocalDB`).

@@ -1,10 +1,19 @@
 using EventRegistration.Api.Models;
+using EventRegistration.Api.Services.Theming;
 
 namespace EventRegistration.Api.Services;
 
 public static class EmailTemplates
 {
-    private const string Accent = "#0f5fb8";
+    // The active theme's colours (theme.json; PALGOLF blue by default).
+    private static string Accent => ThemeStore.Current.Theme.Colors.Primary;
+    private static string Tint => ThemeStore.Current.Theme.Colors.TintSoft;
+
+    // The theme's header logo, when it has one.
+    private static string HeaderLogo() =>
+        ThemeStore.Current.Theme.Logos.Header is { } logo
+            ? $@"<img src=""{E(ThemeStore.LogoUrl(logo))}"" alt="""" height=""36"" style=""display:block;height:36px;margin:0 0 10px"" />"
+            : "";
 
     // Text typed by people (names, titles, venues) shown as text, never as markup.
     private static string E(string? text) => System.Net.WebUtility.HtmlEncode(text ?? "");
@@ -36,6 +45,7 @@ public static class EmailTemplates
 <div style=""font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;
      border:1px solid #e0e0e0;border-radius:12px;overflow:hidden"">
   <div style=""background:{Accent};color:#fff;padding:20px 28px"">
+    {HeaderLogo()}
     <h1 style=""margin:0;font-size:20px"">{title}</h1>
   </div>
   <div style=""padding:28px;color:#333;font-size:15px;line-height:1.55"">
@@ -58,7 +68,7 @@ public static class EmailTemplates
             _ => System.Net.WebUtility.HtmlEncode(ev.Venue),
         }}</p>
            {(string.IsNullOrWhiteSpace(ev.Description) ? "" : $@"
-           <div style=""margin:18px 0 8px;padding:14px 16px;background:#f5f8fc;border-left:3px solid {Accent};
+           <div style=""margin:18px 0 8px;padding:14px 16px;background:{Tint};border-left:3px solid {Accent};
                 border-radius:6px;line-height:1.6;color:#333"">{MultilineText(ev.Description)}</div>")}
            <p style=""text-align:center;margin:28px 0"">
              <a href=""{registerUrl}"" style=""background:{Accent};color:#fff;text-decoration:none;

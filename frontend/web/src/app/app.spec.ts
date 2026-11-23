@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { loadAppSettings } from './core/config';
 import { RealtimeService } from './core/realtime.service';
+import { ACTIVE_THEME, PALGOLF_THEME, loadTheme } from './core/theme';
 
 describe('App shell', () => {
   let fixture: ComponentFixture<App>;
@@ -45,6 +46,28 @@ describe('App shell', () => {
     expect(words(root().querySelector('footer'))).toBe('Powered by N-PAX - NXPERT SYSTEM');
   });
 
+  it('shows the badge icon in the header when the theme has no logo', () => {
+    open(true);
+    expect(root().querySelector('header .brand-badge mat-icon')).not.toBeNull();
+    expect(root().querySelector('header .brand-logo')).toBeNull();
+  });
+
+  it("shows the theme's header logo in place of the badge", () => {
+    ACTIVE_THEME.current = {
+      ...PALGOLF_THEME,
+      logos: { ...PALGOLF_THEME.logos, header: 'brand/n-logo.png' },
+    };
+    try {
+      open(true);
+      expect(root().querySelector('header .brand-logo')?.getAttribute('src')).toBe(
+        'brand/n-logo.png',
+      );
+      expect(root().querySelector('header .brand-badge')).toBeNull();
+    } finally {
+      ACTIVE_THEME.current = PALGOLF_THEME;
+    }
+  });
+
   it('names the app PAL GOLF in the header once signed in', () => {
     open(true);
     expect(words(root().querySelector('header .brand-text'))).toBe('PAL GOLF');
@@ -54,13 +77,18 @@ describe('App shell', () => {
   describe('when appSettings.json sets its own wording', () => {
     const realFetch = globalThis.fetch;
 
-    // Boot the way main.ts does: read appSettings.json, then start the app.
+    // Boot the way main.ts does: read appSettings.json, then the theme (PALGOLF, no names), then start.
     async function boot(settings: Record<string, unknown>): Promise<void> {
-      globalThis.fetch = (async () =>
+      globalThis.fetch = (async (url: RequestInfo | URL) =>
         new Response(
-          JSON.stringify({ apiBaseUrl: '', faceEngineBaseUrl: '', ...settings }),
+          JSON.stringify(
+            String(url).endsWith('/api/theme')
+              ? PALGOLF_THEME
+              : { apiBaseUrl: '', faceEngineBaseUrl: '', ...settings },
+          ),
         )) as typeof fetch;
       await loadAppSettings();
+      await loadTheme();
     }
 
     afterEach(async () => {

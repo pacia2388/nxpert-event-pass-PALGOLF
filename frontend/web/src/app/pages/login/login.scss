@@ -89,7 +89,7 @@
   inset: 0 0 auto;
   height: 4px;
   overflow: hidden;
-  background: #e4eaf5;
+  background: var(--pg-wash-12);
 
   &::after {
     content: '';
@@ -153,7 +153,7 @@
   font-weight: 500;
   letter-spacing: 0.3px;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(15, 95, 184, 0.3);
+  box-shadow: 0 8px 18px var(--pg-blue-a30);
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -169,7 +169,7 @@
   &:hover:not(:disabled) {
     background: var(--pg-blue-deep);
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(11, 74, 148, 0.36);
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--pg-blue-deep) 36%, transparent);
 
     mat-icon {
       transform: translateX(3px);
@@ -178,12 +178,12 @@
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(11, 74, 148, 0.3);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--pg-blue-deep) 30%, transparent);
   }
 
   &:disabled {
     cursor: default;
-    background: #dde4f0;
+    background: var(--pg-wash-16);
     color: #6a7793;
     box-shadow: none;
   }
@@ -240,7 +240,7 @@
   }
 
   &:hover {
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
     border-color: var(--pg-blue);
   }
 
@@ -394,5 +394,113 @@
 
   .poster-text {
     @include visually-hidden;
+  }
+}
+
+// ---- Logo (theme layout.loginImage "logo"): the image is a logo, centred on a light panel, and
+// the theme's login words are shown under it on every width. ----
+.login-poster.is-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 48px 40px;
+  background: var(--brand-grad-soft);
+  text-align: center;
+
+  &::after {
+    content: none;
+  }
+
+  img {
+    width: min(50%, 240px);
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    border-radius: 28px;
+    box-shadow: 0 12px 32px var(--pg-blue-a14);
+  }
+
+  .poster-text {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    color: var(--pg-ink-soft);
+    font-family: var(--pg-display);
+  }
+
+  .poster-title {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--pg-blue-deep);
+  }
+
+  .poster-dates {
+    display: grid;
+    gap: 4px;
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.4;
+
+    li {
+      display: block;
+    }
+
+    span {
+      font-weight: 700;
+    }
+  }
+
+  .poster-venue {
+    margin-top: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--pg-blue);
+  }
+}
+
+@media (max-width: 900px) {
+  .login-poster.is-logo {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    text-align: left;
+
+    img {
+      width: 72px;
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+    }
+
+    .poster-title {
+      font-size: 22px;
+    }
+
+    .poster-dates {
+      margin-top: 4px;
+      font-size: 13px;
+    }
+
+    .poster-venue {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--pg-blue);
+    }
   }
 }

@@ -63,6 +63,11 @@ the DB (or pre-create an empty `EventRegistrationDb` and grant `db_owner`).
    `<aspNetCore><environmentVariables>`).
 4. Verify: `https://SERVER:5001/` → `{"service":"EventRegistration.Api","status":"ok"}`.
 
+**Theme:** the look comes from `theme.json` in the API site folder. `dotnet publish` never outputs
+it, so it survives redeploys. First deploy: download the template from **Settings → Theme**, keep
+the keys to change, save it as `theme.json` beside the DLL (`{ "base": "NXPass" }` for the old
+look). No file = PALGOLF. Edits apply without a restart. See `documentation/theming.md`.
+
 Dev Kestrel ports (5088/7088 in `launchSettings.json`) are ignored under IIS.
 
 ## 2. Frontend (Angular)
@@ -109,3 +114,5 @@ Browse `https://SERVER:8443/` → sign-in page.
   filenames avoid stale cache).
 - Changed `apiBaseUrl`? Edit `appSettings.json` on the server and reload — no rebuild. A new build
   overwrites it with dev values: restore the server copy after each frontend deploy.
+- `theme.json` (API folder) is never overwritten by a publish. Custom logo images in the App site
+  are: restore them after each frontend deploy.

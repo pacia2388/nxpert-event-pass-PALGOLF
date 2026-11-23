@@ -51,7 +51,7 @@
   &:hover:not(:disabled) {
     border-color: var(--pg-blue);
     color: var(--pg-blue);
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
   }
 
   &:disabled {
@@ -64,7 +64,7 @@
     border: none;
     background: var(--pg-blue);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(15, 95, 184, 0.3);
+    box-shadow: 0 4px 12px var(--pg-blue-a30);
 
     &:hover {
       color: #fff;
@@ -135,7 +135,7 @@
 
   &:focus-within {
     border-color: var(--pg-blue);
-    box-shadow: 0 0 0 3px rgba(15, 95, 184, 0.15);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pg-blue) 15%, transparent);
   }
 
   mat-icon {
@@ -229,7 +229,7 @@
     top: 0;
     z-index: 1;
     padding: 11px 14px;
-    background: #f5f8fc;
+    background: var(--pg-wash-4);
     border-bottom: 1px solid rgba(15, 23, 42, 0.12);
     text-align: left;
     font-size: 12px;
@@ -255,11 +255,11 @@
   transition: background 0.12s ease;
 
   &:hover {
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
   }
 
   &.selected {
-    background: rgba(15, 95, 184, 0.12);
+    background: var(--pg-blue-a12);
     box-shadow: inset 4px 0 0 var(--pg-blue);
 
     td {

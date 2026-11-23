@@ -8,7 +8,11 @@
     <span class="header-divider"></span>
 
     <span class="brand" routerLink="/home">
-      <span class="brand-badge"><mat-icon>grid_view</mat-icon></span>
+      @if (headerLogo) {
+        <img class="brand-logo" [src]="headerLogo" alt="" />
+      } @else {
+        <span class="brand-badge"><mat-icon>grid_view</mat-icon></span>
+      }
       <span class="brand-lines">
         <span class="brand-text">{{ appName }}</span>
         <span class="brand-sub">Event Registration</span>

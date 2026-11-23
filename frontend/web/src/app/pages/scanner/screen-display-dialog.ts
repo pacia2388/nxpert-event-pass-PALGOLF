@@ -60,7 +60,7 @@ export interface ScreenDisplayData {
         border-radius: 11px;
         font-size: 22px;
         line-height: 22px;
-        background: #e8f0fb;
+        background: var(--pg-tint);
         color: var(--pg-blue);
       }
       .sd-titles {

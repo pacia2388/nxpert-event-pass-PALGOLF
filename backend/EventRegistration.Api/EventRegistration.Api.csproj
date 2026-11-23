@@ -9,6 +9,12 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);publish\**</DefaultItemExcludes>
   </PropertyGroup>
 
+  <!-- theme.json picks the deployment's look (documentation/theming.md). It belongs to each server:
+       never copied to the build or publish output, so a redeploy keeps the server's copy. -->
+  <ItemGroup>
+    <Content Update="theme.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
