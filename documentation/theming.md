@@ -11,6 +11,44 @@ The theme covers the web app's colours, fonts, logos, tab icon, browser bar colo
 and its words, header logo, the app name and footer text, emails, the pass page and the voucher
 image. The PWA manifest and the `PALGOLF-` voucher code prefix do not change.
 
+Emails are sent under the app's name (the theme's `appName`, else `App:Name`) unless
+`Email:FromName` is set in the API config.
+
+## How to set the theme
+
+The theme is set by one file, `theme.json`, beside the API. It is not changed in the app.
+
+| You want | Put in `theme.json` |
+|----------|---------------------|
+| **PALGOLF** (new look) | Nothing: delete the file. Or `{ "base": "PALGOLF" }` |
+| **NXPass** (old look) | `{ "base": "NXPass" }` |
+| Either look with changes | `base` plus only the keys to change (see [Format](#format-version-1)) |
+
+### On a server (IIS)
+
+1. Open the API site folder, the one with `EventRegistration.Api.dll` (for example
+   `C:\inetpub\wwwroot\PalGolf_API`).
+2. Create or edit `theme.json` there with one of the contents above, saved as UTF-8.
+3. Reload the web app in the browser. No restart, rebuild or republish.
+
+Do this once per server: publishing never adds or replaces `theme.json`, so later deploys keep it.
+
+### In development
+
+1. Create or edit `backend/EventRegistration.Api/theme.json` in the checkout whose API you run
+   (git ignores it).
+2. Reload `http://localhost:4200`. The API reads the file again on the next request: no restart.
+
+If the page loads while the API is still starting, it shows PALGOLF; reload once the API is up.
+
+### Check which theme is on
+
+- Sign in as admin and open **Settings → Theme**: it shows the theme name and whether it comes
+  from "theme.json on the server" or is the default.
+- Or open `<API URL>/api/theme` (for example `http://localhost:5088/api/theme`) and read `name`.
+
+A value the API refuses is skipped (the base value stays) and logged as a warning in the API log.
+
 ## Where the theme comes from
 
 - A file named **`theme.json` in the API site folder** (beside `EventRegistration.Api.dll`).
@@ -61,7 +99,7 @@ A customised one:
 | `base` | `PALGOLF` \| `NXPass` (case ignored). Anything else → PALGOLF |
 | `version` | `1` |
 | `appName`, `footerText` | Text, 1–200 characters, or `null`. `null` (or left out of a PALGOLF file) keeps the name from `appSettings.json` (web) and `App:Name` (API) |
-| `colors.*` | `#hex`, `rgb()` or `rgba()`. Keys: `primary`, `primaryDeep`, `primaryContainer`, `onPrimaryContainer`, `secondaryContainer`, `onSecondaryContainer`, `tertiary`, `navy`, `navyMid`, `sky`, `accent`, `gold`, `ink`, `inkSoft`, `line`, `appBackground`, `surfaceLow`, `surfaceHigh`, `surfaceHighest`, `tint`, `tintSoft`, `browserBar` |
+| `colors.*` | `#rgb` or `#rrggbb`. Keys: `primary`, `primaryDeep`, `primaryContainer`, `onPrimaryContainer`, `secondaryContainer`, `onSecondaryContainer`, `tertiary`, `navy`, `navyMid`, `sky`, `accent`, `gold`, `ink`, `inkSoft`, `line`, `appBackground`, `surfaceLow`, `surfaceHigh`, `surfaceHighest`, `tint`, `tintSoft`, `browserBar` |
 | `gradients.*` | `linear-gradient(…)` or `radial-gradient(…)` of colours. Keys: `brand`, `brandSoft`, `header`, `progress`, `button` |
 | `fonts.display` | A font list, e.g. `'Montserrat', 'Roboto', sans-serif` (the font must already be loaded by the web app) |
 | `layout.buttons` | `solid` \| `gradient` |
@@ -82,7 +120,8 @@ copy of custom images and restore them after each deploy, as with `appSettings.j
 The API checks every value; a value that fails is dropped (the base value stays) and a warning is
 logged. A theme problem never stops the app.
 
-- Colours: `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`.
+- Colours: `#rgb` or `#rrggbb` only (no transparency): the meal-stub image and email clients read
+  nothing else reliably.
 - Gradients: only colours, numbers, `%`, `deg` and commas inside `linear-`/`radial-gradient()`; no
   `url`, `image` or `expression`; ≤ 500 characters.
 - Fonts: letters, digits, spaces, quotes, commas and hyphens only.
