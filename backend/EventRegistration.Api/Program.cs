@@ -24,6 +24,7 @@ builder.Services.AddSingleton<JwtService>();
 // The name on what the API sends out; blank keeps the built-in one.
 Branding.AppName = builder.Configuration["App:Name"] ?? "";
 // The look: theme.json beside the API (never published; no file = PALGOLF). See documentation/theming.md.
+ThemeStore.WebBaseUrl = builder.Configuration["App:FrontendBaseUrl"] ?? ThemeStore.WebBaseUrl;
 ThemeStore.FilePath = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Theme:Path"] ?? "theme.json");
 
 var emailSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings();

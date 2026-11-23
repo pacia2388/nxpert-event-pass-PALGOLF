@@ -14,11 +14,11 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
     // Every test leaves the deployment on the default theme.
     ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (File.Exists(api.ThemeFile)) File.Delete(api.ThemeFile);
+        if (File.Exists(ApiFixture.ThemeFile)) File.Delete(ApiFixture.ThemeFile);
         return ValueTask.CompletedTask;
     }
 
-    private void WriteTheme(string json) => File.WriteAllText(api.ThemeFile, json);
+    private void WriteTheme(string json) => File.WriteAllText(ApiFixture.ThemeFile, json);
 
     private async Task<JsonElement> ThemeAsync()
     {
@@ -172,5 +172,46 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("file", Str(after, "source"));
         foreach (var section in new[] { "colors", "gradients", "fonts", "layout", "logos", "login" })
             Assert.Equal(before.GetProperty(section).GetRawText(), after.GetProperty(section).GetRawText());
+    }
+
+    [Fact]
+    public async Task Emails_wear_the_active_theme_its_name_and_its_header_logo()
+    {
+        WriteTheme("""{ "base": "NXPass", "logos": { "header": "brand/n-logo.png" } }""");
+        await ThemeAsync();
+
+        var html = EventRegistration.Api.Services.EmailTemplates.TeamRegistrationNotice("Mia Santos", "Eagles", "Leo Cruz",
+            "https://example.com/register", 7);
+
+        Assert.Contains("#0d9488", html);
+        Assert.DoesNotContain("#0f5fb8", html);
+        Assert.Contains("NXPass · this is an automated message", html);
+        Assert.Matches("<img [^>]*src=\"https?://[^\"]+/brand/n-logo.png\"", html);
+    }
+
+    [Fact]
+    public async Task The_pass_page_wears_the_active_theme()
+    {
+        var admin = await api.AdminAsync();
+        var ev = await api.CreateEventAsync(admin);
+        var email = ApiFixture.NewEmail();
+        var reg = await api.RegisterGuestAsync(ev.Id, ev.Slug, email, ApiFixture.NewPhone(), "Email");
+        await api.ConfirmAsync(admin, ev.Id, reg);
+        var token = await PassTokenAsync(reg);
+        WriteTheme("""{ "base": "NXPass" }""");
+
+        var page = await api.Anonymous().GetStringAsync($"/api/passes/{token}");
+
+        Assert.Contains("#0d9488", page);
+        Assert.DoesNotContain("#0f5fb8", page);
+    }
+
+    private async Task<Guid> PassTokenAsync(int registrationId)
+    {
+        using var scope = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.CreateScope(api.Services);
+        var db = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+            .GetRequiredService<EventRegistration.Api.Data.AppDbContext>(scope.ServiceProvider);
+        return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.SingleAsync(
+            db.Registrations.Where(r => r.Id == registrationId).Select(r => r.Token));
     }
 }

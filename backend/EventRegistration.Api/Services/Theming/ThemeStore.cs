@@ -17,6 +17,14 @@ public static class ThemeStore
     private static string? _path;
     private static (DateTime Written, long Length)? _stamp;
     private static ThemeSnapshot _current = Default;
+    private static string? _text;
+
+    /// <summary>The web app's public URL (App:FrontendBaseUrl): logo paths are relative to it.</summary>
+    public static string WebBaseUrl { get; set; } = "http://localhost:4200";
+
+    /// <summary>An absolute URL for a theme logo path, for emails.</summary>
+    public static string LogoUrl(string path) =>
+        path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ? path : $"{WebBaseUrl.TrimEnd('/')}/{path.TrimStart('/')}";
 
     /// <summary>Where problems with the file are reported (set at startup to the app's logger).</summary>
     public static Action<string>? Log { get; set; }
@@ -30,6 +38,7 @@ public static class ThemeStore
             {
                 _path = value;
                 _stamp = null;
+                _text = null;
                 _current = Default;
             }
         }
@@ -47,10 +56,14 @@ public static class ThemeStore
                 if (!info.Exists)
                 {
                     _stamp = null;
+                    _text = null;
                     return _current = Default;
                 }
                 var stamp = (info.LastWriteTimeUtc, info.Length);
-                if (_stamp == stamp) return _current;
+                // File times tick coarsely: a same-size rewrite within a tick keeps its stamp, so a
+                // file written in the last few seconds is read again until it settles.
+                var settled = DateTime.UtcNow - info.LastWriteTimeUtc > TimeSpan.FromSeconds(2);
+                if (_stamp == stamp && settled) return _current;
                 string text;
                 try
                 {
@@ -59,14 +72,30 @@ public static class ThemeStore
                 catch (IOException ex)
                 {
                     // Mid-write: keep what we had and try again on the next request.
-                    Log?.Invoke($"theme.json could not be read ({ex.Message}).");
+                    Report($"theme.json could not be read ({ex.Message}).");
                     return _current;
                 }
+                if (_stamp == stamp && text == _text) return _current;
+                _text = text;
                 var resolved = ThemeResolver.Resolve(text);
-                foreach (var warning in resolved.Warnings) Log?.Invoke($"theme.json: {warning}");
+                foreach (var warning in resolved.Warnings) Report($"theme.json: {warning}");
                 _stamp = stamp;
                 return _current = new ThemeSnapshot(resolved.Theme, "file", resolved.Customised);
             }
+        }
+    }
+
+    // A theme problem is only ever reported, never allowed to fail the request that found it
+    // (the logger may belong to a host that has shut down).
+    private static void Report(string message)
+    {
+        try
+        {
+            Log?.Invoke(message);
+        }
+        catch (Exception)
+        {
+            // Nothing else to do: the theme already fell back.
         }
     }
 }

@@ -4,6 +4,8 @@ using EventRegistration.Api.Services;
 namespace EventRegistration.Api.Tests;
 
 // The name people see on what the app sends out. Internal identifiers keep their old form.
+// In the "api" collection: theme tests switch the deployment's theme, which these read.
+[Collection("api")]
 public class BrandingTests
 {
     [Fact]

@@ -2,6 +2,7 @@ using System.Net;
 using EventRegistration.Api.Data;
 using EventRegistration.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using EventRegistration.Api.Services.Theming;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -59,7 +60,7 @@ public class PassesController : ControllerBase
             "background:#f4f5f7;color:#1f2937;display:flex;justify-content:center;padding:20px}" +
             ".card{background:#fff;border-radius:16px;overflow:hidden;max-width:420px;width:100%;" +
             "box-shadow:0 8px 30px rgba(0,0,0,.12)}" +
-            ".head{background:linear-gradient(120deg,#0a2d7a,#0f5fb8);color:#fff;padding:22px 20px;text-align:center}" +
+            $".head{{background:{ThemeStore.Current.Theme.Gradients.Brand};color:#fff;padding:22px 20px;text-align:center}}" +
             ".head h1{margin:0;font-size:19px;font-weight:600}" +
             ".head p{margin:6px 0 0;font-size:13px;opacity:.95}" +
             ".body{padding:22px 20px;text-align:center}" +
@@ -117,7 +118,7 @@ public class PassesController : ControllerBase
 
         var validity = MealStubImageService.ValidityLabel(stub.ValidFrom, stub.ValidTo);
         var png = _stubImages.Render(
-            stub.Color ?? "#0f5fb8", ev.Title, ev.BannerImage, validity, stub.Denomination, stub.ControlNumber);
+            stub.Color ?? ThemeStore.Current.Theme.Colors.Primary, ev.Title, ev.BannerImage, validity, stub.Denomination, stub.ControlNumber);
         Response.Headers.CacheControl = "public, max-age=86400";
         return File(png, "image/png");
     }
