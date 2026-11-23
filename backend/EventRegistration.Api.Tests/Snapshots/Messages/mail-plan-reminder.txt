@@ -1,0 +1,8 @@
+===== email =====
+To: <email>
+Cc:
+Bcc:
+Subject: Reminder: Tee times for Saturday
+--- html ---
+<!doctype html><html><body style="font-family:Segoe UI,Arial,sans-serif;color:#202124"><div style="max-width:800px;margin:0 auto;font-size:15px;line-height:1.6"><p style="margin:0 0 16px;padding:10px 14px;border-radius:8px;background:#e8f0fb;color:#0b4a94">You asked to be reminded about this mail.</p><p>Hello golfers,</p><p>Tee times are <b>posted</b>. See the <a href="https://example.com/tees">list</a>.</p><p style="margin-top:28px;font-size:12px;color:#5f6368">Sent by PAL GOLF. Open My Reminders in the app to be reminded about this mail.</p></div></body></html>
+

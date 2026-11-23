@@ -1,0 +1,6 @@
+===== sms =====
+To: <phone>
+Subject: Edit your registration — Snapshot Open
+
+Hi Mia Santos, review or update your response for "Snapshot Open" here: http://localhost:4200/r/<guid>
+

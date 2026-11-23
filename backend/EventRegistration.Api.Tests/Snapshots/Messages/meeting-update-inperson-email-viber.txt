@@ -1,0 +1,69 @@
+===== email =====
+To: <email>
+Cc:
+Bcc:
+Subject: Updated: Snapshot Open
+[attachment invite.ics: text/calendar; method=REQUEST]
+BEGIN:VCALENDAR
+PRODID:-//PAL GOLF//Event Registration//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:event-<slug>@nxpass
+SEQUENCE:2
+DTSTAMP:<now>
+DTSTART:20300315T000000Z
+DTEND:20300315T080000Z
+SUMMARY:Snapshot Open
+DESCRIPTION:Event link: http://localhost:4200/e/<slug>\n\nIn
+ person: Course
+LOCATION:Course
+URL:http://localhost:4200/e/<slug>
+ORGANIZER;CN="PAL GOLF":mailto:nxperticone@gmail.com
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+ATTENDEE;CN="Mia Santos";ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TR
+ UE:mailto:<email>
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Snapshot Open
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+END:VCALENDAR
+--- html ---
+<p>The event details have changed. The attached calendar invitation updates your existing event.</p>
+<div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;
+     border:1px solid #e0e0e0;border-radius:12px;overflow:hidden">
+  <div style="background:#0f5fb8;color:#fff;padding:20px 28px">
+    <h1 style="margin:0;font-size:20px">You're invited!</h1>
+  </div>
+  <div style="padding:28px;color:#333;font-size:15px;line-height:1.55">
+    <p>You have been invited to:</p>
+           <h2 style="margin:8px 0;color:#0f5fb8">Snapshot Open</h2>
+           <p style="margin:4px 0"><strong>Starts:</strong> Fri, Mar 15 2030, 8:00 AM</p>
+           <p style="margin:4px 0"><strong>Ends:</strong> Fri, Mar 15 2030, 4:00 PM</p>
+           <p style="margin:4px 0"><strong>Where:</strong> Course</p>
+
+           <p style="text-align:center;margin:28px 0">
+             <a href="http://localhost:4200/e/<slug>" style="background:#0f5fb8;color:#fff;text-decoration:none;
+                padding:12px 28px;border-radius:8px;display:inline-block;font-weight:600">
+                Register now</a>
+           </p>
+           <p style="color:#888;font-size:13px">Or paste this link: http://localhost:4200/e/<slug></p>
+  </div>
+  <div style="padding:16px 28px;background:#fafafa;color:#999;font-size:12px;border-top:1px solid #eee">
+    PAL GOLF · this is an automated message
+  </div>
+</div>
+
+===== viber =====
+To: <phone>
+Subject: Updated: Snapshot Open
+
+Hi Mia Santos, the event details for "Snapshot Open" have changed.
+Starts: Fri, Mar 15 2030, 8:00 AM
+Ends: Fri, Mar 15 2030, 4:00 PM
+Join: http://localhost:4200/e/<slug>
+

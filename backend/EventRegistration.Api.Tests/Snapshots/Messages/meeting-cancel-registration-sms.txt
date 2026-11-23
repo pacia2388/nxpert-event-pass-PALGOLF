@@ -1,0 +1,53 @@
+===== email =====
+To: <email>
+Cc:
+Bcc:
+Subject: Registration cancelled — Snapshot Open
+[attachment invite.ics: text/calendar; method=CANCEL]
+BEGIN:VCALENDAR
+PRODID:-//PAL GOLF//Event Registration//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:CANCEL
+BEGIN:VEVENT
+UID:event-<slug>@nxpass
+SEQUENCE:1
+DTSTAMP:<now>
+DTSTART:20300315T000000Z
+DTEND:20300315T080000Z
+SUMMARY:Snapshot Open
+DESCRIPTION:Event link: https://meet.example.com/golf
+LOCATION:Online meeting
+URL:https://meet.example.com/golf
+ORGANIZER;CN="PAL GOLF":mailto:nxperticone@gmail.com
+STATUS:CANCELLED
+TRANSP:OPAQUE
+ATTENDEE;CN="Mia Santos";ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TR
+ UE:mailto:<email>
+END:VEVENT
+END:VCALENDAR
+--- html ---
+<div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;
+     border:1px solid #e0e0e0;border-radius:12px;overflow:hidden">
+  <div style="background:#0f5fb8;color:#fff;padding:20px 28px">
+    <h1 style="margin:0;font-size:20px">Registration cancelled</h1>
+  </div>
+  <div style="padding:28px;color:#333;font-size:15px;line-height:1.55">
+    <p>Hi Mia Santos,</p>
+           <p>Your registration for <strong>Snapshot Open</strong> has been cancelled.
+              The online meeting below has been removed; the attached update takes it off your calendar.</p>
+           <p style="margin:4px 0"><strong>Starts:</strong> Fri, Mar 15 2030, 8:00 AM</p>
+           <p style="margin:4px 0"><strong>Ends:</strong> Fri, Mar 15 2030, 4:00 PM</p>
+           <p style="color:#888;font-size:13px">If you think this is a mistake, please contact the event organizer.</p>
+  </div>
+  <div style="padding:16px 28px;background:#fafafa;color:#999;font-size:12px;border-top:1px solid #eee">
+    PAL GOLF · this is an automated message
+  </div>
+</div>
+
+===== sms =====
+To: <phone>
+Subject: Cancelled: Snapshot Open
+
+Hi Mia Santos, your registration for "Snapshot Open" has been cancelled.
+

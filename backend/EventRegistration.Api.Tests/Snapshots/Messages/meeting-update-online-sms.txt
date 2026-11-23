@@ -1,0 +1,9 @@
+===== sms =====
+To: <phone>
+Subject: Updated: Snapshot Open
+
+Hi Mia Santos, the event details for "Snapshot Open" have changed.
+Starts: Fri, Mar 15 2030, 8:00 AM
+Ends: Fri, Mar 15 2030, 4:00 PM
+Join: https://meet.example.com/golf
+

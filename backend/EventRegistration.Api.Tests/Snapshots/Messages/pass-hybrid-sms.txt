@@ -1,0 +1,24 @@
+===== sms =====
+To: <phone>
+Subject: Snapshot Open
+
+Hi Mia Santos, your registration for "Snapshot Open" is confirmed.
+Starts: Fri, Mar 15 2030, 8:00 AM
+Ends: Fri, Mar 15 2030, 4:00 PM
+Where: Course
+View your QR entry pass: http://localhost:5088/api/passes/<guid>
+Update details: http://localhost:4200/r/<guid>
+
+===== sms =====
+To: <phone>
+Subject: Registration confirmed — Snapshot Open
+
+You can also join "Snapshot Open" online: https://meet.example.com/golf
+
+===== sms =====
+To: <phone>
+Subject: meal-stubs_Snapshot Open
+
+Your 1 meal stub for "Snapshot Open" — present each at the meal counter:
+• Lunch ₱150.00 · VALID ON MARCH 15, 2030 (No. <stub>)
+

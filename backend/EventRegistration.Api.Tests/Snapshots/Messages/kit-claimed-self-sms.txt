@@ -1,0 +1,6 @@
+===== sms =====
+To: <phone>
+Subject: Event kit claimed — Snapshot Open
+
+Hi Mia Santos, this confirms that your kit for "Snapshot Open" has already been claimed.
+

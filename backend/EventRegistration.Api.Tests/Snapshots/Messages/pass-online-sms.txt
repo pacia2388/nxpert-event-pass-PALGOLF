@@ -1,0 +1,10 @@
+===== sms =====
+To: <phone>
+Subject: Registration confirmed — Snapshot Open
+
+Hi Mia Santos, your registration for "Snapshot Open" is confirmed.
+Starts: Fri, Mar 15 2030, 8:00 AM
+Ends: Fri, Mar 15 2030, 4:00 PM
+Join online: https://meet.example.com/golf
+Edit your response: http://localhost:4200/r/<guid>
+

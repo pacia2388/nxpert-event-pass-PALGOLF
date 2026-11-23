@@ -107,6 +107,21 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
             var tag = el.Name.LocalName.ToLowerInvariant();
             if (tag == "br") { text.Append('\n'); return; }
             if (tag == "li") text.Append("• ");
+            if (tag == "a")
+            {
+                // Viber/SMS have no hidden links: keep the address after the link text.
+                var start = text.Length;
+                foreach (var child in el.Nodes()) Walk(child);
+                var label = text.ToString(start, text.Length - start).Trim();
+                var href = el.Attribute("href")?.Value.Trim() ?? "";
+                if (Uri.TryCreate(href, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" or "mailto")
+                {
+                    var shown = uri.Scheme == "mailto" ? href["mailto:".Length..] : href;
+                    if (label.Length == 0) text.Append(shown);
+                    else if (!string.Equals(label, shown, StringComparison.OrdinalIgnoreCase)) text.Append($" ({shown})");
+                }
+                return;
+            }
             foreach (var child in el.Nodes()) Walk(child);
             if (tag is "p" or "div" or "li" or "h1" or "h2" or "h3" or "blockquote") text.Append('\n');
         }

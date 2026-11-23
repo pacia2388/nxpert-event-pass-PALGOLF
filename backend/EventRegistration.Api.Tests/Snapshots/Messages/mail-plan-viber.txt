@@ -1,0 +1,7 @@
+===== viber =====
+To: <phone>
+Subject: Tee times for Saturday
+
+Hello golfers,
+Tee times are posted. See the list (https://example.com/tees).
+

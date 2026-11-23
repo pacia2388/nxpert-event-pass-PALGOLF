@@ -1,0 +1,32 @@
+===== email =====
+To: <email>
+Cc:
+Bcc:
+Subject: Edit your registration — Snapshot Open
+--- html ---
+<div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;
+     border:1px solid #e0e0e0;border-radius:12px;overflow:hidden">
+  <div style="background:#0f5fb8;color:#fff;padding:20px 28px">
+    <h1 style="margin:0;font-size:20px">Edit your registration</h1>
+  </div>
+  <div style="padding:28px;color:#333;font-size:15px;line-height:1.55">
+    <p>Hi Mia Santos,</p>
+           <p>Use the link below to review or update your response for
+              <strong>Snapshot Open</strong>.</p>
+           <p style="text-align:center;margin:24px 0">
+             <a href="http://localhost:4200/r/<guid>" style="background:#0f5fb8;color:#fff;text-decoration:none;
+                padding:12px 22px;border-radius:8px;font-weight:600;display:inline-block">Edit your response</a>
+           </p>
+           <p style="color:#888;font-size:13px">If you didn't request this, you can ignore this email.</p>
+  </div>
+  <div style="padding:16px 28px;background:#fafafa;color:#999;font-size:12px;border-top:1px solid #eee">
+    PAL GOLF · this is an automated message
+  </div>
+</div>
+
+===== viber =====
+To: <phone>
+Subject: Edit your registration — Snapshot Open
+
+Hi Mia Santos, review or update your response for "Snapshot Open" here: http://localhost:4200/r/<guid>
+
