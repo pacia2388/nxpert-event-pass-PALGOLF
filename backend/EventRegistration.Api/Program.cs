@@ -3,6 +3,7 @@ using EventRegistration.Api.Data;
 using EventRegistration.Api.Hubs;
 using EventRegistration.Api.Models;
 using EventRegistration.Api.Services;
+using EventRegistration.Api.Services.Theming;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +23,8 @@ builder.Services.AddSingleton<JwtService>();
 
 // The name on what the API sends out; blank keeps the built-in one.
 Branding.AppName = builder.Configuration["App:Name"] ?? "";
+// The look: theme.json beside the API (never published; no file = PALGOLF). See documentation/theming.md.
+ThemeStore.FilePath = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Theme:Path"] ?? "theme.json");
 
 var emailSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings();
 builder.Services.AddSingleton(emailSettings);
@@ -103,6 +106,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+ThemeStore.Log = message => app.Logger.LogWarning("{ThemeMessage}", message);
 
 // Say where email goes, so a run's log answers it without opening the local settings.
 if (emailSettings.Enabled)

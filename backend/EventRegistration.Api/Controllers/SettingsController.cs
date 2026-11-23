@@ -1,5 +1,6 @@
 using EventRegistration.Api.Models;
 using EventRegistration.Api.Services;
+using EventRegistration.Api.Services.Theming;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +37,11 @@ public class SettingsController : ControllerBase
     [HttpGet("mobile-channel"), AllowAnonymous]
     public async Task<ActionResult<MobileChannelDto>> MobileChannel() =>
         Ok(new MobileChannelDto(await _mobile.ActiveProviderAsync()));
+
+    // A filled-in theme.json for developers to edit and drop beside the API after publishing.
+    [HttpGet("theme-template")]
+    public IActionResult ThemeTemplate() =>
+        File(System.Text.Encoding.UTF8.GetBytes(ThemeResolver.Template()), "application/json", "theme-template.json");
 
     [HttpPut]
     public async Task<ActionResult<AppSettingsDto>> Update(UpdateSettingsRequest req)
