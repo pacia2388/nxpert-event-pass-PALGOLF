@@ -25,7 +25,7 @@
 .total-pill {
   padding: 6px 16px;
   border-radius: 999px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
   font-size: 15px;
   font-weight: 700;
@@ -73,7 +73,7 @@
   }
 
   &:focus-visible {
-    outline: 3px solid rgba(15, 95, 184, 0.45);
+    outline: 3px solid var(--pg-blue-a45);
     outline-offset: 3px;
   }
 }
@@ -85,7 +85,7 @@
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
   transition:
     background 0.18s ease,

@@ -1,8 +1,8 @@
 // Same look as the invitation composer's message box.
 @use '@angular/material' as mat;
 
-$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
-$soft-surface: #f8fafd;
+$hairline-brand: 1px solid var(--pg-blue-a14);
+$soft-surface: var(--mat-sys-surface-container-low);
 
 :host {
   display: block;
@@ -16,7 +16,7 @@ $soft-surface: #f8fafd;
   background: #fff;
 
   &:focus-within {
-    border-color: rgba(15, 95, 184, 0.5);
+    border-color: color-mix(in srgb, var(--pg-blue) 50%, transparent);
   }
   &.invalid {
     border-color: #dc2626;
@@ -40,7 +40,7 @@ $soft-surface: #f8fafd;
   width: 1px;
   height: 20px;
   margin: 0 4px;
-  background: rgba(15, 95, 184, 0.2);
+  background: color-mix(in srgb, var(--pg-blue) 20%, transparent);
 }
 
 .link-row {

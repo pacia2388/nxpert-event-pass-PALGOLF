@@ -89,7 +89,7 @@
   inset: 0 0 auto;
   height: 4px;
   overflow: hidden;
-  background: #e4eaf5;
+  background: var(--pg-wash-12);
 
   &::after {
     content: '';
@@ -153,7 +153,7 @@
   font-weight: 500;
   letter-spacing: 0.3px;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(15, 95, 184, 0.3);
+  box-shadow: 0 8px 18px var(--pg-blue-a30);
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -169,7 +169,7 @@
   &:hover:not(:disabled) {
     background: var(--pg-blue-deep);
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(11, 74, 148, 0.36);
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--pg-blue-deep) 36%, transparent);
 
     mat-icon {
       transform: translateX(3px);
@@ -178,12 +178,12 @@
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(11, 74, 148, 0.3);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--pg-blue-deep) 30%, transparent);
   }
 
   &:disabled {
     cursor: default;
-    background: #dde4f0;
+    background: var(--pg-wash-16);
     color: #6a7793;
     box-shadow: none;
   }
@@ -240,7 +240,7 @@
   }
 
   &:hover {
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
     border-color: var(--pg-blue);
   }
 

@@ -76,6 +76,8 @@ html {
 }
 
 // ---- Design tokens (brand, surfaces, elevation) ----
+// These are the PALGOLF defaults. The deployment's theme (theme.json, applied by core/theme.ts)
+// overrides them inline on <html>, so style with the tokens, never with brand hex values.
 :root {
   // PAL GOLF palette, taken from the tournament poster.
   --pg-navy: #051f63; // the poster's lower band; header and footer
@@ -93,13 +95,34 @@ html {
   --pg-progress: linear-gradient(90deg, var(--pg-red), #e8742a 55%, var(--pg-gold));
 
   --brand-grad: linear-gradient(135deg, var(--pg-navy-mid) 0%, var(--pg-blue) 100%);
-  --brand-grad-soft: linear-gradient(135deg, #e8f0fb 0%, #f0f5fc 100%);
+  --pg-tint: #e8f0fb; // soft brand tiles, chips, hover
+  --pg-tint-soft: #f0f5fc;
+  --pg-header-grad: linear-gradient(
+    90deg,
+    var(--pg-navy) 0%,
+    var(--pg-navy-mid) 55%,
+    var(--pg-blue) 100%
+  );
+  // Filled buttons, only when the theme asks for gradient buttons (html[data-buttons='gradient']).
+  --pg-button-grad: var(--brand-grad);
+  --brand-grad-soft: linear-gradient(135deg, var(--pg-tint) 0%, var(--pg-tint-soft) 100%);
   --app-bg: #f2f5fa;
   --card-radius: 16px;
   --hairline: 1px solid rgba(15, 23, 42, 0.08);
   --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.06);
   --card-shadow-hover: 0 6px 14px rgba(15, 23, 42, 0.08), 0 18px 40px rgba(15, 23, 42, 0.12);
-  --tint-primary: rgba(15, 95, 184, 0.1);
+  --tint-primary: color-mix(in srgb, var(--pg-blue) 10%, transparent);
+  // Brand blue see-through (a = opacity %) and washed onto white (wash = % blue); short names keep
+  // component styles inside their size budget.
+  --pg-blue-a12: color-mix(in srgb, var(--pg-blue) 12%, transparent);
+  --pg-blue-a14: color-mix(in srgb, var(--pg-blue) 14%, transparent);
+  --pg-blue-a30: color-mix(in srgb, var(--pg-blue) 30%, transparent);
+  --pg-blue-a35: color-mix(in srgb, var(--pg-blue) 35%, transparent);
+  --pg-blue-a45: color-mix(in srgb, var(--pg-blue) 45%, transparent);
+  --pg-wash-4: color-mix(in srgb, var(--pg-blue) 4%, #fff);
+  --pg-wash-8: color-mix(in srgb, var(--pg-blue) 8%, #fff);
+  --pg-wash-12: color-mix(in srgb, var(--pg-blue) 12%, #fff);
+  --pg-wash-16: color-mix(in srgb, var(--pg-blue) 16%, #fff);
 }
 
 body {
@@ -127,7 +150,7 @@ body {
 // ---- Cards: white, rounded, faint blue hairline, layered shadow ----
 .mat-mdc-card {
   border-radius: 18px !important;
-  border: 1px solid rgba(15, 95, 184, 0.14);
+  border: 1px solid var(--pg-blue-a14);
   box-shadow: var(--card-shadow) !important;
   background: #fff !important;
 }
@@ -145,14 +168,14 @@ body {
 // Filled buttons are solid PAL blue; warn-coloured ones go solid red.
 .mat-mdc-unelevated-button:not(:disabled):not(.mat-warn) {
   color: #fff !important;
-  box-shadow: 0 4px 12px rgba(15, 95, 184, 0.26);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--pg-blue) 26%, transparent);
   transition:
     box-shadow 0.15s ease,
     background-color 0.15s ease;
 
   &:hover {
     background-color: var(--pg-blue-deep);
-    box-shadow: 0 6px 16px rgba(15, 95, 184, 0.34);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--pg-blue) 34%, transparent);
   }
 }
 
@@ -174,7 +197,7 @@ body {
   &:hover {
     border-color: var(--pg-blue) !important;
     color: var(--pg-blue) !important;
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
   }
   &.mat-primary {
     color: var(--pg-blue-deep) !important;
@@ -209,7 +232,7 @@ body {
     font-size: 24px;
     line-height: 24px;
     box-sizing: border-box;
-    background: #e8f0fb;
+    background: var(--pg-tint);
     color: var(--pg-blue) !important;
   }
 }
@@ -234,7 +257,7 @@ body {
 }
 
 .mat-mdc-header-row {
-  background: #f5f8fc;
+  background: var(--pg-wash-4);
 }
 
 .mat-mdc-header-cell {
@@ -250,11 +273,11 @@ body {
 }
 
 .mat-mdc-row:hover {
-  background: #f8fafd;
+  background: var(--mat-sys-surface-container-low);
 }
 
 .table-wrap {
-  border: 1px solid rgba(15, 95, 184, 0.14);
+  border: 1px solid var(--pg-blue-a14);
   border-radius: 14px;
   background: #fff;
 }
@@ -365,7 +388,7 @@ body {
 
 .status-pill.brand,
 .status-pill.registered {
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
 }
 
@@ -383,7 +406,7 @@ body {
 }
 
 .method-tag.manual {
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
 }
 
@@ -417,7 +440,7 @@ body {
   height: 40px;
   padding: 18px;
   border-radius: 50%;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
 }
 
@@ -1127,7 +1150,7 @@ mat-card-actions {
   }
   .queue-chip {
     color: var(--pg-blue);
-    background: rgba(15, 95, 184, 0.1);
+    background: color-mix(in srgb, var(--pg-blue) 10%, transparent);
   }
   .sync-msg {
     font-size: 13px;
@@ -1368,7 +1391,7 @@ mat-card-actions {
 .clickable:hover {
   box-shadow: var(--card-shadow-hover) !important;
   transform: translateY(-3px);
-  border-color: rgba(15, 95, 184, 0.35);
+  border-color: var(--pg-blue-a35);
 }
 
 .stat-row {
@@ -1918,7 +1941,7 @@ mat-card-actions {
 }
 .tone-info {
   --tone: var(--pg-blue);
-  --tone-soft: #e8f0fb;
+  --tone-soft: var(--pg-tint);
 }
 
 // Strip MatSnackBar's own dark surface so only our card shows.
@@ -2229,7 +2252,7 @@ mat-card-actions {
     box-shadow: var(--card-shadow-hover);
   }
   &:focus-visible {
-    outline: 3px solid rgba(15, 95, 184, 0.45);
+    outline: 3px solid var(--pg-blue-a45);
     outline-offset: 3px;
   }
 }
@@ -2297,7 +2320,7 @@ mat-card-actions {
   height: 60px;
   border-radius: 14px;
   background: #fff;
-  border: 1px solid rgba(15, 95, 184, 0.18);
+  border: 1px solid color-mix(in srgb, var(--pg-blue) 18%, transparent);
   line-height: 1;
 
   .m {
@@ -2316,7 +2339,7 @@ mat-card-actions {
 }
 
 .ev-head .ev-date {
-  background: #e8f0fb;
+  background: var(--pg-tint);
   border-color: transparent;
 }
 
@@ -2424,7 +2447,7 @@ mat-card-actions {
     color: #b91c1c;
   }
   &.brand {
-    background: #e8f0fb;
+    background: var(--pg-tint);
     color: var(--pg-blue-deep);
   }
 }
@@ -2452,8 +2475,8 @@ mat-card-actions {
 .ev-stat {
   padding: 10px 12px;
   border-radius: 12px;
-  background: #f5f8fc;
-  border: 1px solid rgba(15, 95, 184, 0.1);
+  background: var(--pg-wash-4);
+  border: 1px solid color-mix(in srgb, var(--pg-blue) 10%, transparent);
 
   .num {
     display: block;
@@ -2530,20 +2553,20 @@ mat-card-actions {
   &:hover:not(:disabled) {
     border-color: var(--pg-blue);
     color: var(--pg-blue);
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
   }
 
   &.solid {
     border: none;
     background: var(--pg-blue);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(15, 95, 184, 0.28);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--pg-blue) 28%, transparent);
 
     // Keep the gradient: the generic .ev-btn hover would swap in a pale tint behind white text.
     &:hover:not(:disabled) {
       color: #fff;
       background: var(--pg-blue-deep);
-      box-shadow: 0 6px 16px rgba(15, 95, 184, 0.36);
+      box-shadow: 0 6px 16px color-mix(in srgb, var(--pg-blue) 36%, transparent);
     }
   }
 
@@ -2560,7 +2583,7 @@ mat-card-actions {
   }
 
   &:focus-visible {
-    outline: 3px solid rgba(15, 95, 184, 0.35);
+    outline: 3px solid var(--pg-blue-a35);
     outline-offset: 2px;
   }
 }
@@ -2714,7 +2737,7 @@ mat-card-actions {
   border-radius: 12px;
   font-size: 13.5px;
   line-height: 1.45;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
 
   mat-icon {
@@ -2809,7 +2832,7 @@ mat-card-actions {
   &.active {
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 4px 10px rgba(15, 95, 184, 0.28);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--pg-blue) 28%, transparent);
   }
 
   &:focus-visible {
@@ -2830,4 +2853,34 @@ mat-card-actions {
     padding: 9px 18px;
     font-size: 14px;
   }
+}
+
+// ---- Theme layout variants (core/theme.ts sets these attributes on <html>) ----
+// Gradient filled buttons (NXPass) instead of solid ones.
+html[data-buttons='gradient'] .mat-mdc-unelevated-button:not(:disabled):not(.mat-warn) {
+  background-image: var(--pg-button-grad);
+  transition:
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+
+  &:hover {
+    background-color: var(--pg-blue);
+    filter: brightness(0.95);
+  }
+}
+
+// Light backdrop with soft brand glows (NXPass) behind sign-up and other auth pages.
+html[data-auth-bg='glow'] .auth-shell:not(.login-shell) {
+  background:
+    radial-gradient(
+      900px 520px at 0% 0%,
+      color-mix(in srgb, var(--pg-blue) 18%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      800px 520px at 100% 100%,
+      color-mix(in srgb, var(--pg-gold) 18%, transparent),
+      transparent 55%
+    ),
+    var(--app-bg);
 }

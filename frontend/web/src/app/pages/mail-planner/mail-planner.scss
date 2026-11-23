@@ -1,8 +1,8 @@
 // Mail Planner: send plan (week strip + day timeline + plan list) and receiver reminders.
 // Same blue tokens as Calendar / Events (.ev-btn, .status-pill, .page-title come from styles.scss).
 
-$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
-$soft-surface: #f8fafd;
+$hairline-brand: 1px solid var(--pg-blue-a14);
+$soft-surface: var(--mat-sys-surface-container-low);
 $ink: #0f172a;
 $muted: #64748b;
 
@@ -106,7 +106,7 @@ $muted: #64748b;
   &.active {
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 4px 10px rgba(15, 95, 184, 0.28);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--pg-blue) 28%, transparent);
 
     .tab-badge {
       background: #fff;
@@ -174,14 +174,14 @@ $muted: #64748b;
 .plan-list,
 .week-strip {
   scrollbar-width: thin;
-  scrollbar-color: #cdd7e8 transparent;
+  scrollbar-color: var(--pg-line) transparent;
 
   &::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   &::-webkit-scrollbar-thumb {
-    background: #cdd7e8;
+    background: var(--pg-line);
     border-radius: 6px;
   }
   &::-webkit-scrollbar-track {
@@ -222,7 +222,7 @@ $muted: #64748b;
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
 
   &.today {
@@ -234,7 +234,7 @@ $muted: #64748b;
     color: #475569;
   }
   &.reach {
-    background: #f0f5fc;
+    background: var(--pg-tint-soft);
     color: #15803d;
   }
   &.failed {
@@ -288,7 +288,7 @@ $muted: #64748b;
     border-color: transparent;
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 6px 16px rgba(15, 95, 184, 0.3);
+    box-shadow: 0 6px 16px var(--pg-blue-a30);
 
     .day-name,
     .day-month {
@@ -301,7 +301,7 @@ $muted: #64748b;
   }
 
   &:focus-visible {
-    outline: 3px solid rgba(15, 95, 184, 0.35);
+    outline: 3px solid var(--pg-blue-a35);
     outline-offset: 2px;
   }
 }
@@ -327,7 +327,7 @@ $muted: #64748b;
   margin-top: 6px;
   padding: 2px 10px;
   border-radius: 999px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
   font-size: 11.5px;
   font-weight: 700;
@@ -396,7 +396,7 @@ $muted: #64748b;
     height: 12px;
     border-radius: 50%;
     background: var(--pg-blue);
-    box-shadow: 0 0 0 4px #e8f0fb;
+    box-shadow: 0 0 0 4px var(--pg-tint);
   }
 
   &::after {
@@ -405,14 +405,14 @@ $muted: #64748b;
     top: 32px;
     bottom: -12px;
     width: 2px;
-    background: #dde4f0;
+    background: var(--pg-wash-16);
   }
 }
 
 .plan-body {
   margin-bottom: 12px;
   padding: 12px 14px;
-  border: 1px solid #e4eaf5;
+  border: 1px solid var(--pg-wash-12);
   border-radius: 14px;
   background: $soft-surface;
   min-width: 0;
@@ -571,7 +571,7 @@ app-rich-text-view.mail-body {
   padding: 10px 12px;
   border-radius: 12px;
   background: $soft-surface;
-  border: 1px solid #e4eaf5;
+  border: 1px solid var(--pg-wash-12);
   font-size: 13px;
   font-weight: 600;
   color: var(--pg-blue-deep);
@@ -602,7 +602,7 @@ app-rich-text-view.mail-body {
     margin: 0 -18px;
     padding: 18px 18px 12px;
     background: #fff;
-    border-bottom: 1px solid #eef2f8;
+    border-bottom: 1px solid var(--pg-wash-8);
   }
 }
 
@@ -611,7 +611,7 @@ app-rich-text-view.mail-body {
   align-items: flex-start;
   gap: 4px;
   padding: 10px 0;
-  border-bottom: 1px solid #eef2f8;
+  border-bottom: 1px solid var(--pg-wash-8);
 
   &:last-child {
     border-bottom: none;
@@ -651,7 +651,7 @@ app-rich-text-view.mail-body {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
 
   mat-icon {
@@ -710,7 +710,7 @@ app-rich-text-view.mail-body {
   height: 4px;
   margin-top: 4px;
   border-radius: 4px;
-  background: #dde4f0;
+  background: var(--pg-wash-16);
   overflow: hidden;
 
   span {
@@ -849,7 +849,7 @@ app-rich-text-view.mail-body {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue);
 }
 
@@ -877,7 +877,7 @@ app-rich-text-view.mail-body {
   padding: 12px;
   border-radius: 12px;
   background: $soft-surface;
-  border: 1px solid #e4eaf5;
+  border: 1px solid var(--pg-wash-12);
 }
 
 .date-badge {
@@ -950,7 +950,7 @@ app-rich-text-view.mail-body {
 .countdown {
   padding: 1px 8px;
   border-radius: 999px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
   font-size: 11.5px;
   font-weight: 700;
@@ -1010,7 +1010,7 @@ app-rich-text-view.mail-body {
   gap: 6px;
   height: 34px;
   padding: 0 12px;
-  border: 1.5px dashed rgba(15, 95, 184, 0.45);
+  border: 1.5px dashed var(--pg-blue-a45);
   border-radius: 999px;
   background: #fff;
   font: inherit;
@@ -1054,7 +1054,7 @@ app-rich-text-view.mail-body {
   display: flex;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #eef2f8;
+  border-bottom: 1px solid var(--pg-wash-8);
 
   &.today .agenda-when {
     background: #fef4e2;
@@ -1071,7 +1071,7 @@ app-rich-text-view.mail-body {
   width: 70px;
   padding: 6px 4px;
   border-radius: 10px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   color: var(--pg-blue-deep);
 
   .ad {

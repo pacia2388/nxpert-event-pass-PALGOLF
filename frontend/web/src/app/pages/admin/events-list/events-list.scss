@@ -1,7 +1,7 @@
 // Admin Events list: header, filter/search toolbar, card grid or compact list, pager.
 // Card look (.ev-card, .ev-tag, .ev-btn, .ev-bar …) is shared and lives in styles.scss.
 
-$hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
+$hairline-brand: 1px solid var(--pg-blue-a14);
 
 .el-page {
   display: flex;
@@ -68,7 +68,7 @@ $hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: #f0f4fa;
+  background: var(--mat-sys-surface-container-high);
   color: #334155;
   font: inherit;
   font-size: 13.5px;
@@ -87,18 +87,18 @@ $hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
   }
 
   &:hover {
-    background: #e8f0fb;
+    background: var(--pg-tint);
     color: var(--pg-blue-deep);
   }
   &:focus-visible {
-    outline: 3px solid rgba(15, 95, 184, 0.35);
+    outline: 3px solid var(--pg-blue-a35);
     outline-offset: 2px;
   }
 
   &.active {
     background: var(--brand-grad);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(15, 95, 184, 0.25);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--pg-blue) 25%, transparent);
 
     .el-count {
       background: rgba(255, 255, 255, 0.25);
@@ -215,14 +215,14 @@ $hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
     border-bottom: none;
   }
   &:hover {
-    background: #f8fafd;
+    background: var(--mat-sys-surface-container-low);
   }
   &:hover .ev-go {
     opacity: 1;
     transform: translateX(2px);
   }
   &:focus-visible {
-    outline: 3px solid rgba(15, 95, 184, 0.35);
+    outline: 3px solid var(--pg-blue-a35);
     outline-offset: -3px;
   }
 }
@@ -230,7 +230,7 @@ $hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
 .el-row-head {
   padding-top: 10px;
   padding-bottom: 10px;
-  background: #f5f8fc;
+  background: var(--pg-wash-4);
   cursor: default;
   font-size: 12px;
   font-weight: 700;
@@ -239,7 +239,7 @@ $hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
   color: #475569;
 
   &:hover {
-    background: #f5f8fc;
+    background: var(--pg-wash-4);
   }
 }
 
@@ -253,7 +253,7 @@ $hairline-brand: 1px solid rgba(15, 95, 184, 0.14);
 .el-date {
   width: 48px;
   height: 52px;
-  background: #e8f0fb;
+  background: var(--pg-tint);
   border-color: transparent;
 }
 .el-date .d {
