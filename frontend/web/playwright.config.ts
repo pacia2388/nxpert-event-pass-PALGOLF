@@ -18,7 +18,9 @@ export default defineConfig({
   forbidOnly: CI,
   retries: CI ? 2 : 0,
   workers: CI ? 2 : undefined,
-  reporter: CI ? [['github'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],
+  reporter: CI
+    ? [['github'], ['html', { open: 'never' }]]
+    : [['list'], ['html', { open: 'never' }]],
   globalTeardown: './e2e/global-teardown.ts',
   use: {
     baseURL: WEB_URL,
@@ -68,6 +70,8 @@ export default defineConfig({
         Sms__Enabled: 'false',
         App__FrontendBaseUrl: WEB_URL,
         App__RequireEmailVerification: 'false',
+        // A theme.json no test writes: a developer's local one must not change the look under test.
+        Theme__Path: 'theme.e2e.json',
         // Off as in Development: a user without Event Log rights gets every warning as a dropped request.
         Logging__EventLog__LogLevel__Default: 'None',
       },
