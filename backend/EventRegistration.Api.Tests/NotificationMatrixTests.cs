@@ -220,12 +220,12 @@ public class NotificationMatrixTests(ApiFixture api)
     public static TheoryData<string, ChannelMode, bool, bool, int, int, int, string> BroadcastCases => new()
     {
         // id, viber, fallback toggle, +63 unlisted for Viber, sent, emailed, failed, message
-        { "M28", ChannelMode.Send, false, false, 1, 0, 0, "Message sent to 1 Viber number." },
+        { "M28", ChannelMode.Send, false, false, 1, 0, 0, "Message queued for 1 Viber number." },
         { "M29", ChannelMode.Fail, false, false, 0, 0, 1, NoViberSent },
         { "M30", ChannelMode.Off, false, false, 0, 0, 1, NoViberSent },
-        { "M31", ChannelMode.Fail, true, false, 0, 1, 0, "Message emailed to 1 registrant instead." },
+        { "M31", ChannelMode.Fail, true, false, 0, 1, 0, "Message sent by email to 1 registrant as a fallback." },
         { "M32", ChannelMode.Send, false, true, 0, 0, 1, NoViberSent },
-        { "M33", ChannelMode.Send, true, true, 0, 1, 0, "Message emailed to 1 registrant instead." },
+        { "M33", ChannelMode.Send, true, true, 0, 1, 0, "Message sent by email to 1 registrant as a fallback." },
     };
 
     [Theory]

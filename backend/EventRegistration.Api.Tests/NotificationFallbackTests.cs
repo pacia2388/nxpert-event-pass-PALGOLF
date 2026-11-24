@@ -101,11 +101,19 @@ public class NotificationChainTests
     }
 
     [Theory]
-    [InlineData("Viber", true, false, "Viber failed; pass sent by email.")]
+    [InlineData("Viber", true, false, "Viber failed; pass sent by email as a fallback.")]
     [InlineData(null, false, false, "Pass sent by email.")]
     [InlineData(null, true, true, "Pass sent (channels are disabled).")]
     public void Admin_message_names_the_channel_used(string? fellBackFrom, bool attempted, bool off, string expected) =>
         Assert.Equal(expected, new PassDelivery(["email"], fellBackFrom, off, false, attempted).Message);
+
+    // Sinch only queues a Viber message, so the admin is told it is queued, not sent.
+    [Theory]
+    [InlineData(new[] { "Viber" }, "Pass queued for Viber.")]
+    [InlineData(new[] { "Viber", "email" }, "Pass queued for Viber and sent by email.")]
+    [InlineData(new[] { "SMS" }, "Pass sent by SMS.")]
+    public void Admin_message_says_queued_for_viber(string[] channels, string expected) =>
+        Assert.Equal(expected, new PassDelivery(channels, Attempted: true).Message);
 
     [Fact]
     public void Admin_message_when_nothing_delivered()

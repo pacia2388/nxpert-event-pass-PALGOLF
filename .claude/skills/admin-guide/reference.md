@@ -262,9 +262,10 @@ from the list is added by a developer). The pass, the join link (hybrid) and the
 one message: if any part is refused (for example a meal stub picture), the registrant gets the
 full email instead, so nothing is missing. If Viber accepts the message but later reports that it
 could not deliver it (for example, the number has no Viber), the email is sent then, by the same
-rule; the Attendance message still reads as sent by Viber. Viber/SMS are tried once and never retried. A failed email
+rule. Viber only queues a message, so the Attendance message says "queued for Viber", and a
+Viber broadcast says "queued for N Viber numbers". Viber/SMS are tried once and never retried. A failed email
 is retried in the background 5 times, 5 minutes apart. The message tells you what happened, e.g.
-"Viber failed; pass sent by email.", "Email could not be sent; retrying in 5 minutes." or
+"Pass queued for Viber.", "Viber failed; pass sent by email as a fallback.", "Email could not be sent; retrying in 5 minutes." or
 "Pass could not be sent by any channel."
 
 ### Tab: Kit Claiming

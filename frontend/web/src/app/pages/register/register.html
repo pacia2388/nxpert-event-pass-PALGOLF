@@ -18,12 +18,12 @@
       } @else if (teamToken && teamState() === 'invalid') {
         <p role="alert">{{ teamError() }}</p>
         <p class="muted">
-          Ask your captain to send a new link, or <a routerLink="/login">sign in</a>.
+          Ask whoever sent you the link for a new one, or <a routerLink="/login">sign in</a>.
         </p>
       } @else {
         @if (teamToken) {
           <p class="muted">
-            Your captain created your account. Fill in your details and choose your own password.
+            An account was created for you. Fill in your details and choose your own password.
           </p>
         }
         <form #f="ngForm" (ngSubmit)="submit()">

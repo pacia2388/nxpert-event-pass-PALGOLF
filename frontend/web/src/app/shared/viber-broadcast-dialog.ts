@@ -90,8 +90,8 @@ export interface ViberBroadcastData {
               [value]="p.total ? (p.done * 100) / p.total : 0"
             ></mat-progress-bar>
             <p class="muted">
-              Sending {{ p.done }} of {{ p.total }} — {{ p.sent }} sent by Viber{{
-                p.emailed ? ', ' + p.emailed + ' emailed' : ''
+              Sending {{ p.done }} of {{ p.total }} — {{ p.sent }} queued for Viber{{
+                p.emailed ? ', ' + p.emailed + ' emailed as a fallback' : ''
               }}{{ p.failed ? ', ' + p.failed + ' failed' : '' }}
             </p>
           } @else {

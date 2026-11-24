@@ -383,8 +383,8 @@ public class RegistrationsController : ControllerBase
         if (await _db.Users.AnyAsync(u => u.Email == email))
             return Conflict(new
             {
-                message = "This email already has an account. Please sign in to register. If your Captain "
-                        + "added you, complete your registration first using the link they emailed you.",
+                message = "This email already has an account. Please sign in to register. If you were emailed "
+                        + "a link to complete your registration, use that link first.",
             });
 
         if (phoneRaw is null)

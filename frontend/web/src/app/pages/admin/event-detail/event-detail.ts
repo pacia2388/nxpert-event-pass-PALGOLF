@@ -470,8 +470,9 @@ export class EventDetailComponent implements OnInit {
         this.confirming.set(false);
         this.selectedAttendees.set(new Set());
         const parts = [`Confirmed ${res.confirmed}`];
-        if (res.emailed) parts.push(`sent ${res.emailed} pass(es)`);
-        if (res.fellBack) parts.push(`${res.fellBack} sent another way`);
+        // Viber passes are only queued at this point, so the counts don't say "sent".
+        if (res.emailed) parts.push(`${res.emailed} pass(es) on their way`);
+        if (res.fellBack) parts.push(`${res.fellBack} sent by email as a fallback`);
         if (res.retrying) parts.push(`${res.retrying} email(s) retrying in 5 minutes`);
         if (res.notSent) parts.push(`${res.notSent} could not be sent`);
         if (res.noEmail) parts.push(`${res.noEmail} had no email or phone`);

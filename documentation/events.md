@@ -188,7 +188,8 @@ Forms show the mobile option as "Mobile (Viber)" or "Mobile (SMS)" after the Set
 - **Turned-off channel:** Development writes the message to `outbox/` and counts it as sent;
   any other environment skips it (nothing written) and uses the next channel.
 - `PassEmailSentAt` is stamped only when some channel delivered.
-- Admin messages: "Pass sent by email." · "Viber failed; pass sent by email." ·
+- Admin messages: "Pass sent by email." · "Pass queued for Viber." (Sinch only queues it; a
+  later failure comes through the webhook) · "Viber failed; pass sent by email as a fallback." ·
   "Pass sent (channels are disabled)." · "Email could not be sent; retrying in 5 minutes." ·
   "Pass could not be sent by any channel."
 - A meeting cancel also reaches mobile-channel registrants by text.

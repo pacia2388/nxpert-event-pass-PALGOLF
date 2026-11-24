@@ -92,7 +92,7 @@ Every P case also checks `PassEmailSentAt`: stamped when something was delivered
 | M28 | Organizer Viber broadcast | `POST /api/events/{id}/viber-broadcast` | Viber Send | V "broadcast"; sent 1 |
 | M29 | Broadcast, Viber fails, fallback toggle off | same | Viber **Fail** | nothing; failed 1, "could not be sent" message |
 | M30 | Broadcast, Viber off, toggle off | same | Viber **Off** | nothing; failed 1 |
-| M31 | Broadcast, Viber fails, **toggle on** | same | Viber **Fail** | ✉ (subject = event title); emailed 1; "Message emailed to 1 registrant instead." |
+| M31 | Broadcast, Viber fails, **toggle on** | same | Viber **Fail** | ✉ (subject = event title); emailed 1; "Message sent by email to 1 registrant as a fallback." |
 | M32 | Broadcast, +63 not enabled for Viber, toggle off | same | unlisted for Viber | nothing (Viber not tried); failed 1 |
 | M33 | Broadcast, +63 not enabled for Viber, **toggle on** | same | unlisted for Viber | ✉; emailed 1 |
 

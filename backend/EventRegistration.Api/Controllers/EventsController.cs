@@ -760,8 +760,9 @@ public class EventsController : ControllerBase
         string Numbers(int n) => $"{n} Viber number{(n == 1 ? "" : "s")}";
         var reached = sent + emailed.Count;
         var parts = new List<string>();
-        if (sent > 0) parts.Add($"sent to {Numbers(sent)}");
-        if (emailed.Count > 0) parts.Add($"emailed to {emailed.Count} registrant{(emailed.Count == 1 ? "" : "s")} instead");
+        // Sinch only queues a Viber message; a later delivery failure is reported by its webhook.
+        if (sent > 0) parts.Add($"queued for {Numbers(sent)}");
+        if (emailed.Count > 0) parts.Add($"sent by email to {emailed.Count} registrant{(emailed.Count == 1 ? "" : "s")} as a fallback");
         var text = reached == 0
             ? $"Message could not be sent to any of the {Numbers(failed)}. Check the Viber setup and try again, or tick Fallback to email."
             : "Message " + string.Join(", ", parts) + (failed > 0 ? $"; {failed} could not be reached." : ".");

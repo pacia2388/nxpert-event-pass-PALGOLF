@@ -20,15 +20,20 @@ public sealed record PassDelivery(IReadOnlyList<string> Channels, string? FellBa
 
     private const string Retrying = "Email could not be sent; retrying in 5 minutes.";
 
-    /// <summary>The admin-facing result, e.g. "Viber failed; pass sent by email."</summary>
+    /// <summary>The admin-facing result, e.g. "Viber failed; pass sent by email as a fallback."</summary>
     public string Message
     {
         get
         {
             if (!Sent) return EmailRetryQueued ? Retrying : "Pass could not be sent by any channel.";
             if (ChannelsOff) return "Pass sent (channels are disabled).";
-            var sentBy = $"pass sent by {string.Join(" and ", Channels)}.";
-            var text = FellBackFrom is null ? char.ToUpperInvariant(sentBy[0]) + sentBy[1..] : $"{FellBackFrom} failed; {sentBy}";
+            // Sinch only queues a Viber message; whether it arrived is reported later (webhook).
+            var others = Channels.Where(c => c != "Viber").ToList();
+            var how = new List<string>();
+            if (others.Count < Channels.Count) how.Add("queued for Viber");
+            if (others.Count > 0) how.Add($"sent by {string.Join(" and ", others)}");
+            var sentBy = $"pass {string.Join(" and ", how)}.";
+            var text = FellBackFrom is null ? char.ToUpperInvariant(sentBy[0]) + sentBy[1..] : $"{FellBackFrom} failed; {sentBy[..^1]} as a fallback.";
             return EmailRetryQueued ? $"{text} {Retrying}" : text;
         }
     }
