@@ -70,8 +70,6 @@ export default defineConfig({
         Sms__Enabled: 'false',
         App__FrontendBaseUrl: WEB_URL,
         App__RequireEmailVerification: 'false',
-        // A theme.json no test writes: a developer's local one must not change the look under test.
-        Theme__Path: 'theme.e2e.json',
         // Off as in Development: a user without Event Log rights gets every warning as a dropped request.
         Logging__EventLog__LogLevel__Default: 'None',
       },

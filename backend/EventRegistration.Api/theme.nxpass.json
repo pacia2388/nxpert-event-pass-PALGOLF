@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "base": "NXPass",
+  "appName": "NXPass",
+  "footerText": "Powered by @NOW — NXPERT OFFICE WORKSPACE",
+  "colors": {
+    "primary": "#0d9488",
+    "primaryDeep": "#0f766e",
+    "primaryContainer": "#ccf2ec",
+    "onPrimaryContainer": "#064e46",
+    "secondaryContainer": "#e6f6f3",
+    "onSecondaryContainer": "#0f766e",
+    "tertiary": "#16a34a",
+    "navy": "#064e46",
+    "navyMid": "#0f766e",
+    "sky": "#0d9488",
+    "accent": "#3dbb8a",
+    "gold": "#7dd36a",
+    "ink": "#0f172a",
+    "inkSoft": "#475569",
+    "line": "#cfe3dd",
+    "appBackground": "#f1f7f4",
+    "surfaceLow": "#f8fbfa",
+    "surfaceHigh": "#f1f6f4",
+    "surfaceHighest": "#e8efec",
+    "tint": "#e6f6f3",
+    "tintSoft": "#f3fbf8",
+    "browserBar": "#0d9488"
+  },
+  "gradients": {
+    "brand": "linear-gradient(135deg, #0d9488 0%, #22c55e 100%)",
+    "brandSoft": "linear-gradient(135deg, #e6f7f4 0%, #eafaf0 100%)",
+    "header": "linear-gradient(90deg, #0d9488 0%, #3dbb8a 55%, #7dd36a 100%)",
+    "progress": "linear-gradient(90deg, #0d9488, #3dbb8a 55%, #7dd36a)",
+    "button": "linear-gradient(135deg, #0d9488 0%, #22b07d 100%)"
+  },
+  "fonts": {
+    "display": "'Roboto', sans-serif",
+    "stylesheet": null
+  },
+  "layout": {
+    "buttons": "gradient",
+    "footer": "glass",
+    "authBackground": "glow",
+    "loginImage": "logo"
+  },
+  "logos": {
+    "favicon": "themes/nxpass/favicon.ico",
+    "tabIcon": "themes/nxpass/tab-192.png",
+    "appleTouchIcon": "themes/nxpass/tab-192.png",
+    "header": null,
+    "loginImage": "themes/nxpass/logo.png"
+  },
+  "login": {
+    "imageAlt": "NXPass logo",
+    "title": "NXPass",
+    "lines": [
+      "Events, check-ins and passes, all in one place."
+    ],
+    "caption": "Event Management"
+  }
+}

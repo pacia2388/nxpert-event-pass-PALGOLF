@@ -2,22 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>PAL GOLF</title>
-    <!-- Names the tab with the last theme's app name until /api/theme answers (core/theme.ts) -->
-    <script>
-      try {
-        document.title = localStorage.getItem('evt_app_name') || document.title;
-      } catch {}
-    </script>
+    <title></title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- ?v= busts browser + service-worker favicon caches; bump it whenever the icon changes -->
-    <link rel="icon" type="image/x-icon" href="favicon.ico?v=3" />
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/tab-192.png?v=3" />
+    <!-- No look here: name, icons, browser bar and font all come from the theme file
+         (theme.*.json; core/theme.ts). "data:," keeps the browser from showing any icon until then. -->
+    <link rel="icon" type="image/x-icon" href="data:," />
+    <link rel="icon" type="image/png" sizes="192x192" href="data:," />
     <link rel="manifest" href="manifest.webmanifest" />
-    <meta name="theme-color" content="#051f63" />
+    <meta name="theme-color" content="" />
     <!-- Installable PWA: iOS uses these (it ignores the manifest icons / SVG) -->
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="data:," />
+    <!-- A returning visitor gets the last theme's name, icons and bar colour at once (core/theme.ts) -->
+    <script>
+      try {
+        document.title = localStorage.getItem('evt_app_name') || '';
+        var h = JSON.parse(localStorage.getItem('evt_theme_head') || 'null');
+        if (h) {
+          document.querySelector('link[type="image/x-icon"]').href = h.favicon;
+          document.querySelector('link[sizes="192x192"]').href = h.tabIcon;
+          document.querySelector('link[rel="apple-touch-icon"]').href = h.appleTouchIcon;
+          document.querySelector('meta[name="theme-color"]').content = h.browserBar;
+        }
+      } catch {}
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -25,7 +33,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&family=Montserrat:wght@600;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />

@@ -154,30 +154,6 @@
           <mat-icon>add</mat-icon> Add
         </button>
       </div>
-
-      <section data-testid="theme-section">
-        <h2 class="section-title theme-head">Theme</h2>
-        <p class="theme-current">
-          <mat-icon color="primary">palette</mat-icon>
-          <span
-            ><strong>{{ theme.name }}</strong
-            ><span class="muted"> ({{ themeSource }})</span></span
-          >
-        </p>
-        <p class="muted section-sub">
-          The look is set by <code>theme.json</code> in the API site folder. Publishing never
-          replaces it: add or edit it on the server after deploying. Download the template, keep the
-          keys you want to change, and save it there as <code>theme.json</code>.
-        </p>
-        <button
-          mat-stroked-button
-          type="button"
-          data-testid="theme-template"
-          (click)="downloadThemeTemplate()"
-        >
-          <mat-icon>download</mat-icon> Download theme template
-        </button>
-      </section>
     </mat-card-content>
 
     <mat-card-actions align="end">

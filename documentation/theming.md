@@ -2,89 +2,98 @@
 
 One build can wear either of two looks:
 
-| Theme | Look |
-|-------|------|
-| **PALGOLF** (default) | Navy/blue PAL Interclub look: tournament poster on the login page, solid buttons and footer |
-| **NXPass** | The original teal/green NXPass look: green "N" logo on the login page, gradient buttons, glass footer, soft glow behind sign-in pages, app name "NXPass" |
+| Theme | File | Look |
+|-------|------|------|
+| **PALGOLF** (default) | `theme.palgolf.json` | Navy/blue PAL Interclub look: tournament poster on the login page, Montserrat headings, solid buttons and footer |
+| **NXPass** | `theme.nxpass.json` | The original teal/green NXPass look: green "N" logo on the login page, gradient buttons, glass footer, soft glow behind sign-in pages, app name "NXPass" |
 
-The theme covers the web app's colours, fonts, logos, tab icon, browser bar colour, login image
-and its words, header logo, the app name and footer text, emails, the pass page and the voucher
-image. The PWA manifest and the `PALGOLF-` voucher code prefix do not change.
+The theme covers the web app's colours, fonts (and the stylesheet that loads them), favicon, tab
+icon, home-screen icon (iPhone), browser bar colour, login image and its words, header logo, the
+app name and footer text, emails, the pass page and the voucher image. The PWA manifest icons and
+the `PALGOLF-` voucher code prefix do not change.
 
 Emails are sent under the app's name (the theme's `appName`, else `App:Name`) unless
 `Email:FromName` is set in the API config.
 
 ## How to set the theme
 
-The theme is set by one file, `theme.json`, beside the API. It is not changed in the app.
+Each side ships both theme files and names the one to use with the same key, `"theme"`, in its
+own settings. **Set both to the same file.**
 
-| You want | Put in `theme.json` |
-|----------|---------------------|
-| **PALGOLF** (new look) | Nothing: delete the file. Or `{ "base": "PALGOLF" }` |
-| **NXPass** (old look) | `{ "base": "NXPass" }` |
-| Either look with changes | `base` plus only the keys to change (see [Format](#format-version-1)) |
+| Side | Files | Setting |
+|------|-------|---------|
+| Web app (App site) | `theme.palgolf.json`, `theme.nxpass.json` beside `index.html` (source `frontend/web/public/`) | `"theme"` in `appSettings.json`, e.g. `"theme": "theme.nxpass.json"` |
+| API | `theme.palgolf.json`, `theme.nxpass.json` beside `EventRegistration.Api.dll` (source `backend/EventRegistration.Api/`) | `"theme"` in `appsettings.json` / `appsettings.Production.json`, e.g. `"theme": "theme.nxpass.json"` |
+
+The web app reads its theme file from its own site, never from the API, so a slow or busy API can't
+delay or change the look. The API uses its file for emails, the pass page and meal stubs.
 
 ### On a server (IIS)
 
-1. Open the API site folder, the one with `EventRegistration.Api.dll` (for example
-   `C:\inetpub\wwwroot\PalGolf_API`).
-2. Create or edit `theme.json` there with one of the contents above, saved as UTF-8.
-3. Reload the web app in the browser. No restart, rebuild or republish.
+1. In the App site folder, edit `appSettings.json`: `"theme": "theme.nxpass.json"` (or
+   `theme.palgolf.json`).
+2. In the API site folder, set `"theme"` in `appsettings.Production.json` to the same file name.
+3. Recycle the API app pool (the API reads `theme` at start-up), then reload the web app in
+   the browser. No rebuild or republish. Edits inside a theme file apply on the next request.
 
-Do this once per server: publishing never adds or replaces `theme.json`, so later deploys keep it.
+A new frontend build overwrites `appSettings.json` with the dev values: keep the server copy and
+restore it after each deploy (see [deployment.md](deployment.md)).
 
 ### In development
 
-1. Create or edit `backend/EventRegistration.Api/theme.json` in the checkout whose API you run
-   (git ignores it).
-2. Reload `http://localhost:4200`. The API reads the file again on the next request: no restart.
-
-If the page loads while the API is still starting, it shows PALGOLF; reload once the API is up.
+Edit `frontend/web/public/appSettings.json` (`theme`) and the API's `theme` (for a local-only
+change, put it in `appsettings.Development.Local.json`). Reload `http://localhost:4200`.
 
 ### Check which theme is on
 
-- Sign in as admin and open **Settings → Theme**: it shows the theme name and whether it comes
-  from "theme.json on the server" or is the default.
-- Or open `<API URL>/api/theme` (for example `http://localhost:5088/api/theme`) and read `name`.
+- `<App URL>/appSettings.json` shows the web app's `theme` file.
+- `<API URL>/api/theme` (for example `http://localhost:5088/api/theme`) shows the API's theme
+  (`name`), the one emails use.
 
 A value the API refuses is skipped (the base value stays) and logged as a warning in the API log.
 
 ## Where the theme comes from
 
-- A file named **`theme.json` in the API site folder** (beside `EventRegistration.Api.dll`).
-  Another path can be set with `Theme:Path` (relative to the API folder).
-- **Publishing never outputs it** (`CopyToPublishDirectory="Never"` in the `.csproj`), so a redeploy
-  keeps the server's copy. A developer adds it by hand after the first publish.
-- **No file = PALGOLF.** A file that is not valid JSON also gives PALGOLF (logged as a warning).
-- An edit applies on the next request; no restart. Browsers pick it up on their next page load.
-- The API serves the resolved theme at **`GET /api/theme`** (public). The web app reads it before it
-  starts, so the page never flashes the wrong look. If the API can't be reached, the web app stays
-  on PALGOLF.
-- The browser remembers the last theme's app name, so on a reload the tab shows it straight away
-  instead of the default name. Only a browser's very first visit shows "PAL GOLF" until the theme
-  arrives.
+- **Web app:** the file `appSettings.json` names (`theme`), fetched before the app starts. A missing
+  key, a missing file or a file that is not JSON gives PALGOLF (logged in the browser console). A
+  key the file leaves out keeps its PALGOLF value.
+- **API:** the file its `theme` setting names (relative to the API folder; default
+  `theme.palgolf.json`). No file or bad JSON = PALGOLF (logged as a warning). An edit applies on the
+  next request.
+- **Both theme files are published** (they are the shipped looks), so a deploy refreshes them. For
+  your own look use a new file name (below): a deploy never adds or removes it.
+- `index.html` carries no look: until the theme file is read, the tab has no icon or name (never
+  PALGOLF's). The browser remembers the last theme's app name, icons and bar colour, so on a
+  reload they show straight away; only a browser's very first visit waits for the theme file.
 
-`backend/EventRegistration.Api/theme.json` is git-ignored, so each developer can switch looks
-locally without committing it.
+## Theme images
 
-## The template
+Each theme's images live in its own folder of the web app:
 
-Admins download it from **Settings → Theme → Download theme template** (`GET
-/api/settings/theme-template`, admin only). It is the whole PALGOLF theme with every key filled in.
-Saved unchanged as `theme.json`, it gives exactly the default look.
+| Folder | Files |
+|--------|-------|
+| `themes/palgolf/` | `favicon.ico`, `tab-192.png`, `apple-touch-icon.png`, `login-poster.jpg` |
+| `themes/nxpass/` | `favicon.ico`, `tab-192.png` (also its home-screen icon), `logo.png` |
+
+The PWA install icons stay in `icons/` (the manifest is not themed).
+
+## A custom look
+
+1. Copy `theme.palgolf.json` or `theme.nxpass.json` (every key filled in).
+2. Change the keys you want and save it under a new name, e.g.
+   `theme.custom.json`, in **both** the App site folder and the API site folder. Put custom images
+   in the App site, e.g. `themes/custom/`.
+3. Point `"theme"` in both (web app and API) at it.
+
+Publishing never outputs or deletes a file it does not ship, so `theme.custom.json` survives
+redeploys. Custom images in the App site do not: a new frontend build replaces that folder, so
+keep a copy and restore them after each deploy, as with `appSettings.json`.
 
 ## Format (version 1)
 
-`base` picks a built-in theme; every other key is optional and overrides one value of it. Delete
-any key to keep the base value.
-
-The smallest file:
-
-```json
-{ "base": "NXPass" }
-```
-
-A customised one:
+`base` picks a built-in theme; every other key overrides one value of it. The shipped files list
+every key. Delete a key to keep the base value (the web app then uses the PALGOLF value, so keep
+custom files complete).
 
 ```json
 {
@@ -92,7 +101,7 @@ A customised one:
   "base": "NXPass",
   "appName": "Demo Cup",
   "colors": { "primary": "#aa3300" },
-  "logos": { "header": "brand/demo-logo.png" },
+  "logos": { "header": "themes/custom/logo.png" },
   "login": { "lines": ["Feb 1, 2027"] }
 }
 ```
@@ -101,54 +110,43 @@ A customised one:
 |-----|--------|
 | `base` | `PALGOLF` \| `NXPass` (case ignored). Anything else → PALGOLF |
 | `version` | `1` |
-| `appName`, `footerText` | Text, 1–200 characters, or `null`. `null` (or left out of a PALGOLF file) keeps the name from `appSettings.json` (web) and `App:Name` (API) |
+| `appName`, `footerText` | Text, 1–200 characters, or `null`. `null` (or left out) keeps the name from `appSettings.json` (web) and `App:Name` (API) |
 | `colors.*` | `#rgb` or `#rrggbb`. Keys: `primary`, `primaryDeep`, `primaryContainer`, `onPrimaryContainer`, `secondaryContainer`, `onSecondaryContainer`, `tertiary`, `navy`, `navyMid`, `sky`, `accent`, `gold`, `ink`, `inkSoft`, `line`, `appBackground`, `surfaceLow`, `surfaceHigh`, `surfaceHighest`, `tint`, `tintSoft`, `browserBar` |
 | `gradients.*` | `linear-gradient(…)` or `radial-gradient(…)` of colours. Keys: `brand`, `brandSoft`, `header`, `progress`, `button` |
-| `fonts.display` | A font list, e.g. `'Montserrat', 'Roboto', sans-serif` (the font must already be loaded by the web app) |
+| `fonts.display` | A font list, e.g. `'Montserrat', 'Roboto', sans-serif` |
+| `fonts.stylesheet` | An `https://` stylesheet that loads the display font (e.g. a Google Fonts URL), or `null` when the font is already loaded (Roboto always is) |
 | `layout.buttons` | `solid` \| `gradient` |
 | `layout.footer` | `solid` \| `glass` |
 | `layout.authBackground` | `gradient` \| `glow` (sign-in, sign-up and similar pages) |
 | `layout.loginImage` | `poster` (the image fills the login panel; its words are read by screen readers and shown on phones) \| `logo` (the image is centred on a light panel with the title, lines and caption shown under it) |
-| `logos.favicon`, `logos.tabIcon`, `logos.loginImage` | A path on the web app (e.g. `brand/logo.png`) or an `https://` URL |
+| `logos.favicon`, `logos.tabIcon`, `logos.appleTouchIcon`, `logos.loginImage` | A path on the web app (e.g. `themes/custom/logo.png`) or an `https://` URL |
 | `logos.header` | Same, or `null` for the square badge in the header. Also shown at the top of emails |
 | `login.imageAlt`, `login.title`, `login.caption` | Text, 1–200 characters |
 | `login.lines` | Up to 6 texts. `Label: value` lines show the label in bold |
 
-Logo paths are relative to the **web app** site, so custom images go in the App site folder (for
-example `C:\inetpub\…\App\brand\demo-logo.png`). A new frontend build replaces that folder: keep a
-copy of custom images and restore them after each deploy, as with `appSettings.json`.
-
 ## Validation
 
 The API checks every value; a value that fails is dropped (the base value stays) and a warning is
-logged. A theme problem never stops the app.
+logged. A theme problem never stops the app. The web app trusts its theme file as it trusts
+`appSettings.json` (both are served by the App site); keep the two copies identical.
 
 - Colours: `#rgb` or `#rrggbb` only (no transparency): the meal-stub image and email clients read
   nothing else reliably.
 - Gradients: only colours, numbers, `%`, `deg` and commas inside `linear-`/`radial-gradient()`; no
   `url`, `image` or `expression`; ≤ 500 characters.
-- Fonts: letters, digits, spaces, quotes, commas and hyphens only.
+- Fonts: letters, digits, spaces, quotes, commas and hyphens only. Stylesheet: `https://` only.
 - Paths: letters, digits and `._~-/?=&%`; no `..`, no `//` at the start; or an `https://` URL.
 - Text: trimmed, 1–200 characters, no control characters.
 - Unknown keys are ignored with a warning.
-
-## Deploying
-
-1. Publish as usual (see [deployment.md](deployment.md)); `theme.json` is not in the output.
-2. First deploy only: download the template from **Settings → Theme**, keep the keys you want, and
-   save it as `theme.json` in the API site folder. For the old look, `{ "base": "NXPass" }` is
-   enough.
-3. Reload the web app. **Settings → Theme** shows the theme name and "theme.json on the server".
-
-To go back to PALGOLF, delete `theme.json` (or set `"base": "PALGOLF"`).
 
 ## Where it lives in the code
 
 | Part | File |
 |------|------|
-| Built-in themes | `backend/EventRegistration.Api/Services/Theming/BuiltInThemes.cs` |
+| Theme files | `backend/EventRegistration.Api/theme.*.json`, `frontend/web/public/theme.*.json` (identical; `ThemeTests` checks it) |
+| Built-in themes (API fallback and base values) | `backend/EventRegistration.Api/Services/Theming/BuiltInThemes.cs` |
 | Reading and checking the file | `Services/Theming/ThemeResolver.cs`, `ThemeStore.cs` |
-| Endpoints | `Controllers/ThemeController.cs`, `SettingsController.cs` (`theme-template`) |
+| Endpoint | `Controllers/ThemeController.cs` (`GET /api/theme`) |
 | Emails, pass page, meal stubs | `Services/EmailTemplates.cs`, `MailPlanDispatcher.cs`, `PassService.cs`, `Controllers/PassesController.cs` |
 | Web app | `frontend/web/src/app/core/theme.ts` (loads and applies), `src/styles.scss` (tokens and layout variants) |
-| NXPass icons | `frontend/web/public/themes/nxpass/` |
+| Theme images | `frontend/web/public/themes/palgolf/`, `frontend/web/public/themes/nxpass/` |

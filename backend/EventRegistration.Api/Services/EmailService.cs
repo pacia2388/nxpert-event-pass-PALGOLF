@@ -12,7 +12,7 @@ public class EmailSettings
     public int Port { get; set; } = 587;
     public string User { get; set; } = "";
     public string Password { get; set; } = "";
-    // Blank (the default): the app's name, so it follows theme.json's appName.
+    // Blank (the default): the app's name, so it follows the theme file's appName.
     public string FromName { get; set; } = "";
     public string FromAddress { get; set; } = "";
     // Tests only (ignored in Production): write messages to this folder instead of sending them.

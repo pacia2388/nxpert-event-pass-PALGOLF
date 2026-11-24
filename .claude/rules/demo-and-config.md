@@ -15,8 +15,9 @@ Source: `run-local-demo` skill.
   without a restart; empty `Items` = no categories).
 - Menus can be switched off for everyone in `frontend/web/public/menu.json` (read at runtime, no
   rebuild; see `documentation/menu-config.md`).
-- Switch the look locally with `backend/EventRegistration.Api/theme.json` (git-ignored):
-  `{ "base": "NXPass" }` or delete it for PALGOLF; reload the page, no restart.
+- Switch the look with `"theme"` in `frontend/web/public/appSettings.json` and `"theme"` in the
+  API config (locally: `appsettings.Development.Local.json`): `theme.nxpass.json` or
+  `theme.palgolf.json`, both the same. Restart the API after changing its `theme`.
 - Email verification stays **off** for demos (`App:RequireEmailVerification: false`).
 - Prerequisites: .NET SDK 10, Node 20+, SQL Server LocalDB (`sqllocaldb info` lists
   `MSSQLLocalDB`).

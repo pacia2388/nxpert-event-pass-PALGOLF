@@ -32,9 +32,10 @@ builder.Services.AddSingleton<CategoryCatalog>();
 
 // The name on what the API sends out; blank keeps the built-in one.
 Branding.AppName = builder.Configuration["App:Name"] ?? "";
-// The look: theme.json beside the API (never published; no file = PALGOLF). See documentation/theming.md.
+// The look: the theme file "theme" names (same key as the web app's appSettings.json) (theme.palgolf.json or theme.nxpass.json; missing = PALGOLF).
+// See documentation/theming.md.
 ThemeStore.WebBaseUrl = builder.Configuration["App:FrontendBaseUrl"] ?? ThemeStore.WebBaseUrl;
-ThemeStore.FilePath = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Theme:Path"] ?? "theme.json");
+ThemeStore.FilePath = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["theme"] ?? "theme.palgolf.json");
 
 var emailSettings = builder.Configuration.GetSection("Email").Get<EmailSettings>() ?? new EmailSettings();
 builder.Services.AddSingleton(emailSettings);

@@ -5,11 +5,11 @@ using System.Text.RegularExpressions;
 
 namespace EventRegistration.Api.Services.Theming;
 
-/// <param name="Customised">True when the file changed anything beyond picking its base.</param>
+/// <param name="Customised">True when the file changes a value of its base.</param>
 public sealed record ResolvedTheme(ThemeDefinition Theme, bool Customised, IReadOnlyList<string> Warnings);
 
 /// <summary>
-/// Turns a theme.json into a full theme: <c>base</c> picks a built-in theme and every other key
+/// Turns a theme file into a full theme: <c>base</c> picks a built-in theme and every other key
 /// overrides one value of it. Invalid values are dropped with a warning; nothing here ever throws,
 /// so a broken file can never stop the app (it falls back to PALGOLF).
 /// </summary>
@@ -28,7 +28,7 @@ public static partial class ThemeResolver
         AllowTrailingCommas = true,
     };
 
-    private enum Kind { Color, Gradient, Font, Path, NullablePath, Text, TextList, Choice }
+    private enum Kind { Color, Gradient, Font, Stylesheet, Path, NullablePath, Text, TextList, Choice }
 
     private sealed record Field(Kind Kind, params string[] Choices);
 
@@ -40,7 +40,7 @@ public static partial class ThemeResolver
     {
         ["colors"] = All(Kind.Color, BuiltInThemes.PalGolf, o => o["colors"]),
         ["gradients"] = All(Kind.Gradient, BuiltInThemes.PalGolf, o => o["gradients"]),
-        ["fonts"] = new() { ["display"] = new(Kind.Font) },
+        ["fonts"] = new() { ["display"] = new(Kind.Font), ["stylesheet"] = new(Kind.Stylesheet) },
         ["layout"] = new()
         {
             ["buttons"] = new(Kind.Choice, "solid", "gradient"),
@@ -52,6 +52,7 @@ public static partial class ThemeResolver
         {
             ["favicon"] = new(Kind.Path),
             ["tabIcon"] = new(Kind.Path),
+            ["appleTouchIcon"] = new(Kind.Path),
             ["header"] = new(Kind.NullablePath),
             ["loginImage"] = new(Kind.Path),
         },
@@ -69,22 +70,6 @@ public static partial class ThemeResolver
 
     public const int MaxText = 200;
     public const int MaxLines = 6;
-
-    /// <summary>
-    /// The downloadable theme.json template: the whole PALGOLF theme, every key filled in, with a
-    /// pointer to the docs. Saved unchanged as theme.json, it gives exactly the default look.
-    /// </summary>
-    public static string Template()
-    {
-        var template = new JsonObject
-        {
-            ["$help"] = "Save as theme.json in the API site folder (it is never published). \"base\" is PALGOLF or NXPass; "
-                + "delete any key to keep the base value. Logo paths are relative to the web app. See documentation/theming.md.",
-        };
-        foreach (var (key, value) in JsonSerializer.SerializeToNode(BuiltInThemes.PalGolf, Json)!.AsObject())
-            template[key] = value?.DeepClone();
-        return template.ToJsonString(Json);
-    }
 
     public static ResolvedTheme Resolve(string? json)
     {
@@ -128,8 +113,9 @@ public static partial class ThemeResolver
             {
                 if (value is null || TryText(value, out _))
                 {
-                    merged[key] = value is null ? null : JsonValue.Create(Text(value));
-                    customised = true;
+                    JsonNode? text = value is null ? null : JsonValue.Create(Text(value));
+                    customised |= !JsonNode.DeepEquals(merged[key], text);
+                    merged[key] = text;
                 }
                 else warnings.Add($"{key} must be text of 1–{MaxText} characters; ignored.");
                 continue;
@@ -154,8 +140,9 @@ public static partial class ThemeResolver
                 }
                 if (TryValue(field, item, out var clean))
                 {
+                    // A full theme file repeats its base: only a different value counts as a change.
+                    customised |= !JsonNode.DeepEquals(target[name], clean);
                     target[name] = clean;
-                    customised = true;
                 }
                 else warnings.Add($"{key}.{name}: {Describe(field)}; ignored.");
             }
@@ -168,7 +155,7 @@ public static partial class ThemeResolver
     private static bool TryValue(Field field, JsonNode? node, out JsonNode? clean)
     {
         clean = null;
-        if (node is null) return field.Kind == Kind.NullablePath;
+        if (node is null) return field.Kind is Kind.NullablePath or Kind.Stylesheet;
         if (field.Kind == Kind.TextList)
         {
             if (node is not JsonArray items || items.Count > MaxLines || !items.All(i => i is not null && TryText(i, out _)))
@@ -183,6 +170,7 @@ public static partial class ThemeResolver
             Kind.Color when HexColor().IsMatch(s) => s.ToLowerInvariant(),
             Kind.Gradient when s.Length <= 500 && GradientPattern().IsMatch(s) && !Forbidden(s) => s,
             Kind.Font when FontPattern().IsMatch(s) => s,
+            Kind.Stylesheet when s.Length <= 500 && StylesheetUrl().IsMatch(s) => s,
             Kind.Path or Kind.NullablePath when IsSafePath(s) => s,
             Kind.Text when TryText(node, out _) => s,
             Kind.Choice => field.Choices.FirstOrDefault(c => string.Equals(c, s, StringComparison.OrdinalIgnoreCase)),
@@ -217,6 +205,7 @@ public static partial class ThemeResolver
         Kind.Color => "must be a #rgb or #rrggbb colour",
         Kind.Gradient => "must be a linear-gradient() or radial-gradient() of colours",
         Kind.Font => "must be a font list of letters, digits, spaces, quotes, commas and hyphens",
+        Kind.Stylesheet => "must be an https:// stylesheet URL (e.g. Google Fonts) or null",
         Kind.Path or Kind.NullablePath => "must be a path on the web app (e.g. brand/logo.png) or an https URL",
         Kind.Text => $"must be text of 1–{MaxText} characters",
         Kind.TextList => $"must be a list of at most {MaxLines} texts of 1–{MaxText} characters",
@@ -233,6 +222,10 @@ public static partial class ThemeResolver
 
     [GeneratedRegex(@"^[A-Za-z0-9 ,'""-]{1,200}$")]
     private static partial Regex FontPattern();
+
+    // Google Fonts URLs carry ":", "@" and ";" (family=Montserrat:wght@600;800).
+    [GeneratedRegex(@"^https://[A-Za-z0-9._~\-/?=&%:@;+,]+$")]
+    private static partial Regex StylesheetUrl();
 
     [GeneratedRegex(@"^(?:https://[A-Za-z0-9._~\-/?=&%:]+|[A-Za-z0-9._~\-/?=&%]+)$")]
     private static partial Regex SafePath();

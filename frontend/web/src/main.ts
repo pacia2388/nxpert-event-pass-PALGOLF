@@ -5,7 +5,7 @@ import { loadAppSettings, loadMenus } from './app/core/config';
 import { loadTheme } from './app/core/theme';
 
 Promise.all([loadAppSettings(), loadMenus()])
-  // The look comes from the API (theme.json); it never blocks start-up.
+  // The look: the theme file appSettings.json names (never the API); it never blocks start-up.
   .then(loadTheme)
   .then(() => bootstrapApplication(App, appConfig))
   .catch((err) => {

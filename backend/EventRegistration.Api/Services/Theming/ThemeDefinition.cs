@@ -2,7 +2,7 @@ namespace EventRegistration.Api.Services.Theming;
 
 /// <summary>
 /// A look for the app: colours, gradients, fonts, layout variants, logos and the login poster
-/// caption. Serialized camelCase, this is also the theme.json format (see documentation/theming.md).
+/// caption. Serialized camelCase, this is also the theme file format (see documentation/theming.md).
 /// </summary>
 public sealed class ThemeDefinition
 {
@@ -61,6 +61,8 @@ public sealed class ThemeGradients
 public sealed class ThemeFonts
 {
     public string Display { get; init; } = "";
+    /// <summary>An https stylesheet the web app loads for the display font (e.g. Google Fonts); null loads none.</summary>
+    public string? Stylesheet { get; init; }
 }
 
 public sealed class ThemeLayout
@@ -83,6 +85,8 @@ public sealed class ThemeLogos
 {
     public string Favicon { get; init; } = "";
     public string TabIcon { get; init; } = "";
+    /// <summary>The home-screen icon iPhones use when the app is added to the home screen.</summary>
+    public string AppleTouchIcon { get; init; } = "";
     /// <summary>Header logo; null shows the built-in badge icon.</summary>
     public string? Header { get; init; }
     public string LoginImage { get; init; } = "";

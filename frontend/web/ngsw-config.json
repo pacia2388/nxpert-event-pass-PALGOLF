@@ -8,7 +8,6 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/favicon.ico",
           "/index.html",
           "/manifest.webmanifest",
           "/*.css",
@@ -24,7 +23,7 @@
         "files": [
           "/media/**",
           "/icons/**",
-          "/brand/**",
+          "/themes/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }
@@ -44,11 +43,12 @@
     {
       "name": "app-settings",
       "urls": [
-        "/appSettings.json"
+        "/appSettings.json",
+        "/theme.*.json"
       ],
       "cacheConfig": {
         "strategy": "freshness",
-        "maxSize": 1,
+        "maxSize": 3,
         "maxAge": "365d",
         "timeout": "3s"
       }

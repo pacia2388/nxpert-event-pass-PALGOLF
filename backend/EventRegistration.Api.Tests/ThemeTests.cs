@@ -4,8 +4,8 @@ using System.Text.Json;
 
 namespace EventRegistration.Api.Tests;
 
-// The look a deployment wears comes from theme.json beside the API (never published). The API
-// resolves it and hands it to the web app at GET /api/theme.
+// The look a deployment wears comes from the theme file the "theme" setting names (theme.palgolf.json or
+// theme.nxpass.json). The web app ships the same files and reads its own copy.
 [Collection("api")]
 public class ThemeTests(ApiFixture api) : IAsyncLifetime
 {
@@ -41,7 +41,7 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("PALGOLF", Str(theme, "name"));
         Assert.Equal("default", Str(theme, "source"));
         Assert.Equal("#0f5fb8", Str(theme, "colors", "primary"));
-        Assert.Equal("brand/pal-interclub-2027-poster.jpg", Str(theme, "logos", "loginImage"));
+        Assert.Equal("themes/palgolf/login-poster.jpg", Str(theme, "logos", "loginImage"));
         Assert.Equal("poster", Str(theme, "layout", "loginImage"));
     }
 
@@ -57,7 +57,7 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("#0d9488", Str(theme, "colors", "primary"));
         Assert.Equal("NXPass", Str(theme, "appName"));
         Assert.Equal("themes/nxpass/favicon.ico", Str(theme, "logos", "favicon"));
-        Assert.Equal("nxpax-logo.png", Str(theme, "logos", "loginImage"));
+        Assert.Equal("themes/nxpass/logo.png", Str(theme, "logos", "loginImage"));
         Assert.Equal("gradient", Str(theme, "layout", "buttons"));
         Assert.Equal("glass", Str(theme, "layout", "footer"));
         Assert.Equal("logo", Str(theme, "layout", "loginImage"));
@@ -112,8 +112,8 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("gradient", Str(theme, "layout", "buttons"));
         Assert.Equal("logo", Str(theme, "layout", "loginImage"));
         Assert.Equal("themes/nxpass/favicon.ico", Str(theme, "logos", "favicon"));
-        Assert.Equal("themes/nxpass/icon-192.png", Str(theme, "logos", "tabIcon"));
-        Assert.Equal("nxpax-logo.png", Str(theme, "logos", "loginImage"));
+        Assert.Equal("themes/nxpass/tab-192.png", Str(theme, "logos", "tabIcon"));
+        Assert.Equal("themes/nxpass/logo.png", Str(theme, "logos", "loginImage"));
         Assert.Equal("NXPass", Str(theme, "appName"));
     }
 
@@ -141,43 +141,24 @@ public class ThemeTests(ApiFixture api) : IAsyncLifetime
         Assert.Equal("Changed", Str(theme, "appName"));
     }
 
-    [Fact]
-    public async Task Only_admins_can_download_the_theme_template()
+    [Theory]
+    [InlineData("theme.palgolf.json", "PALGOLF")]
+    [InlineData("theme.nxpass.json", "NXPass")]
+    public void The_shipped_theme_files_are_the_built_in_looks_and_the_web_app_has_the_same_copy(string file, string name)
     {
-        var admin = await api.AdminAsync();
-        var participant = await api.CreateUserAsync(admin, "Participant");
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (!Directory.Exists(Path.Combine(root.FullName, "frontend"))) root = root.Parent!;
+        var apiCopy = File.ReadAllText(Path.Combine(root.FullName, "backend", "EventRegistration.Api", file));
+        var webCopy = File.ReadAllText(Path.Combine(root.FullName, "frontend", "web", "public", file));
 
-        Assert.Equal(HttpStatusCode.Unauthorized,
-            (await api.Anonymous().GetAsync("/api/settings/theme-template")).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden,
-            (await (await api.SignInAsync(participant.Email, ApiFixture.UserPassword)).GetAsync("/api/settings/theme-template")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync("/api/settings/theme-template")).StatusCode);
-    }
+        var resolved = EventRegistration.Api.Services.Theming.ThemeResolver.Resolve(apiCopy);
 
-    [Fact]
-    public async Task The_template_is_a_complete_PALGOLF_theme_file_that_reads_back_unchanged()
-    {
-        var admin = await api.AdminAsync();
-        var res = await admin.GetAsync("/api/settings/theme-template");
-
-        Assert.Equal("application/json", res.Content.Headers.ContentType?.MediaType);
-        Assert.Equal("theme-template.json", res.Content.Headers.ContentDisposition?.FileNameStar
-            ?? res.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
-        var template = await res.Content.ReadAsStringAsync();
-        using var doc = JsonDocument.Parse(template);
-        Assert.Equal(1, doc.RootElement.GetProperty("version").GetInt32());
-        Assert.Equal("PALGOLF", doc.RootElement.GetProperty("base").GetString());
-        Assert.True(doc.RootElement.TryGetProperty("$help", out _));
-        foreach (var section in new[] { "colors", "gradients", "fonts", "layout", "logos", "login" })
-            Assert.True(doc.RootElement.TryGetProperty(section, out _), section);
-
-        var before = await (await api.Anonymous().GetAsync("/api/theme")).Content.ReadFromJsonAsync<JsonElement>();
-        WriteTheme(template);
-        var after = await ThemeAsync();
-
-        Assert.Equal("file", Str(after, "source"));
-        foreach (var section in new[] { "colors", "gradients", "fonts", "layout", "logos", "login" })
-            Assert.Equal(before.GetProperty(section).GetRawText(), after.GetProperty(section).GetRawText());
+        Assert.Empty(resolved.Warnings);
+        Assert.False(resolved.Customised);
+        Assert.Equal(
+            JsonSerializer.Serialize(EventRegistration.Api.Services.Theming.BuiltInThemes.Find(name), EventRegistration.Api.Services.Theming.ThemeResolver.Json),
+            JsonSerializer.Serialize(resolved.Theme, EventRegistration.Api.Services.Theming.ThemeResolver.Json));
+        Assert.Equal(apiCopy.ReplaceLineEndings(), webCopy.ReplaceLineEndings());
     }
 
     [Fact]

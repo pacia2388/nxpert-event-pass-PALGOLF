@@ -5,6 +5,8 @@ const DEFAULT_FOOTER_TEXT = 'Powered by N-PAX - NXPERT SYSTEM';
 
 export let API_BASE = '';
 export let FACE_ENGINE_BASE = '';
+/** The look's file beside index.html (theme.palgolf.json or theme.nxpass.json); blank = default look. */
+export let THEME_FILE = '';
 /** Wording the deployment can change. Read its fields when needed; they are filled in at boot. */
 export const BRANDING = {
   /** The app's name: tab title, header, install banner, email preview, voucher image. */
@@ -24,6 +26,7 @@ export async function loadAppSettings(): Promise<void> {
   FACE_ENGINE_BASE = s.faceEngineBaseUrl.replace(/\/+$/, '');
   BRANDING.appName = wording(s, 'appName', DEFAULT_APP_NAME);
   BRANDING.footerText = wording(s, 'footerText', DEFAULT_FOOTER_TEXT);
+  THEME_FILE = wording(s, 'theme', '');
 
   // The tab is named once the theme is known (core/theme.ts), so it never flashes a wrong name.
 }

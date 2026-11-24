@@ -45,11 +45,6 @@ public class SettingsController : ControllerBase
     [HttpGet("categories"), AllowAnonymous]
     public ActionResult<List<CategoryDto>> Categories() => Ok(_categories.List());
 
-    // A filled-in theme.json for developers to edit and drop beside the API after publishing.
-    [HttpGet("theme-template")]
-    public IActionResult ThemeTemplate() =>
-        File(System.Text.Encoding.UTF8.GetBytes(ThemeResolver.Template()), "application/json", "theme-template.json");
-
     [HttpPut]
     public async Task<ActionResult<AppSettingsDto>> Update(UpdateSettingsRequest req)
     {

@@ -1,12 +1,12 @@
 namespace EventRegistration.Api.Services.Theming;
 
-/// <param name="Source">"file" when theme.json was read, "default" when there is none.</param>
+/// <param name="Source">"file" when the theme file was read, "default" when there is none.</param>
 public sealed record ThemeSnapshot(ThemeDefinition Theme, string Source, bool Customised);
 
 /// <summary>
-/// The deployment's active theme, read from theme.json beside the API (<c>Theme:Path</c>). The
-/// file is never published: a developer adds it on the server, and an edit applies on the next
-/// request (re-read whenever its time stamp or size changes). No file means PALGOLF.
+/// The deployment's active theme, read from the file the <c>theme</c> setting names beside the API
+/// (theme.palgolf.json or theme.nxpass.json). An edit applies on the next request (re-read
+/// whenever its time stamp or size changes). No file means PALGOLF.
 /// Static like <see cref="Branding"/>, so email templates can reach it.
 /// </summary>
 public static class ThemeStore
@@ -74,13 +74,13 @@ public static class ThemeStore
                 catch (IOException ex)
                 {
                     // Mid-write: keep what we had and try again on the next request.
-                    Report($"theme.json could not be read ({ex.Message}).");
+                    Report($"{Path.GetFileName(path)} could not be read ({ex.Message}).");
                     return _current;
                 }
                 if (_stamp == stamp && text == _text) return _current;
                 _text = text;
                 var resolved = ThemeResolver.Resolve(text);
-                foreach (var warning in resolved.Warnings) Report($"theme.json: {warning}");
+                foreach (var warning in resolved.Warnings) Report($"{Path.GetFileName(path)}: {warning}");
                 _stamp = stamp;
                 return _current = new ThemeSnapshot(resolved.Theme, "file", resolved.Customised);
             }

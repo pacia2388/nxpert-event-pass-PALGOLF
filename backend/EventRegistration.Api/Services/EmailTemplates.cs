@@ -5,7 +5,7 @@ namespace EventRegistration.Api.Services;
 
 public static class EmailTemplates
 {
-    // The active theme's colours (theme.json; PALGOLF blue by default).
+    // The active theme's colours (the theme file; PALGOLF blue by default).
     private static string Accent => ThemeStore.Current.Theme.Colors.Primary;
     private static string Tint => ThemeStore.Current.Theme.Colors.TintSoft;
 

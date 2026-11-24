@@ -9,12 +9,6 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);publish\**</DefaultItemExcludes>
   </PropertyGroup>
 
-  <!-- theme.json picks the deployment's look (documentation/theming.md). It belongs to each server:
-       never copied to the build or publish output, so a redeploy keeps the server's copy. -->
-  <ItemGroup>
-    <Content Update="theme.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
-  </ItemGroup>
-
   <ItemGroup>
     <!-- Per-installation settings: never published, so a deploy keeps the server's copy. -->
     <Content Update="categories.json" CopyToPublishDirectory="Never" />

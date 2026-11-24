@@ -2,6 +2,9 @@
 
 Status: ✅ Done (2026-11-23) — implemented and tested (API, unit, e2e, browser)
 
+> Superseded 2026-11-24: `theme.json` was replaced by shipped `theme.palgolf.json` /
+> `theme.nxpass.json` files on both sides; see [theme-files](completed/20261124_theme-files.md).
+
 One build wears either the current look (**PALGOLF**, default) or the original look
 (**NXPass**). A developer picks it with a `theme.json` in the API site folder after publishing;
 publishing never outputs that file. Admins download a filled-in template from Settings. Full

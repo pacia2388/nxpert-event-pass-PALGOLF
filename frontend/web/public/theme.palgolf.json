@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "base": "PALGOLF",
+  "colors": {
+    "primary": "#0f5fb8",
+    "primaryDeep": "#0b4a94",
+    "primaryContainer": "#d6e4f7",
+    "onPrimaryContainer": "#051f63",
+    "secondaryContainer": "#e8f0fb",
+    "onSecondaryContainer": "#0b4a94",
+    "tertiary": "#0a2d7a",
+    "navy": "#051f63",
+    "navyMid": "#0a2d7a",
+    "sky": "#1a5aa8",
+    "accent": "#e02a2a",
+    "gold": "#e1b115",
+    "ink": "#0b1b3f",
+    "inkSoft": "#46557a",
+    "line": "#cdd7e8",
+    "appBackground": "#f2f5fa",
+    "surfaceLow": "#f8fafd",
+    "surfaceHigh": "#f0f4fa",
+    "surfaceHighest": "#e6ecf5",
+    "tint": "#e8f0fb",
+    "tintSoft": "#f0f5fc",
+    "browserBar": "#051f63"
+  },
+  "gradients": {
+    "brand": "linear-gradient(135deg, #0a2d7a 0%, #0f5fb8 100%)",
+    "brandSoft": "linear-gradient(135deg, #e8f0fb 0%, #f0f5fc 100%)",
+    "header": "linear-gradient(90deg, #051f63 0%, #0a2d7a 55%, #0f5fb8 100%)",
+    "progress": "linear-gradient(90deg, #e02a2a, #e8742a 55%, #e1b115)",
+    "button": "linear-gradient(135deg, #0a2d7a 0%, #0f5fb8 100%)"
+  },
+  "fonts": {
+    "display": "'Montserrat', 'Roboto', sans-serif",
+    "stylesheet": "https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap"
+  },
+  "layout": {
+    "buttons": "solid",
+    "footer": "solid",
+    "authBackground": "gradient",
+    "loginImage": "poster"
+  },
+  "logos": {
+    "favicon": "themes/palgolf/favicon.ico",
+    "tabIcon": "themes/palgolf/tab-192.png",
+    "appleTouchIcon": "themes/palgolf/apple-touch-icon.png",
+    "header": null,
+    "loginImage": "themes/palgolf/login-poster.jpg"
+  },
+  "login": {
+    "imageAlt": "Philippine Airlines tournament poster: a golfer mid-swing above a golf course",
+    "title": "78th PAL Interclub Golf Tournament 2027",
+    "lines": [
+      "Seniors Division: Feb 17–24, 2027",
+      "Men’s/Regular Division: Feb 25–Mar 4, 2027"
+    ],
+    "caption": "Cagayan de Oro | Bukidnon"
+  }
+}

@@ -651,10 +651,6 @@ export class ApiService {
   updateSettings(ccEmails: string[], mobileProvider: MobileProvider): Observable<AppSettingsDto> {
     return this.http.put<AppSettingsDto>(this.url('/api/settings'), { ccEmails, mobileProvider });
   }
-  // The theme.json template (the full PALGOLF theme) the developer fills in and adds on the server.
-  downloadThemeTemplate(): Observable<Blob> {
-    return this.http.get(this.url('/api/settings/theme-template'), { responseType: 'blob' });
-  }
   // Public: which service carries mobile messages, for channel labels.
   getMobileChannel(): Observable<{ mobileProvider: MobileProvider }> {
     return this.http.get<{ mobileProvider: MobileProvider }>(

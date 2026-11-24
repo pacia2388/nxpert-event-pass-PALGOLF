@@ -5,7 +5,7 @@ namespace EventRegistration.Api.Services;
 /// <summary>
 /// The app's name as people see it on what the API sends out (email footer, calendar invites).
 /// Set once at startup from <c>App:Name</c>; keep it the same as <c>appName</c> in the web app's
-/// appSettings.json. An <c>appName</c> in theme.json wins over both.
+/// appSettings.json. An <c>appName</c> in the theme file wins over both.
 /// </summary>
 public static class Branding
 {

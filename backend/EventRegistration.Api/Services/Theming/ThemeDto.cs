@@ -1,8 +1,8 @@
 namespace EventRegistration.Api.Services.Theming;
 
 /// <param name="Name">The built-in theme it starts from (PALGOLF or NXPass).</param>
-/// <param name="Source">"file" (theme.json on the server) or "default" (no file).</param>
-/// <param name="Customised">True when theme.json changes values beyond picking its base.</param>
+/// <param name="Source">"file" (the theme file beside the API) or "default" (no file).</param>
+/// <param name="Customised">True when the theme file changes values of its base.</param>
 public record ThemeDto(
     string Name, string Source, bool Customised, string? AppName, string? FooterText,
     ThemeColors Colors, ThemeGradients Gradients, ThemeFonts Fonts, ThemeLayout Layout,

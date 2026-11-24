@@ -45,14 +45,19 @@ public static class BuiltInThemes
             Progress = "linear-gradient(90deg, #e02a2a, #e8742a 55%, #e1b115)",
             Button = "linear-gradient(135deg, #0a2d7a 0%, #0f5fb8 100%)",
         },
-        Fonts = new() { Display = "'Montserrat', 'Roboto', sans-serif" },
+        Fonts = new()
+        {
+            Display = "'Montserrat', 'Roboto', sans-serif",
+            Stylesheet = "https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&display=swap",
+        },
         Layout = new() { Buttons = "solid", Footer = "solid", AuthBackground = "gradient", LoginImage = "poster" },
         Logos = new()
         {
-            Favicon = "favicon.ico?v=3",
-            TabIcon = "icons/tab-192.png?v=3",
+            Favicon = "themes/palgolf/favicon.ico",
+            TabIcon = "themes/palgolf/tab-192.png",
+            AppleTouchIcon = "themes/palgolf/apple-touch-icon.png",
             Header = null,
-            LoginImage = "brand/pal-interclub-2027-poster.jpg",
+            LoginImage = "themes/palgolf/login-poster.jpg",
         },
         Login = new()
         {
@@ -106,9 +111,10 @@ public static class BuiltInThemes
         Logos = new()
         {
             Favicon = "themes/nxpass/favicon.ico",
-            TabIcon = "themes/nxpass/icon-192.png",
+            TabIcon = "themes/nxpass/tab-192.png",
+            AppleTouchIcon = "themes/nxpass/tab-192.png",
             Header = null,
-            LoginImage = "nxpax-logo.png",
+            LoginImage = "themes/nxpass/logo.png",
         },
         Login = new()
         {

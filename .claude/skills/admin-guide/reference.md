@@ -366,11 +366,6 @@ A grant change takes effect at the user's **next sign-in**.
   the page tells you which one is used (the one that is set up), or that phone messages go by
   email until one is set up.
 - Click **Save settings**.
-- **Theme** — shows the look in use (**PALGOLF** or **NXPass**) and whether it comes from
-  `theme.json` on the server or is the default. **Download theme template** saves
-  `theme-template.json`, the full PALGOLF theme. The look is not changed here: a developer saves the
-  edited file as `theme.json` in the API site folder (it applies on the next page load). See
-  `documentation/theming.md`.
 
 ---
 
