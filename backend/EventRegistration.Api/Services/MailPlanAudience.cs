@@ -55,13 +55,15 @@ public class MailPlanAudience(AppDbContext db)
     public async Task<List<MailRecipient>> ResolveAsync(IEnumerable<string> groupIds, IEnumerable<string> emails)
     {
         var ids = groupIds.ToHashSet();
-        var addresses = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        // Keep the order the addresses were entered in (CC header shows them as typed).
+        var list = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (ids.Count > 0)
-            foreach (var group in (await GroupsAsync()).Where(g => ids.Contains(g.Id))) addresses.UnionWith(group.Emails);
-        foreach (var email in emails) if (InvitationMessageBuilder.Address(email) is { } address) addresses.Add(address);
-        if (addresses.Count == 0) return [];
+            foreach (var group in (await GroupsAsync()).Where(g => ids.Contains(g.Id)))
+                list.AddRange(group.Emails.Where(seen.Add));
+        foreach (var email in emails) if (InvitationMessageBuilder.Address(email) is { } address && seen.Add(address)) list.Add(address);
+        if (list.Count == 0) return [];
 
-        var list = addresses.ToList();
         var users = (await db.Users.AsNoTracking().Where(u => list.Contains(u.Email))
                 .Select(u => new { u.Id, u.Email, u.Phone }).ToListAsync())
             .GroupBy(u => u.Email, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);

@@ -48,13 +48,19 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
             .Select(Address).Where(e => e != null).Cast<string>().Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         List<string> Expand(List<string>? values)
         {
-            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            // Ordered de-dupe: recipients keep the order they were entered in.
+            var result = new List<string>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var raw in values ?? new())
             {
-                if (string.Equals(raw?.Trim(), "@n-pax", StringComparison.OrdinalIgnoreCase)) result.UnionWith(directory);
-                else result.Add(Address(raw) ?? throw new ArgumentException($"Invalid recipient: {raw}"));
+                if (string.Equals(raw?.Trim(), "@n-pax", StringComparison.OrdinalIgnoreCase)) result.AddRange(directory.Where(seen.Add));
+                else
+                {
+                    var address = Address(raw) ?? throw new ArgumentException($"Invalid recipient: {raw}");
+                    if (seen.Add(address)) result.Add(address);
+                }
             }
-            return result.ToList();
+            return result;
         }
         var to = Expand(req.To);
         var cc = Expand(req.Cc).Except(to, StringComparer.OrdinalIgnoreCase).ToList();
