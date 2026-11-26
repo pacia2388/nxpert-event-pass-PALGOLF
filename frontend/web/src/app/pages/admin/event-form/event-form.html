@@ -273,6 +273,14 @@
         When on, marking a kit claimed sends a message to the registrant's preferred channel (email
         or Viber). Self-claimed kits get a generic notice; otherwise it names who claimed it.
       </p>
+      <br />
+      <mat-slide-toggle name="feedbackForm" [(ngModel)]="feedbackForm">
+        Send a feedback form after the event
+      </mat-slide-toggle>
+      <p class="muted field-hint">
+        When on, every confirmed registrant gets a one-time link to rate the event once it ends.
+        Send it again any time from the event's Feedback tab.
+      </p>
 
       <!-- ===== Sub-events (sessions) ===== -->
       <div class="builder-section">

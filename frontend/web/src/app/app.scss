@@ -170,7 +170,7 @@
   opacity: 0.9;
 }
 
-/* Install-app banner (PWA). Shown app-wide until installed or dismissed. */
+/* Install-app banner (PWA), also used by the "new version is ready" banner above it. */
 .install-banner {
   display: flex;
   align-items: center;

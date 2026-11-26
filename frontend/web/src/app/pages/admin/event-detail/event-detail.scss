@@ -531,3 +531,16 @@ $soft-surface: var(--mat-sys-surface-container-low);
     grid-template-columns: 1fr;
   }
 }
+
+
+// Automatic feedback switch + audience counts.
+.feedback-automation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--pg-tint-soft);
+}

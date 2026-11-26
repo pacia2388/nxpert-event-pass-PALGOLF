@@ -6,6 +6,7 @@ import {
   inject,
   signal,
   viewChild,
+  WritableSignal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
@@ -21,17 +22,18 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../core/api.service';
 import { ConfirmService } from '../../core/confirm.service';
-import { MailAudienceGroup, MailPlanDto, MailPlanSaveRequest } from '../../core/models';
+import { MailAttachment, MailAudienceGroup, MailPlanDto, MailPlanSaveRequest } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { RichTextEditorComponent } from '../../shared/rich-text/rich-text-editor';
 import { RichTextViewComponent } from '../../shared/rich-text/rich-text-view';
+import { MailAttachmentsComponent } from '../../shared/mail-attachments/mail-attachments';
 import { richTextInfo, richTextIsEmpty, toXhtml } from '../../shared/rich-text/rich-text';
 import { MailChannel, MailKind, MailPlan, PlanSend, resolveReceivers } from './mail-planner.model';
 import {
   BODY_MAX,
   CC_MAX,
   CHANNEL_ICONS,
-  EMAIL_PATTERN,
+  isValidRecipient,
   EVENT_NAME_MAX,
   EXTRA_EMAILS_MAX,
   KIND_ICONS,
@@ -43,6 +45,7 @@ import {
   sortedSends,
   startOfToday,
 } from './mail-planner.util';
+import { isMailDomainPattern } from '../../core/invitation.util';
 
 export interface MailPlanDialogData {
   // Existing plan to edit (with full message bodies), or null to create one.
@@ -114,6 +117,7 @@ function timeOf(d: Date): string {
     MatTooltipModule,
     RichTextEditorComponent,
     RichTextViewComponent,
+    MailAttachmentsComponent,
   ],
   templateUrl: './mail-plan-dialog.html',
   styleUrl: './mail-plan-dialog.scss',
@@ -193,6 +197,16 @@ export class MailPlanDialogComponent {
   readonly emails = signal<string[]>(this.data.plan?.receivers.emails ?? []);
   emailDraft = '';
   readonly cc = signal<string[]>(this.data.plan?.receivers.cc ?? []);
+  readonly excluded = signal<string[]>(this.data.plan?.excluded ?? []);
+  readonly sendImmediately = signal(this.data.plan?.sendImmediately ?? false);
+  // One attachment set for the whole plan: every day carries the same files, so list each once.
+  readonly editingAttachments = signal<MailAttachment[]>(
+    uniqueAttachments(this.data.plan?.sends.flatMap((s) => s.attachments ?? []) ?? []),
+  );
+  // Picked and removed attachments live here: the panel only exists on the days step, and the
+  // plan is saved from the last step, when the panel is gone.
+  readonly attachmentFiles = signal<File[]>([]);
+  readonly removedAttachments = signal<string[]>([]);
   readonly savedCc = signal<string[]>([...this.data.savedCc]);
   ccDraft = '';
   private readonly ccInput = viewChild<ElementRef<HTMLInputElement>>('ccInput');
@@ -201,6 +215,20 @@ export class MailPlanDialogComponent {
     resolveReceivers(this.groups, { groupIds: this.groupIds(), emails: this.emails() }),
   );
   readonly totalSends = computed(() => this.entries().length * this.resolved().length);
+
+  // Every member of the selected saved lists, so an organizer can tick people off.
+  readonly groupMembers = computed(() => {
+    const emails = new Set<string>();
+    for (const g of this.groups)
+      if (this.groupIds().includes(g.id)) g.emails.forEach((e) => emails.add(e));
+    return [...emails].sort();
+  });
+
+  toggleExcluded(email: string): void {
+    this.excluded.update((list) =>
+      list.includes(email) ? list.filter((e) => e !== email) : [...list, email],
+    );
+  }
 
   // ---- Init helpers ----
   private initialEntries(): DayEntry[] {
@@ -474,19 +502,45 @@ export class MailPlanDialogComponent {
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
     if (!parts.length) return true;
-    const invalid = parts.filter((e) => !EMAIL_PATTERN.test(e) || e.length > 256);
+    const invalid = parts.filter((e) => !isValidRecipient(e) || e.length > 256);
     const valid = [...new Set(parts.filter((e) => !invalid.includes(e)))].filter(
       (e) => !this.emails().includes(e),
     );
+    // *@domain becomes the registered people of that domain, each a removable chip.
+    for (const pattern of valid.filter(isMailDomainPattern))
+      this.expandDomain(pattern, this.emails, EXTRA_EMAILS_MAX, 'addresses');
+    const plain = valid.filter((e) => !isMailDomainPattern(e));
     const room = EXTRA_EMAILS_MAX - this.emails().length;
-    if (valid.length > room) this.toast.warning(`Up to ${EXTRA_EMAILS_MAX} addresses per plan.`);
-    this.emails.update((list) => [...list, ...valid.slice(0, Math.max(0, room))]);
+    if (plain.length > room) this.toast.warning(`Up to ${EXTRA_EMAILS_MAX} addresses per plan.`);
+    this.emails.update((list) => [...list, ...plain.slice(0, Math.max(0, room))]);
     if (invalid.length)
       this.toast.warning(
         `Check ${invalid.length === 1 ? 'this address' : 'these addresses'}: ${invalid.join(', ')}`,
       );
     this.emailDraft = invalid.join(', ');
     return !invalid.length;
+  }
+
+  // Adds the registered people of a *@domain entry; the pattern itself is never saved.
+  private expandDomain(
+    pattern: string,
+    target: WritableSignal<string[]>,
+    max: number,
+    noun: string,
+  ): void {
+    this.api
+      .expandMailDomain(pattern)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (people) => {
+          if (!people.length) this.toast.warning(`No registered users at ${pattern.slice(1)}.`);
+          const fresh = people.filter((e) => !target().includes(e));
+          const room = max - target().length;
+          if (fresh.length > room) this.toast.warning(`Up to ${max} ${noun} per plan.`);
+          target.update((list) => [...list, ...fresh.slice(0, Math.max(0, room))]);
+        },
+        error: () => this.toast.error(`Could not look up ${pattern.slice(1)}. Try again.`),
+      });
   }
 
   // ---- CC ----
@@ -508,13 +562,16 @@ export class MailPlanDialogComponent {
       .split(/[\s,;]+/)
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
-    const invalid = parts.filter((e) => !EMAIL_PATTERN.test(e) || e.length > 256);
+    const invalid = parts.filter((e) => !isValidRecipient(e) || e.length > 256);
     const valid = [...new Set(parts.filter((e) => !invalid.includes(e)))].filter(
       (e) => !this.cc().includes(e),
     );
+    for (const pattern of valid.filter(isMailDomainPattern))
+      this.expandDomain(pattern, this.cc, CC_MAX, 'CC addresses');
+    const plain = valid.filter((e) => !isMailDomainPattern(e));
     const room = CC_MAX - this.cc().length;
-    if (valid.length > room) this.toast.warning(`Up to ${CC_MAX} CC addresses per plan.`);
-    this.cc.update((list) => [...list, ...valid.slice(0, Math.max(0, room))]);
+    if (plain.length > room) this.toast.warning(`Up to ${CC_MAX} CC addresses per plan.`);
+    this.cc.update((list) => [...list, ...plain.slice(0, Math.max(0, room))]);
     if (invalid.length)
       this.toast.warning(
         `Check ${invalid.length === 1 ? 'this CC address' : 'these CC addresses'}: ${invalid.join(', ')}`,
@@ -627,6 +684,8 @@ export class MailPlanDialogComponent {
       groupIds: this.groupIds(),
       emails: this.emails(),
       cc: this.cc(),
+      excludedEmails: this.excluded(),
+      sendImmediately: this.sendImmediately(),
       sends: this.entries().map((e) => ({
         id: e.id,
         sendAt: this.sendTime(e).toISOString(),
@@ -637,7 +696,13 @@ export class MailPlanDialogComponent {
     };
     const plan = this.data.plan;
     this.saving.set(true);
-    (plan ? this.api.updateMailPlan(plan.id, request) : this.api.createMailPlan(request))
+    const files = this.attachmentFiles();
+    // Files already on the plan that stay; the rest are removed from every day.
+    if (plan)
+      request.keepAttachments = this.editingAttachments()
+        .filter((a) => !this.removedAttachments().includes(a.name))
+        .map((a) => a.name);
+    (plan ? this.api.updateMailPlan(plan.id, request, files) : this.api.createMailPlan(request, files))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (saved) => this.ref.close(saved),
@@ -653,4 +718,15 @@ export class MailPlanDialogComponent {
         },
       });
   }
+}
+
+/** Attachments listed once by file name (the same file is stored on every day of a plan). */
+export function uniqueAttachments(list: MailAttachment[]): MailAttachment[] {
+  const seen = new Set<string>();
+  return list.filter((a) => {
+    const key = a.name.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

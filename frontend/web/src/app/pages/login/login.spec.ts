@@ -4,11 +4,13 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { LoginComponent } from './login';
 import { ACTIVE_THEME, PALGOLF_THEME, ThemeDefinition } from '../../core/theme';
+import { capsLockOn } from '../../shared/caps-lock';
 
 describe('Login page', () => {
   let fixture: ComponentFixture<LoginComponent>;
 
   beforeEach(async () => {
+    capsLockOn.set(false);
     localStorage.clear();
     // The toolbar colour index.html ships for the rest of the app.
     document.querySelector('meta[name="theme-color"]')?.remove();
@@ -100,6 +102,34 @@ describe('Login page', () => {
     fixture.destroy();
 
     expect(toolbar()).toBe('#051f63');
+  });
+
+  it('warns while Caps Lock is on in the password field', () => {
+    const password = root().querySelector<HTMLInputElement>('input[name="password"]')!;
+    const event = (type: string, capsLock: boolean) =>
+      new KeyboardEvent(type, { key: 'A', modifierCapsLock: capsLock });
+
+    // Caps Lock turned on before the field was focused (e.g. loading the page with it on): the
+    // key press that reaches the field already carried the state, so the warning shows on focus.
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', modifierCapsLock: true }),
+    );
+    password.focus();
+    fixture.detectChanges();
+    expect(text()).toContain('Caps Lock is on');
+
+    password.dispatchEvent(event('keyup', false));
+    fixture.detectChanges();
+    expect(text()).not.toContain('Caps Lock is on');
+
+    password.dispatchEvent(event('keydown', true));
+    fixture.detectChanges();
+    expect(text()).toContain('Caps Lock is on');
+
+    // The warning goes when the field is left, even with Caps Lock still on.
+    password.blur();
+    fixture.detectChanges();
+    expect(text()).not.toContain('Caps Lock is on');
   });
 
   it('links to participant account creation', () => {

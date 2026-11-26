@@ -17,10 +17,6 @@ public class TeamsController : ControllerBase
 {
     private const string AdminRoles = Roles.Admin + "," + Roles.SuperAdmin;
 
-    // Temporary password for accounts a Captain creates. Shared and below the normal password
-    // policy by product decision; members are expected to change it under Edit account.
-    private const string DefaultMemberPassword = "char";
-
     // How long a "complete your registration" link stays valid.
     public const int RegistrationLinkDays = 7;
 
@@ -261,6 +257,8 @@ public class TeamsController : ControllerBase
         {
             if (existing.Role != Roles.Participant)
                 return Conflict(new { message = "That account cannot be added to a team." });
+            if (existing.DeactivatedAt is not null)
+                return Conflict(new { message = "That account is deactivated." });
             return await AddMemberAsync(teamId.Value, existing, isNew: false);
         }
 
@@ -272,7 +270,8 @@ public class TeamsController : ControllerBase
             FullName = UserAccountHelper.ComposeFullName(first, middle, last),
             Email = email,
             Username = await UsernameHelper.UniqueAsync(_db, UsernameHelper.Base(first, last, null)),
-            PasswordHash = PasswordHasher.Hash(DefaultMemberPassword),
+            // No password yet: the member sets one through the emailed registration link.
+            PasswordHash = "",
             Role = Roles.Participant,
             NotificationChannel = NotificationChannels.Email,
             CompanyId = 1,
@@ -294,7 +293,7 @@ public class TeamsController : ControllerBase
         if (q.Length < CandidateMinChars || q.Length > 256) return Ok(Array.Empty<TeamCandidateDto>());
 
         var rows = await _db.Users
-            .Where(u => u.Role == Roles.Participant && u.Email.StartsWith(q)
+            .Where(u => u.Role == Roles.Participant && u.DeactivatedAt == null && u.Email.StartsWith(q)
                 && !_db.TeamMembers.Any(m => m.UserId == u.Id))
             .OrderBy(u => u.Email)
             .Take(CandidateLimit)
@@ -353,7 +352,7 @@ public class TeamsController : ControllerBase
                 // A failed email is retried in the background, so the link still counts as sent.
                 var result = await _email.SendAsync([m.User!.Email], "Complete your registration",
                     EmailTemplates.TeamRegistrationNotice(m.User.FullName, team.Description,
-                        team.TeamLead?.FullName ?? "Your captain", url, RegistrationLinkDays), includeDefaultCc: true);
+                        team.TeamLead?.FullName ?? "Your captain", url, RegistrationLinkDays), includeDefaultCc: false);
                 if (result.Accepted)
                 {
                     m.RegistrationToken = token;
@@ -404,10 +403,10 @@ public class TeamsController : ControllerBase
         }
 
         // A new account is "unregistered" until the member completes it via the emailed link. So is
-        // an existing one still on the temporary password: a Captain created it, it was removed
-        // from a team before being completed, and is now being added again. (Completing the link
-        // always sets a policy-compliant password, which can never be the temporary one.)
-        var unregistered = isNew || PasswordHasher.Verify(DefaultMemberPassword, user.PasswordHash);
+        // an existing one with no password: a Captain created it, it was removed from a team before
+        // being completed, and is now being added again. (Completing the link always sets a
+        // policy-compliant password.)
+        var unregistered = isNew || string.IsNullOrEmpty(user.PasswordHash);
         var member = new TeamMember { TeamId = teamId, User = user, RegistrationToken = unregistered ? Guid.NewGuid() : null };
         _db.TeamMembers.Add(member);
         try

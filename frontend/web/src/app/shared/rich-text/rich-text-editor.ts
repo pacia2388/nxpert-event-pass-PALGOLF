@@ -16,9 +16,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
+import { MailLimitsService } from '../../core/mail-limits.service';
 import {
   IMAGE_TYPES,
   imageBudget,
+  imageSourceMessage,
   insertAtSelection,
   newImage,
   pasteMessage,
@@ -49,6 +51,7 @@ export class RichTextEditorComponent implements OnChanges {
 
   private toast = inject(ToastService);
   private api = inject(ApiService);
+  protected mailLimits = inject(MailLimitsService);
 
   processing = signal(false);
   textLength = signal(0);
@@ -150,7 +153,7 @@ export class RichTextEditorComponent implements OnChanges {
     input.value = '';
     if (!file || this.processing()) return;
     if (!IMAGE_TYPES.includes(file.type)) {
-      this.toast.error('Choose a PNG, JPEG, WebP, GIF or BMP image up to 10 MB.');
+      this.toast.error(imageSourceMessage());
       return;
     }
     this.processing.set(true);

@@ -112,7 +112,7 @@
     {{
       processing()
         ? 'Preparing image…'
-        : 'Images: up to 5, 2 MB each and 5 MB total after resizing. Pasted text keeps its images and basic formatting.'
+        : mailLimits.help() + ' Pasted text keeps its images and basic formatting.'
     }}
   </span>
   @if (maxLength) {

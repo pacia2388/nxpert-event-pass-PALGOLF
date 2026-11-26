@@ -17,7 +17,19 @@ For attendees registering for events and using their entry pass or online meetin
 
 ## 1. Signing in / creating an account
 
-**Sign in** with your **username or email** and password (the eye icon shows the password).
+**Sign in** with your **username or email** and password (the eye icon shows the password). If
+**Caps Lock** is on while you type the password, a warning shows under the field.
+
+**Forgot your password?** Choose **Forgot password?** under the sign-in button, enter your email,
+and open the one-time link that comes to that email (always by email, whatever channel you chose
+for event messages). The same page is where a link from the organizer takes
+you when your account was created for you: choose a password and you are signed in (Caps Lock is
+flagged there too). The link works
+once and expires after a few hours; ask an organizer to send a new one if it has expired.
+
+**Invited by email?** If your email already has an account, the invitation asks you to **sign in**
+(it never signs you in by itself); if you don't have a password yet, use **Send me a password
+link**. Guests without an account get the registration form pre-filled with the invited email.
 
 To create an account, choose **Create a participant account** and fill in:
 
@@ -28,7 +40,9 @@ To create an account, choose **Create a participant account** and fill in:
 - **Email** and **password** (at least 8 characters, with a letter, a number and a symbol; a
   checklist under the field ticks each rule as you type)
 - **Phone** (optional) and **chapter**
-- **Profile photo** (optional) — **Add photo**; shown on the welcome screen when you check in
+- **Profile photo** (optional) — **Add photo**; shown on the welcome screen when you check in.
+  Facial registration for face check-in is separate: the captured face is used only for
+  recognition and is never shown on the screen or pass.
 
 If the organizer turned on **email verification**, click the link in the verification email
 before registering for events (a banner reminds you and has **Resend email**).
@@ -158,7 +172,8 @@ You can change your answers to an event's questions until you check in or the ev
 ## 7. My Account
 
 **My Account** lets you update your **profile photo**, **face recognition** (**Register face** /
-**Re-capture face** / **Remove face**), **name**, **ID No.**, **Designation**, **birthdate**
+**Re-capture face** / **Remove face** — the welcome screen always shows the photo you uploaded,
+not the face capture), **name**, **ID No.**, **Designation**, **birthdate**
 (required — accounts without one must add it before saving), **chapter**,
 **Send my pass via** (Email or Viber — a phone is needed for Viber), and **change your password**
 (current password required; the new one needs at least 8 characters with a letter, a number and a symbol,
@@ -199,7 +214,9 @@ voucher."*
 
 | Question | Answer |
 |----------|--------|
+| I forgot my password / never had one | Choose **Forgot password?** on the sign-in page, or use the link an organizer sent you; it signs you in after you choose a password. |
 | I registered but didn't get a pass | Passes are sent **after an organizer confirms** your registration. |
+| How do I give feedback after an event? | Open the one-time **feedback link** the organizer sends after the event; tick **Submit anonymously** if you don't want your name shown. Sending again replaces your earlier answer. |
 | My registration says **Pending confirmation** | Normal — the organizer still needs to confirm it. |
 | Where's the link for an online event? | In your confirmation email (**Join online meeting**) and in **My Events → Join meeting**, once confirmed. It isn't shown before confirmation. |
 | How do I add an online event to my calendar? | Open the **invite** attached to your confirmation email. Changes by the organizer update it automatically. |
@@ -212,4 +229,4 @@ voucher."*
 | Can I cancel? | Yes — **My Events → ⋮ → Cancel registration**, unless you're already checked in. |
 | Why can't I edit my name / ID No. on the form? | They come from your account (read-only). Change them in **My Account**. |
 | What is "Designation"? | Your title or designation, entered at sign-up; shown on the welcome screen at check-in. |
-| Will my photo or face be used? | Only to greet you on the check-in screen and (if you registered your face) to check you in. Both are optional. |
+| Will my photo or face be used? | Only to greet you on the check-in screen and (if you registered your face) to check you in. The screen shows the photo you uploaded — a captured face is never shown. Both are optional. |

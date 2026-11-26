@@ -147,6 +147,19 @@
           </mat-form-field>
         </div>
 
+        @if (userFields.departmentEnabled()) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Department</mat-label>
+            <input matInput name="department" [(ngModel)]="department" [maxlength]="userFields.departmentMax()" />
+          </mat-form-field>
+        }
+        @if (userFields.jobRoleEnabled()) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Job role</mat-label>
+            <input matInput name="jobRole" [(ngModel)]="jobRole" [maxlength]="userFields.jobRoleMax()" />
+          </mat-form-field>
+        }
+
         @if (phoneUnsupported()) {
           <p class="phone-warn" role="alert">
             <mat-icon class="inline-icon">warning</mat-icon>

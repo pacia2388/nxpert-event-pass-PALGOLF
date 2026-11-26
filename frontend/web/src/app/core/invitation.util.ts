@@ -1,4 +1,9 @@
-export const ALL_USERS = '@n-pax';
+// A *@domain entry stands for every active user of that domain; the server expands it.
+export const MAIL_DOMAIN_PATTERN = /^\*@[a-z0-9.-]+\.[a-z]{2,}$/;
+
+export function isMailDomainPattern(value: string): boolean {
+  return MAIL_DOMAIN_PATTERN.test(value.trim().toLowerCase());
+}
 
 export function invitationErrorMessage(error: { status?: number; error?: unknown }): string {
   const body = error.error;
@@ -46,21 +51,17 @@ export function invitationErrorMessage(error: { status?: number; error?: unknown
 
 export function recipientAddress(value: string): string | null {
   const address = value.trim().toLowerCase();
-  if (address === ALL_USERS) return address;
+  if (isMailDomainPattern(address)) return address;
   return address.length <= 256 && /^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/.test(address)
     ? address
     : null;
 }
 
+// Unique addresses; To wins over CC. A *@domain entry stays as typed (the server expands it).
 export function expandRecipients(
   to: string[],
   cc: string[],
-  directory: string[],
 ): { to: string[]; cc: string[] } {
-  const users = directory.map(recipientAddress).filter((e): e is string => !!e && e !== ALL_USERS);
-  const expand = (entries: string[]) => [
-    ...new Set(entries.flatMap((e) => (e === ALL_USERS ? users : [e]))),
-  ];
-  const primary = expand(to);
-  return { to: primary, cc: expand(cc).filter((e) => !primary.includes(e)) };
+  const primary = [...new Set(to)];
+  return { to: primary, cc: [...new Set(cc)].filter((e) => !primary.includes(e)) };
 }

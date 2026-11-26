@@ -1164,3 +1164,25 @@ $muted: #64748b;
     }
   }
 }
+
+
+// Receiver exclusions and the immediate-send switch.
+.exclude-list {
+  max-height: 180px;
+  overflow: auto;
+  margin-top: 4px;
+}
+.exclude-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 2px 0;
+}
+.send-now-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--pg-ink-soft);
+}

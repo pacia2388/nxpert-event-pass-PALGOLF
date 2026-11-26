@@ -94,6 +94,9 @@ public class User
     // Optional 128-dimension face descriptor (JSON array of floats) captured during facial
     // registration, used later for facial-recognition check-in.
     public string? FaceDescriptor { get; set; }
+    // The still captured during facial registration (a data URL). Used only by the recognition
+    // gallery — the welcome screen / pass always show PhotoUrl.
+    public string? FacePhoto { get; set; }
     [MaxLength(256)] public string Email { get; set; } = "";
     // Unique login handle (stored lower-case). Members can sign in with username or email.
     [MaxLength(100)] public string Username { get; set; } = "";
@@ -101,6 +104,9 @@ public class User
     [MaxLength(20)] public string Role { get; set; } = Roles.Participant;
     [MaxLength(40)] public string? Phone { get; set; }
     [MaxLength(200)] public string? Organization { get; set; }
+    // Optional per-installation fields (user-fields.json): ignored while switched off.
+    [MaxLength(UserFieldOptions.DepartmentMaxLength)] public string? Department { get; set; }
+    [MaxLength(UserFieldOptions.JobRoleMaxLength)] public string? JobRole { get; set; }
     // Nullable so accounts created before this field existed stay valid; the UI requires it.
     public DateOnly? Birthdate { get; set; }
     // Where to deliver the entry pass + notifications: "Email" (default) or "Viber".
@@ -110,6 +116,18 @@ public class User
 
     public bool EmailVerified { get; set; }
     public Guid? EmailVerificationToken { get; set; }
+
+    // Deactivated accounts keep their registrations, team and passes, but can no longer sign in
+    // and are skipped by every audience that sends messages.
+    public DateTime? DeactivatedAt { get; set; }
+    // Single-use password-setup link (admin-created accounts, CSV import, captain-added members).
+    // Replaced on each issue; cleared once the password is set.
+    // SHA-256 (hex) of the single-use set-password token; the token itself is only in the link.
+    [MaxLength(64)] public string? PasswordSetupTokenHash { get; set; }
+    public DateTime? PasswordSetupTokenExpiresAt { get; set; }
+    // A password-setup link waiting to be sent (CSV import). Saved here, not in memory, so a
+    // restart never loses it; the background poller sends it and clears the marker.
+    public DateTimeOffset? PasswordLinkQueuedAt { get; set; }
 
     // Grant: may confirm event registrations (bulk-confirm) without being a full admin.
     // Admins/super-admins can always confirm regardless of this flag.
@@ -357,6 +375,9 @@ public class Registration
     // public registration, used for facial-recognition check-in. Account registrations use the
     // linked User's FaceDescriptor instead.
     public string? FaceDescriptor { get; set; }
+    // The still captured by a GUEST during facial registration (a data URL), used only by the
+    // recognition gallery. GuestPhoto stays the display picture.
+    public string? FacePhoto { get; set; }
     // Optional display picture (a data URL) uploaded by a GUEST during public registration, shown
     // to staff on the check-in screen to confirm identity. Account registrations use User.PhotoUrl.
     public string? GuestPhoto { get; set; }
@@ -401,10 +422,59 @@ public class Feedback
 {
     public int Id { get; set; }
     public int EventId { get; set; }
-    public int UserId { get; set; }
+    // Account-based answers carry the user; a feedback-link answer may be from a guest (null).
+    public int? UserId { get; set; }
+    public User? User { get; set; }
+    // Set when the answer came through the automatic feedback link (prevents a second answer).
+    public int? FeedbackRecipientId { get; set; }
+    public EventFeedbackRecipient? FeedbackRecipient { get; set; }
     public int Rating { get; set; }
     public string? Comment { get; set; }
+    // Optional structured answers from the feedback form.
+    [MaxLength(200)] public string? DisplayName { get; set; }
+    public bool IsAnonymous { get; set; }
+    public int? OrganizationRating { get; set; }
+    [MaxLength(1000)] public string? WentWell { get; set; }
+    [MaxLength(1000)] public string? Improve { get; set; }
     public DateTime CreatedAt { get; set; }
+}
+
+// A switch per event: send every confirmed registrant a one-time feedback link after the event.
+public class EventFeedbackCampaign
+{
+    public int EventId { get; set; }
+    public Event? Event { get; set; }
+    public bool Enabled { get; set; }
+    // Set when the audience was frozen (first prepare); never changed afterwards.
+    public DateTime? PreparedAt { get; set; }
+}
+
+public static class FeedbackRecipientStatus
+{
+    public const string Pending = "Pending";
+    // Claimed by one sender (scheduler or admin Retry); SentAt holds the claim time.
+    public const string Sending = "Sending";
+    public const string Sent = "Sent";
+    public const string Failed = "Failed";
+}
+
+// One confirmed registrant of an event, frozen when the feedback campaign is prepared.
+public class EventFeedbackRecipient
+{
+    public int Id { get; set; }
+    public int EventId { get; set; }
+    public Event? Event { get; set; }
+    public int RegistrationId { get; set; }
+    public Registration? Registration { get; set; }
+    public int? UserId { get; set; }
+    [MaxLength(200)] public string Name { get; set; } = "";
+    [MaxLength(256)] public string? Email { get; set; }
+    [MaxLength(40)] public string? Phone { get; set; }
+    [MaxLength(10)] public string Channel { get; set; } = NotificationChannels.Email;
+    public Guid Token { get; set; } = Guid.NewGuid();
+    [MaxLength(20)] public string Status { get; set; } = FeedbackRecipientStatus.Pending;
+    public DateTime? SentAt { get; set; }
+    public DateTime? SubmittedAt { get; set; }
 }
 
 // Airline baggage voucher (golf equipment) generated by a participant or Captain.

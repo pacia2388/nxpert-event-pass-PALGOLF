@@ -40,6 +40,9 @@ import {
   UnredeemStubsResult,
   EventDto,
   EventFeedbackSummary,
+  FeedbackCampaign,
+  PublicFeedback,
+  PublicFeedbackAnswer,
   EventUpsert,
   FaceDescriptorDto,
   FeedbackDto,
@@ -71,6 +74,7 @@ import {
   MailPlanOptions,
   MailPlanSaveRequest,
   MailPlanSendDto,
+  MailLimits,
 } from './models';
 
 /** Viber broadcast outcome: numbers reached by Viber, registrants emailed instead, numbers not reached. */
@@ -126,6 +130,7 @@ export class ApiService {
       responses: Record<string, string>;
       registeredAt: string;
       face?: string | null;
+      facePhoto?: string | null;
       displayPicture?: string | null;
     }[],
   ): Observable<OfflineRegSyncResult> {
@@ -190,6 +195,7 @@ export class ApiService {
       sessionIds?: number[];
       responses?: Record<string, string>;
       face?: string | null;
+      facePhoto?: string | null;
       displayPicture?: string | null;
     },
   ): Observable<RegisterResult> {
@@ -260,14 +266,48 @@ export class ApiService {
   myFeedback(eventId: number): Observable<FeedbackDto | null> {
     return this.http.get<FeedbackDto | null>(this.url(`/api/events/${eventId}/feedback/mine`));
   }
-  submitFeedback(eventId: number, rating: number, comment: string | null): Observable<FeedbackDto> {
+  submitFeedback(
+    eventId: number,
+    rating: number,
+    comment: string | null,
+    isAnonymous = false,
+  ): Observable<FeedbackDto> {
     return this.http.post<FeedbackDto>(this.url(`/api/events/${eventId}/feedback`), {
       rating,
       comment,
+      isAnonymous,
     });
   }
   feedbackSummary(eventId: number): Observable<EventFeedbackSummary> {
     return this.http.get<EventFeedbackSummary>(this.url(`/api/events/${eventId}/feedback`));
+  }
+  updateFeedbackAutomation(eventId: number, enabled: boolean): Observable<FeedbackCampaign> {
+    return this.http.put<FeedbackCampaign>(this.url(`/api/events/${eventId}/feedback/automation`), {
+      enabled,
+    });
+  }
+  retryFeedbackAutomation(eventId: number): Observable<{ sent: number }> {
+    return this.http.post<{ sent: number }>(
+      this.url(`/api/events/${eventId}/feedback/automation/retry`),
+      {},
+    );
+  }
+  // Sends the feedback link again to confirmed registrants who have not answered yet.
+  sendFeedbackLinks(eventId: number): Observable<{ sent: number }> {
+    return this.http.post<{ sent: number }>(
+      this.url(`/api/events/${eventId}/feedback/automation/send`),
+      {},
+    );
+  }
+  // Public one-time feedback link (no sign-in).
+  publicFeedback(token: string): Observable<PublicFeedback> {
+    return this.http.get<PublicFeedback>(this.url(`/api/feedback/${encodeURIComponent(token)}`));
+  }
+  submitPublicFeedback(token: string, answer: PublicFeedbackAnswer): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      this.url(`/api/feedback/${encodeURIComponent(token)}`),
+      answer,
+    );
   }
 
   // ---- Dashboard ----
@@ -293,10 +333,11 @@ export class ApiService {
   sendInvitationMessage(
     eventId: number,
     message: InvitationMessageRequest,
+    files: File[] = [],
   ): Observable<InvitationMessageResult> {
     return this.http.post<InvitationMessageResult>(
       this.url(`/api/events/${eventId}/invitations/compose`),
-      message,
+      mailForm(message, files),
       {
         context: new HttpContext().set(SKIP_ERROR_TOAST, true),
       },
@@ -319,10 +360,12 @@ export class ApiService {
     eventId: number,
     id: number,
     message: InvitationMessageRequest & { version: string },
+    files: File[] = [],
+    keepAttachments: string[] = [],
   ): Observable<InvitationMessageResult> {
     return this.http.put<InvitationMessageResult>(
       this.url(`/api/events/${eventId}/invitations/emails/${id}`),
-      message,
+      mailForm({ ...message, keepAttachments }, files),
       {
         context: new HttpContext().set(SKIP_ERROR_TOAST, true),
       },
@@ -368,15 +411,19 @@ export class ApiService {
     return this.http.delete<void>(this.url('/api/mail-plans/saved-cc'), { params: { email } });
   }
   // Validation errors are shown by the plan dialog, which stays open.
-  createMailPlan(plan: MailPlanSaveRequest): Observable<MailPlanDto> {
-    return this.http.post<MailPlanDto>(this.url('/api/mail-plans'), plan, {
+  createMailPlan(plan: MailPlanSaveRequest, files: File[] = []): Observable<MailPlanDto> {
+    return this.http.post<MailPlanDto>(this.url('/api/mail-plans'), mailForm(plan, files), {
       context: new HttpContext().set(SKIP_ERROR_TOAST, true),
     });
   }
-  updateMailPlan(id: number, plan: MailPlanSaveRequest): Observable<MailPlanDto> {
-    return this.http.put<MailPlanDto>(this.url(`/api/mail-plans/${id}`), plan, {
+  updateMailPlan(id: number, plan: MailPlanSaveRequest, files: File[] = []): Observable<MailPlanDto> {
+    return this.http.put<MailPlanDto>(this.url(`/api/mail-plans/${id}`), mailForm(plan, files), {
       context: new HttpContext().set(SKIP_ERROR_TOAST, true),
     });
+  }
+  // Expands *@domain to the active users of that domain (receiver chips).
+  expandMailDomain(pattern: string): Observable<string[]> {
+    return this.http.get<string[]>(this.url('/api/mail-plans/expand'), { params: { pattern } });
   }
   deleteMailPlan(id: number): Observable<void> {
     return this.http.delete<void>(this.url(`/api/mail-plans/${id}`));
@@ -651,6 +698,10 @@ export class ApiService {
   updateSettings(ccEmails: string[], mobileProvider: MobileProvider): Observable<AppSettingsDto> {
     return this.http.put<AppSettingsDto>(this.url('/api/settings'), { ccEmails, mobileProvider });
   }
+  // Inline-image limits of the message editors (admin).
+  getMailLimits(): Observable<MailLimits> {
+    return this.http.get<MailLimits>(this.url('/api/settings/mail-limits'));
+  }
   // Public: which service carries mobile messages, for channel labels.
   getMobileChannel(): Observable<{ mobileProvider: MobileProvider }> {
     return this.http.get<{ mobileProvider: MobileProvider }>(
@@ -708,15 +759,22 @@ export class ApiService {
   createUser(body: AdminUserUpsert): Observable<UserDto> {
     return this.http.post<UserDto>(this.url('/api/users'), body);
   }
-  // Bulk-create accounts from a spreadsheet upload (each gets the default password).
+  // Bulk-create accounts from a spreadsheet upload (each account gets a set-password link).
   importUsers(rows: UserImportRow[]): Observable<UserImportResult> {
     return this.http.post<UserImportResult>(this.url('/api/users/import'), { rows });
   }
   updateUser(id: number, body: AdminUserUpsert): Observable<UserDto> {
     return this.http.put<UserDto>(this.url(`/api/users/${id}`), body);
   }
-  deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(this.url(`/api/users/${id}`));
+  deactivateUser(id: number): Observable<void> {
+    return this.http.post<void>(this.url(`/api/users/${id}/deactivate`), {});
+  }
+  reactivateUser(id: number): Observable<void> {
+    return this.http.post<void>(this.url(`/api/users/${id}/reactivate`), {});
+  }
+  /** Sends a fresh single-use set-password link to the user. */
+  sendPasswordLink(id: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(this.url(`/api/users/${id}/password-link`), {});
   }
   // ---- Teams (admin) ----
   listTeams(): Observable<TeamDto[]> {
@@ -790,4 +848,13 @@ export class ApiService {
   createVoucher(ticketNumber: string): Observable<Voucher> {
     return this.http.post<Voucher>(this.url('/api/vouchers'), { ticketNumber });
   }
+}
+
+// Multipart compose/save request: a JSON payload part plus the chosen attachment files.
+function mailForm(payload: unknown, files: File[]): FormData {
+  const form = new FormData();
+  // A text part (not a File): the API binds it as the JSON payload string.
+  form.append('payload', JSON.stringify(payload));
+  for (const file of files) form.append('files', file, file.name);
+  return form;
 }

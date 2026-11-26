@@ -459,6 +459,7 @@ public class RegistrationsController : ControllerBase
                 Token = Guid.NewGuid(),
                 FormResponses = responsesJson,
                 FaceDescriptor = face,
+                FacePhoto = face is null ? null : (string.IsNullOrWhiteSpace(req.FacePhoto) ? null : req.FacePhoto),
                 GuestPhoto = displayPicture,
             };
             _db.Registrations.Add(reg);
@@ -593,6 +594,7 @@ public class RegistrationsController : ControllerBase
                     Token = Guid.NewGuid(),
                     FormResponses = responsesJson,
                     FaceDescriptor = face,
+                    FacePhoto = face is null ? null : (string.IsNullOrWhiteSpace(item.FacePhoto) ? null : item.FacePhoto),
                     GuestPhoto = string.IsNullOrWhiteSpace(item.DisplayPicture) ? null : item.DisplayPicture,
                 };
                 _db.Registrations.Add(reg);

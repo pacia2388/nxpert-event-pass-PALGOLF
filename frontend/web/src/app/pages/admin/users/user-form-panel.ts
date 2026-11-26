@@ -26,7 +26,9 @@ import { PhoneFieldComponent } from '../../../shared/phone-field/phone-field';
 import { PasswordRequirementsComponent } from '../../../shared/password-requirements/password-requirements';
 import { isValidPassword } from '../../../shared/password';
 import { PasswordRuleDirective } from '../../../shared/password-rule.directive';
+import { capsLockOn } from '../../../shared/caps-lock';
 import { PhoneCountryService } from '../../../core/phone-country.service';
+import { UserFieldsService } from '../../../core/user-fields.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
   BIRTHDATE_MIN,
@@ -62,6 +64,7 @@ export class UserFormPanelComponent {
   private api = inject(ApiService);
   protected mobile = inject(MobileChannelService);
   protected countries = inject(PhoneCountryService);
+  protected userFields = inject(UserFieldsService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
 
@@ -79,8 +82,14 @@ export class UserFormPanelComponent {
   email = '';
   username = '';
   password = '';
+  /** The password field with focus; the Caps Lock warning shows under it. */
+  passwordFocused = signal(false);
+  /** Caps Lock state of the page (key events only). */
+  protected readonly capsLockOn = capsLockOn;
   role = 'Participant';
   organization = '';
+  department = '';
+  jobRole = '';
   // "+<code><number>" from the phone field; storedPhone is the saved value (dirty check, warning).
   phone: string | null = null;
   private storedPhone: string | null = null;
@@ -101,6 +110,7 @@ export class UserFormPanelComponent {
   // Facial registration state. A newly captured descriptor (JSON), or "cleared".
   hadFace = false;
   newFace = signal<string | null>(null);
+  newFacePhoto = signal<string | null>(null);
   clearFace = signal(false);
 
   saving = signal(false);
@@ -153,6 +163,8 @@ export class UserFormPanelComponent {
     this.password = '';
     this.role = u?.role ?? 'Participant';
     this.organization = u?.organization ?? '';
+    this.department = u?.department ?? '';
+    this.jobRole = u?.jobRole ?? '';
     this.storedPhone = u?.phone ?? null;
     this.phone = this.storedPhone;
     this.notificationChannel = u?.notificationChannel ?? 'Email';
@@ -165,6 +177,7 @@ export class UserFormPanelComponent {
     this.clearPhoto.set(false);
     this.photoError.set(null);
     this.newFace.set(null);
+    this.newFacePhoto.set(null);
     this.clearFace.set(false);
 
     // Clear dirty/touched flags once the new values have been bound.
@@ -196,6 +209,8 @@ export class UserFormPanelComponent {
       role: this.role,
       notificationChannel: this.notificationChannel,
       organization: this.organization,
+      department: this.department,
+      jobRole: this.jobRole,
       canConfirm: this.canConfirmRegistrations,
       birthdate: this.birthdate,
     };
@@ -250,16 +265,17 @@ export class UserFormPanelComponent {
       .afterClosed()
       .subscribe((res: FaceCaptureResult | undefined) => {
         if (!res) return;
-        // The captured face doubles as the photo, since the Face TV recognizes people from it.
+        // The face capture is kept apart from the display photo: recognition uses it, the
+        // welcome screen and pass never show it.
         this.newFace.set(JSON.stringify(res.descriptor));
+        this.newFacePhoto.set(res.image);
         this.clearFace.set(false);
-        this.newPhoto.set(res.image);
-        this.clearPhoto.set(false);
       });
   }
 
   removeFace(): void {
     this.newFace.set(null);
+    this.newFacePhoto.set(null);
     this.clearFace.set(true);
   }
 
@@ -275,10 +291,10 @@ export class UserFormPanelComponent {
     return null;
   }
 
-  // Why the password can't be saved (shown on the field's marker), or null when it can. A blank
-  // password keeps the current one when editing.
+  // Why the password can't be saved (shown on the field's marker), or null when it can.
+  // A blank password is fine: editing keeps the current one, creating sends a set-password link.
   get passwordProblem(): string | null {
-    if (!this.password) return this.isEdit ? null : 'Required';
+    if (!this.password) return null;
     return isValidPassword(this.password, this.email)
       ? null
       : "Doesn't meet the requirements below";
@@ -315,10 +331,13 @@ export class UserFormPanelComponent {
       password: this.password || null,
       role: this.role,
       organization: this.organization.trim() || null,
+      department: this.userFields.departmentEnabled() ? this.department.trim() || null : null,
+      jobRole: this.userFields.jobRoleEnabled() ? this.jobRole.trim() || null : null,
       phone: this.phone,
       canConfirmRegistrations: this.canConfirmRegistrations,
       photo: this.photoPayload(),
       face: this.facePayload(),
+      facePhoto: this.clearFace() ? '' : this.newFacePhoto(),
       notificationChannel: this.notificationChannel,
       birthdate: toIsoDate(this.birthdate),
     };

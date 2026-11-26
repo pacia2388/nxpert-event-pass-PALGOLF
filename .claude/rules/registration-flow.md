@@ -52,8 +52,13 @@ Source: `admin-guide` and `participant-guide` skills. Preserve these behaviors w
 - Meal stubs: redeemable once, on valid dates only; Merchant role sees only the Meal Stub Scanner.
 - Roles: Admin (all) · Participant · Participant + Can confirm (Attendance actions only) ·
   Merchant. Grant changes apply at next sign-in.
-- Destructive actions (delete user/event, cancel registrations, discard changes) require a
-  confirmation dialog with the safe option pre-selected.
+- **Deactivated users** keep their registrations, passes and team, but cannot sign in and are
+  skipped by every message audience. Accounts are never deleted from the app.
+- Destructive actions (deactivate user, delete event, cancel registrations, discard changes)
+  require a confirmation dialog with the safe option pre-selected.
 - Offline check-ins queue on the device and sync when online; meal-stub scanning needs internet.
+- **Post-event feedback** is one message per confirmed registrant through `MessageDispatcher`
+  (mobile once, email retried), carrying a single-use link. The audience is frozen on first
+  prepare; anonymous answers hide the person in the organizer view.
 - Face check-in requires clear, close, front-facing, multi-frame confirmation; face data is
   optional and consent-based.

@@ -8,9 +8,18 @@
       <button type="button" class="um-btn" (click)="save()" [disabled]="panel.saving()">
         <mat-icon>save</mat-icon> Save
       </button>
-      <button type="button" class="um-btn" (click)="remove()" [disabled]="!selected()">
-        <mat-icon>delete</mat-icon> Delete
+      <button type="button" class="um-btn" (click)="sendPasswordLink()" [disabled]="!selected() || !!selected()!.deactivatedAt">
+        <mat-icon>key</mat-icon> Password link
       </button>
+      @if (selected()?.deactivatedAt) {
+        <button type="button" class="um-btn" (click)="reactivate()">
+          <mat-icon>person_add</mat-icon> Reactivate
+        </button>
+      } @else {
+        <button type="button" class="um-btn" (click)="deactivate()" [disabled]="!selected()">
+          <mat-icon>person_off</mat-icon> Deactivate
+        </button>
+      }
       <button type="button" class="um-btn" (click)="exportCsv()">
         <mat-icon>open_in_new</mat-icon> Export
       </button>
@@ -74,23 +83,30 @@
               <th>Name</th>
               <th>Username</th>
               <th class="col-email">Email</th>
+              @if (userFields.departmentEnabled()) {
+                <th>Department</th>
+              }
+              @if (userFields.jobRoleEnabled()) {
+                <th>Job role</th>
+              }
               <th>Role</th>
             </tr>
           </thead>
           <tbody>
             @if (loading() && !users().length) {
               <tr class="um-empty">
-                <td colspan="4"><mat-spinner diameter="32"></mat-spinner></td>
+                <td [attr.colspan]="4 + (userFields.departmentEnabled() ? 1 : 0) + (userFields.jobRoleEnabled() ? 1 : 0)"><mat-spinner diameter="32"></mat-spinner></td>
               </tr>
             } @else if (!filtered().length) {
               <tr class="um-empty">
-                <td colspan="4">No users match your search.</td>
+                <td [attr.colspan]="4 + (userFields.departmentEnabled() ? 1 : 0) + (userFields.jobRoleEnabled() ? 1 : 0)">No users match your search.</td>
               </tr>
             }
             @for (u of paged(); track u.id) {
               <tr
                 class="um-row"
                 [class.selected]="selected()?.id === u.id"
+                [class.deactivated]="!!u.deactivatedAt"
                 (click)="select(u)"
                 tabindex="0"
                 (keydown.enter)="select(u)"
@@ -99,6 +115,9 @@
                 <td>
                   <span class="u-name">
                     {{ u.fullName }}
+                    @if (u.deactivatedAt) {
+                      <span class="deactivated-pill">Deactivated</span>
+                    }
                     @if (u.hasFace) {
                       <mat-icon class="inline-icon face-badge" matTooltip="Face registered"
                         >face</mat-icon
@@ -116,6 +135,12 @@
                 </td>
                 <td>{{ u.username }}</td>
                 <td class="col-email">{{ u.email }}</td>
+                @if (userFields.departmentEnabled()) {
+                  <td>{{ u.department || '—' }}</td>
+                }
+                @if (userFields.jobRoleEnabled()) {
+                  <td>{{ u.jobRole || '—' }}</td>
+                }
                 <td>
                   <span
                     class="role-pill"
@@ -136,7 +161,7 @@
             @if (filtered().length) {
               @for (_ of fillerRows(); track $index) {
                 <tr class="um-filler">
-                  <td colspan="4"></td>
+                  <td [attr.colspan]="4 + (userFields.departmentEnabled() ? 1 : 0) + (userFields.jobRoleEnabled() ? 1 : 0)"></td>
                 </tr>
               }
             }

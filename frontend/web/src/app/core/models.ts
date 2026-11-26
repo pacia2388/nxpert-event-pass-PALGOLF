@@ -37,8 +37,13 @@ export interface UserDto {
   photoUrl: string | null;
   hasFace: boolean;
   birthdate: string | null; // yyyy-MM-dd
+  /** Set when the account was deactivated: it keeps its data but cannot sign in. */
+  deactivatedAt?: string | null;
   /** The team this user is a member of; set on the users list only (null/absent = none). */
   teamId?: number | null;
+  /** Optional install fields (user-fields.json); null while switched off. */
+  department?: string | null;
+  jobRole?: string | null;
 }
 
 // ---- Teams ----
@@ -211,6 +216,7 @@ export interface OfflineReg {
   confirmed: boolean;
   checkedInAt: string | null;
   face: number[] | null; // guest's face descriptor (account faces are on OfflineMember)
+  displayPicture?: string | null; // the guest's display photo (never the face capture)
 }
 export interface OfflineBundle {
   event: OfflineEvent;
@@ -246,6 +252,7 @@ export interface QueuedRegistration {
   responses: Record<string, string>;
   registeredAt: string;
   face?: string | null; // JSON descriptor captured during offline registration
+  facePhoto?: string | null; // face capture data URL captured during offline registration
   displayPicture?: string | null; // profile photo data URL captured during offline registration
 }
 
@@ -263,6 +270,8 @@ export interface UserImportRow {
   role?: string | null;
   notificationChannel?: string | null;
   birthdate?: string | null;
+  department?: string | null;
+  jobRole?: string | null;
 }
 export interface UserImportError {
   row: number;
@@ -274,6 +283,8 @@ export interface UserImportResult {
   skipped: number;
   failed: number;
   errors: UserImportError[];
+  /** Created accounts that were sent a set-password link. */
+  linksQueued?: number;
 }
 
 export interface AdminUserUpsert {
@@ -291,8 +302,11 @@ export interface AdminUserUpsert {
   canConfirmRegistrations: boolean;
   photo?: string | null;
   face?: string | null; // JSON array of 128 floats; null = unchanged, "" = clear
+  facePhoto?: string | null; // the face capture; null = unchanged, "" = clear
   notificationChannel: NotificationChannel;
   birthdate: string | null; // yyyy-MM-dd
+  department?: string | null;
+  jobRole?: string | null;
 }
 
 export interface VerifyEmailResult {
@@ -315,6 +329,8 @@ export interface ProfileDto {
   role: string;
   hasFace: boolean;
   birthdate: string | null; // yyyy-MM-dd
+  department?: string | null;
+  jobRole?: string | null;
 }
 
 export interface ProfileUpdate {
@@ -330,14 +346,23 @@ export interface ProfileUpdate {
   newPassword?: string | null;
   notificationChannel: NotificationChannel;
   face?: string | null; // JSON array of 128 floats; null = unchanged, "" = clear
+  facePhoto?: string | null; // the face capture; null = unchanged, "" = clear
   birthdate: string | null; // yyyy-MM-dd
+  department?: string | null;
+  jobRole?: string | null;
 }
 
 export interface InviteResolveResult {
   registered: boolean;
   email: string;
   eventSlug: string;
-  auth: AuthResponse | null;
+}
+
+/** A set-password link: whether it is still usable, and who it belongs to. */
+export interface SetPasswordInfo {
+  valid: boolean;
+  name: string | null;
+  email: string | null;
 }
 
 export type FieldType =
@@ -452,6 +477,23 @@ export interface EventDto {
   meetingUrl?: string | null; // admin responses only — never sent to public / browse callers
   verifyOnly: boolean; // scanners verify passes but record no check-ins
   category?: EventCategory | null; // who the event is for; null = everyone
+  feedbackForm: boolean; // automatic post-event feedback form is on
+}
+
+/** One attachment of a composed email: kept inside the saved .eml. */
+export interface MailAttachment {
+  name: string;
+  size: number;
+}
+
+/** Live progress of a composed invitation / mail-plan day, sent after each SMTP batch. */
+export interface MailSendProgressNotice {
+  source: 'invitation' | 'plan';
+  id: number;
+  sent: number;
+  total: number;
+  failed: number;
+  done: boolean;
 }
 
 export interface ViberBroadcastProgressNotice {
@@ -485,6 +527,7 @@ export interface EventUpsert {
   registrationFees: string | null;
   schedule: ScheduleItem[];
   notifyOnKitClaim: boolean;
+  feedbackForm: boolean; // send every confirmed registrant a feedback link after the event
   meals: MealUpsert[]; // event-level (per-day) meal stubs
   format: EventFormat;
   meetingUrl: string | null;
@@ -748,7 +791,7 @@ export interface StubIdsResult {
   affected: number;
 }
 
-// Composed event invitation (To / CC may hold "@n-pax" = every system user).
+// Composed event invitation (To / CC may hold "*@domain" = every user of that email domain).
 export interface InvitationMessageRequest {
   to: string[];
   cc: string[];
@@ -764,6 +807,7 @@ export interface InvitationEmail {
   cc: string[];
   subject: string;
   bodyHtml?: string;
+  attachments?: MailAttachment[];
   status: 'Scheduled' | 'Sending' | 'Sent' | 'Queued' | 'Failed' | 'Cancelled';
   createdAt: string;
   updatedAt: string;
@@ -806,6 +850,7 @@ export interface MailPlanSendDto {
   imageCount: number;
   // Only when one plan is opened for editing.
   bodyHtml: string | null;
+  attachments: MailAttachment[];
   status: MailSendStatus;
   sentAt: string | null;
   recipientCount: number;
@@ -824,6 +869,9 @@ export interface MailPlanDto {
   groupIds: string[];
   emails: string[];
   cc: string[];
+  excludedEmails: string[];
+  sendImmediately: boolean;
+  sendAt: string | null;
   createdAt: string;
   updatedAt: string;
   version: string;
@@ -838,9 +886,13 @@ export interface MailPlanSaveRequest {
   groupIds: string[];
   emails: string[];
   cc: string[];
+  excludedEmails?: string[];
+  sendImmediately?: boolean;
   // id = an existing Scheduled day; bodyHtml is XHTML from the editor.
   sends: { id: number | null; sendAt: string; subject: string; bodyHtml: string }[];
   version: string | null;
+  // Editing: attachments already on the plan to keep (by name). Omitted keeps them all.
+  keepAttachments?: string[];
 }
 
 /** A saved receiver list, resolved from users, organizations, levels or event registrants. */
@@ -901,6 +953,14 @@ export interface AppSettingsDto {
   smsReady: boolean;
 }
 
+/** Inline-image limits of the message editors (server config Mail:InlineImages). */
+export interface MailLimits {
+  maxSourceBytes: number;
+  maxImageBytes: number;
+  maxTotalBytes: number;
+  maxCount: number;
+}
+
 export interface FeedbackDto {
   id: number;
   eventId: number;
@@ -908,12 +968,46 @@ export interface FeedbackDto {
   rating: number;
   comment: string | null;
   createdAt: string;
+  isAnonymous?: boolean;
+  displayName?: string | null;
+  organizationRating?: number | null;
+  wentWell?: string | null;
+  improve?: string | null;
+}
+
+/** The automatic post-event feedback switch and the frozen audience's counts. */
+export interface FeedbackCampaign {
+  enabled: boolean;
+  prepared: boolean;
+  pending: number;
+  sent: number;
+  failed: number;
+  answered: number;
 }
 
 export interface EventFeedbackSummary {
   count: number;
   averageRating: number;
   items: FeedbackDto[];
+  campaign?: FeedbackCampaign | null;
+}
+
+/** The public feedback link: the event and whether it was already answered. */
+export interface PublicFeedback {
+  eventId: number;
+  eventTitle: string;
+  startsAt: string;
+  endsAt: string;
+  alreadySubmitted: boolean;
+}
+
+export interface PublicFeedbackAnswer {
+  rating: number;
+  comment: string | null;
+  isAnonymous: boolean;
+  organizationRating: number | null;
+  wentWell: string | null;
+  improve: string | null;
 }
 
 export interface DashboardSummary {

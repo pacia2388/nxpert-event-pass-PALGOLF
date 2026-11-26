@@ -168,6 +168,22 @@ public static class MessageTemplates
         return Same(new MobilePart($"Edit your registration — {eventTitle}", text));
     }
 
+    // The one-time link to rate an event after it ended.
+    public static Mobile FeedbackRequest(string eventTitle, string name, string url)
+    {
+        var text = $"Hi {name}, how was \"{eventTitle}\"? Tell the organizer here: {url}\n" +
+                   "The link is only for you; open it again to change your answer.";
+        return Same(new MobilePart($"Feedback — {eventTitle}", text));
+    }
+
+    // Single-use link to choose a password for an account someone else created.
+    public static Mobile PasswordSetup(string name, string url, int validHours)
+    {
+        var text = $"Hi {name}, set your password here: {url}\n" +
+                   $"This link works once and expires in {validHours} hours.";
+        return Same(new MobilePart("Set your password", text));
+    }
+
     // Mail plan day: the body as plain text, link addresses kept.
     public static Mobile MailPlan(string subject, string bodyXhtml)
     {

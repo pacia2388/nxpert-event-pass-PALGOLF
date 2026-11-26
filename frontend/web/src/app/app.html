@@ -113,6 +113,15 @@
   </div>
 }
 
+@if (update.ready()) {
+  <div class="install-banner" role="status">
+    <mat-icon class="install-icon">system_update</mat-icon>
+    <span class="install-text">A new version is ready.</span>
+    <span class="spacer"></span>
+    <button mat-flat-button color="primary" (click)="update.reload()">Reload</button>
+  </div>
+}
+
 @if (pwa.showBanner()) {
   <div class="install-banner">
     <mat-icon class="install-icon">install_mobile</mat-icon>

@@ -13,11 +13,8 @@ namespace EventRegistration.Api.Services;
 public record InvitationMessage(List<string> To, List<string> Cc, string Subject,
     string Html, Dictionary<string, byte[]> Images, string RegisterUrl, string EditableBody);
 
-public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
+public class InvitationMessageBuilder(AppDbContext db, IConfiguration config, MailImageOptions limits)
 {
-    public const int MaxImageBytes = 2 * 1024 * 1024;
-    public const int MaxTotalImageBytes = 5 * 1024 * 1024;
-
     public static string? Address(string? input)
     {
         var value = (input ?? "").Trim();
@@ -43,17 +40,16 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
         DateTimeOffset? sendAt = null)
     {
         if (enforceRecipientEntryLimit && (req.To?.Count ?? 0) + (req.Cc?.Count ?? 0) > 500)
-            throw new ArgumentException("Use @n-pax for all users, or add at most 500 individual recipient entries.");
-        var directory = (await db.Users.AsNoTracking().Select(u => u.Email).ToListAsync())
-            .Select(Address).Where(e => e != null).Cast<string>().Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        List<string> Expand(List<string>? values)
+            throw new ArgumentException("Use *@domain for every user of an email domain, or add at most 500 individual recipient entries.");
+        async Task<List<string>> ExpandAsync(List<string>? values)
         {
             // Ordered de-dupe: recipients keep the order they were entered in.
             var result = new List<string>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var raw in values ?? new())
             {
-                if (string.Equals(raw?.Trim(), "@n-pax", StringComparison.OrdinalIgnoreCase)) result.AddRange(directory.Where(seen.Add));
+                if (MailRecipients.IsDomainPattern(raw))
+                    result.AddRange((await MailRecipients.DomainEmailsAsync(db, raw!)).Where(seen.Add));
                 else
                 {
                     var address = Address(raw) ?? throw new ArgumentException($"Invalid recipient: {raw}");
@@ -62,13 +58,13 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
             }
             return result;
         }
-        var to = Expand(req.To);
-        var cc = Expand(req.Cc).Except(to, StringComparer.OrdinalIgnoreCase).ToList();
+        var to = await ExpandAsync(req.To);
+        var cc = (await ExpandAsync(req.Cc)).Except(to, StringComparer.OrdinalIgnoreCase).ToList();
         if (to.Count == 0) throw new ArgumentException("Add at least one To recipient.");
         var subject = (req.Subject ?? "").Trim();
         if (subject.Length == 0 || subject.Length > 200 || subject.Contains('\r') || subject.Contains('\n'))
             throw new ArgumentException("Enter a subject of up to 200 characters, without line breaks.");
-        var (body, images) = RenderBody(req.BodyHtml);
+        var (body, images) = RenderBody(req.BodyHtml, limits);
         var frontend = config["App:FrontendBaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200";
         var url = $"{frontend}/e/{Uri.EscapeDataString(ev.PublicSlug)}";
         // A composed message can have CC recipients: do not share personal magic-login tokens.
@@ -136,10 +132,19 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
         return System.Text.RegularExpressions.Regex.Replace(string.Join('\n', lines), @"\n{3,}", "\n\n").Trim();
     }
 
+    // The same wording the web editor builds from the loaded limits.
+    public static string ImageLimitMessage(MailImageOptions limits) =>
+        $"Use up to {limits.MaxCount} images, at most {Megabytes(limits.MaxImageBytes)} MB each and " +
+        $"{Megabytes(limits.MaxTotalBytes)} MB in total after resizing.";
+
+    private static string Megabytes(int bytes) => (bytes / 1024.0 / 1024.0).ToString("0.#");
+
     // The editor sends serialized XHTML, not trusted HTML. Parse without DTDs or
     // external resources and rebuild only supported formatting, safe links and PNGs.
-    public static (string Html, Dictionary<string, byte[]> Images) RenderBody(string? xhtml)
+    // Limits default to the config class defaults; callers pass the configured options.
+    public static (string Html, Dictionary<string, byte[]> Images) RenderBody(string? xhtml, MailImageOptions? options = null)
     {
+        var limits = options ?? new MailImageOptions();
         if (string.IsNullOrWhiteSpace(xhtml)) return ("", new());
         if (xhtml.Length > 8_000_000) throw new ArgumentException("The message is too large. Use smaller images.");
         XDocument document;
@@ -172,12 +177,13 @@ public class InvitationMessageBuilder(AppDbContext db, IConfiguration config)
                 const string prefix = "data:image/png;base64,";
                 if (!source.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     throw new ArgumentException("Insert images using the image button or paste an image file.");
-                if (images.Count >= 5) throw new ArgumentException("Use at most five inline images.");
+                if (images.Count >= limits.MaxCount)
+                    throw new ArgumentException($"Use at most {limits.MaxCount} inline images.");
                 byte[] bytes;
                 try { bytes = Convert.FromBase64String(source[prefix.Length..]); }
                 catch (FormatException) { throw new ArgumentException("An inline image could not be read."); }
-                if (bytes.Length > MaxImageBytes || (total += bytes.Length) > MaxTotalImageBytes)
-                    throw new ArgumentException("Each image must be at most 2 MB, and all images together at most 5 MB.");
+                if (bytes.Length > limits.MaxImageBytes || (total += bytes.Length) > limits.MaxTotalBytes)
+                    throw new ArgumentException(ImageLimitMessage(limits));
                 ReadOnlySpan<byte> signature = new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 };
                 if (bytes.Length < 33 || !bytes.AsSpan(0, 8).SequenceEqual(signature) ||
                     Encoding.ASCII.GetString(bytes, 12, 4) != "IHDR")

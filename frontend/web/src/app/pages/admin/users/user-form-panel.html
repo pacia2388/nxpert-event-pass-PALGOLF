@@ -135,18 +135,30 @@
       name="password"
       [(ngModel)]="password"
       #passwordModel="ngModel"
-      [required]="!isEdit"
       maxlength="128"
       [appPasswordRule]="email"
       autocomplete="new-password"
-      [placeholder]="isEdit ? 'Leave blank to keep' : ''"
+      [placeholder]="isEdit ? 'Leave blank to keep' : 'Leave blank to send a password link'"
+      (focus)="passwordFocused.set(true)"
+      (blur)="passwordFocused.set(false)"
     />
     @if (passwordModel.touched && passwordProblem) {
       <mat-icon matSuffix class="req" [matTooltip]="passwordProblem">error</mat-icon>
     }
   </mat-form-field>
-  @if (!isEdit || password) {
+  @if (passwordFocused() && capsLockOn()) {
+    <p class="caps-warning" role="status">
+      <mat-icon>keyboard_capslock</mat-icon>
+      Caps Lock is on
+    </p>
+  }
+  @if (password) {
     <app-password-requirements class="span-2" [password]="password" [email]="email" />
+  } @else if (!isEdit) {
+    <p class="muted span-2">
+      No password: the new account gets an email (or mobile message) with a one-time link to set
+      one.
+    </p>
   }
 
   <mat-form-field appearance="outline">
@@ -173,6 +185,19 @@
     <mat-label>Chapter</mat-label>
     <input matInput name="organization" [(ngModel)]="organization" maxlength="200" />
   </mat-form-field>
+
+  @if (userFields.departmentEnabled()) {
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Department</mat-label>
+      <input matInput name="department" [(ngModel)]="department" [maxlength]="userFields.departmentMax()" />
+    </mat-form-field>
+  }
+  @if (userFields.jobRoleEnabled()) {
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Job role</mat-label>
+      <input matInput name="jobRole" [(ngModel)]="jobRole" [maxlength]="userFields.jobRoleMax()" />
+    </mat-form-field>
+  }
 
   <mat-form-field appearance="outline">
     <mat-label>Send pass via</mat-label>

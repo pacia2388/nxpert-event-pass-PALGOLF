@@ -42,10 +42,16 @@ export interface ScreenDisplayData {
   styles: [
     `
       :host {
-        display: block;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        height: min(84dvh, 800px);
+        max-height: calc(100dvh - 32px);
+        min-height: 0;
         padding: 14px 16px 16px;
       }
       .sd-head {
+        flex: none;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -85,13 +91,15 @@ export interface ScreenDisplayData {
         flex: none;
         background: #f1f5f9;
       }
-      /* The banner fills a brand-backed stage at its own proportions — wide banners span the
-         width, square/portrait ones centre with brand gutters; never cropped or stretched. */
+      /* The banner fills the stage at its own proportions — wide banners span the width,
+         square/portrait ones centre with brand gutters; never cropped or stretched. A flexible
+         height (bounded by the header) keeps short or rotated windows from scrolling. */
       .sd-stage {
         display: flex;
         align-items: center;
         justify-content: center;
-        height: min(72vh, 680px);
+        flex: 1;
+        min-height: 0;
         border-radius: 14px;
         overflow: hidden;
         background: var(--brand-grad);
@@ -105,9 +113,6 @@ export interface ScreenDisplayData {
       @media (max-width: 600px) {
         :host {
           padding: 10px 10px 12px;
-        }
-        .sd-stage {
-          height: 60vh;
         }
       }
     `,
@@ -125,6 +130,7 @@ export function openScreenDisplay(dialog: MatDialog, src: string | null, eventTi
     data: { src, eventTitle },
     width: '1100px',
     maxWidth: '94vw',
+    maxHeight: 'calc(100dvh - 24px)',
     autoFocus: false,
   });
 }

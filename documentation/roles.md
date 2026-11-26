@@ -48,7 +48,7 @@ Plus one **permission** (not a role), the only per-user switch:
 | QR check-in scanner, face TV, check-in API | ✓ | ✓ | ✗ | ✗ | ✗ | – |
 | Meal-stub scanner | ✓ | ✓ | ✗ | ✗ | ✓ | – |
 | Dashboard | ✓ | ✓ | ✗ | ✗ | ✗ | – |
-| Users: create, import, edit role and permission, delete | ✓ | ✓ | ✗ | ✗ | ✗ | – |
+| Users: create, import, edit role and permission, deactivate / reactivate, send password link | ✓ | ✓ | ✗ | ✗ | ✗ | – |
 | Settings | ✓ | ✓ | ✗ | ✗ | ✗ | – |
 | Teams: create, edit, delete, assign lead, add / remove members | ✓ | ✓ | ✗ | ✗ | ✗ | – |
 

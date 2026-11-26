@@ -15,22 +15,30 @@ public class UsersController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly NotificationService _notify;
+    private readonly PasswordSetupService _passwordSetup;
+    private readonly UserFieldCatalog _userFields;
 
-    public UsersController(AppDbContext db, NotificationService notify)
+    public UsersController(AppDbContext db, NotificationService notify, PasswordSetupService passwordSetup,
+        UserFieldCatalog userFields)
     {
         _db = db;
         _notify = notify;
+        _passwordSetup = passwordSetup;
+        _userFields = userFields;
     }
 
     private static readonly string[] AssignableRoles = { Roles.Admin, Roles.Participant, Roles.Merchant, Roles.Captain };
 
     // includePhoto is false for the list so the payload stays light — the photo (a base64
     // data URL) is only sent for single-user fetch/create/update responses.
-    private static UserDto ToDto(User u, bool includePhoto = false) => new(
+    private UserDto ToDto(User u, bool includePhoto = false) => new(
         u.Id, u.FullName, u.FirstName, u.MiddleInitial, u.LastName, u.SenateNo, u.Level,
         u.Email, u.Username, u.Role, u.Organization, u.Phone, u.NotificationChannel,
         u.CanConfirmRegistrations, u.EmailVerified, u.CreatedAt,
-        includePhoto ? u.PhotoUrl : null, !string.IsNullOrEmpty(u.FaceDescriptor), u.Birthdate);
+        includePhoto ? u.PhotoUrl : null, !string.IsNullOrEmpty(u.FaceDescriptor), u.Birthdate,
+        u.DeactivatedAt, TeamId: null,
+        Department: _userFields.DepartmentEnabled ? u.Department : null,
+        JobRole: _userFields.JobRoleEnabled ? u.JobRole : null);
 
     // Resolve the username: use the admin-supplied one (normalized, must be unique) or auto-generate
     // "<first-initial><lastname>" made unique. Returns an error message when a supplied name is taken.
@@ -115,7 +123,8 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "First and last name are required." });
         if (string.IsNullOrWhiteSpace(email))
             return BadRequest(new { message = "Email is required." });
-        if (PasswordRules.Validate(req.Password, email) is { } createPasswordError)
+        // A blank password is allowed: the account is created passwordless and receives a link.
+        if (!string.IsNullOrWhiteSpace(req.Password) && PasswordRules.Validate(req.Password, email) is { } createPasswordError)
             return BadRequest(new { message = createPasswordError });
         if (!AssignableRoles.Contains(req.Role))
             return BadRequest(new { message = "Invalid role." });
@@ -124,13 +133,17 @@ public class UsersController : ControllerBase
         if (await _db.Users.AnyAsync(u => u.Email == email))
             return Conflict(new { message = "An account with that email already exists." });
 
-        var photoError = ValidatePhoto(req.Photo) ?? ValidateFace(req.Face);
+        var photoError = ValidatePhoto(req.Photo) ?? ValidatePhoto(req.FacePhoto) ?? ValidateFace(req.Face);
         if (photoError is not null) return BadRequest(new { message = photoError });
 
         var (phone, phoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
         if (phoneError is not null) return BadRequest(new { message = phoneError });
         var channelError = ResolveChannel(req.NotificationChannel, phone, out var channel);
         if (channelError is not null) return BadRequest(new { message = channelError });
+        var department = _userFields.CleanDepartment(req.Department, out var departmentError);
+        if (departmentError is not null) return BadRequest(new { message = departmentError });
+        var jobRole = _userFields.CleanJobRole(req.JobRole, out var jobRoleError);
+        if (jobRoleError is not null) return BadRequest(new { message = jobRoleError });
 
         if (!string.IsNullOrEmpty(req.Face))
         {
@@ -152,13 +165,16 @@ public class UsersController : ControllerBase
             Level = string.IsNullOrWhiteSpace(req.Level) ? null : req.Level.Trim(),
             Email = email,
             Username = username!,
-            PasswordHash = PasswordHasher.Hash(req.Password),
+            PasswordHash = string.IsNullOrWhiteSpace(req.Password) ? "" : PasswordHasher.Hash(req.Password),
             Role = req.Role,
             Organization = string.IsNullOrWhiteSpace(req.Organization) ? null : req.Organization.Trim(),
+            Department = department,
+            JobRole = jobRole,
             Phone = phone,
             NotificationChannel = channel,
             PhotoUrl = string.IsNullOrEmpty(req.Photo) ? null : req.Photo,
             FaceDescriptor = string.IsNullOrEmpty(req.Face) ? null : req.Face,
+            FacePhoto = string.IsNullOrEmpty(req.Face) ? null : req.FacePhoto,
             Birthdate = req.Birthdate,
             CanConfirmRegistrations = req.CanConfirmRegistrations,
             CompanyId = 1,
@@ -169,11 +185,10 @@ public class UsersController : ControllerBase
             await UsernameHelper.SaveNewUserAsync(_db, user, UsernameHelper.Base(req.FirstName, req.LastName, null));
         else
             await _db.SaveChangesAsync();
+        // No typed password: the account can only be used after following the emailed link.
+        if (string.IsNullOrWhiteSpace(req.Password)) await _passwordSetup.IssueAsync(user);
         return Ok(ToDto(user, includePhoto: true));
     }
-
-    // Default password for bulk-imported accounts. Users are expected to change it on first login.
-    private const string DefaultImportPassword = "12345";
 
     private static bool IsValidEmail(string email) => UserAccountHelper.IsValidEmail(email);
 
@@ -185,8 +200,9 @@ public class UsersController : ControllerBase
         return AssignableRoles.FirstOrDefault(role => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
     }
 
-    // ---- Bulk import: create many accounts from an uploaded spreadsheet, each with the default
-    // password. Existing emails are skipped; malformed rows are reported without aborting the run. ----
+    // ---- Bulk import: create many accounts from an uploaded spreadsheet. Every created account is
+    // passwordless and gets a set-password link. Existing emails are skipped; malformed rows are
+    // reported without aborting the run. ----
     [HttpPost("import")]
     public async Task<ActionResult<UserImportResult>> Import(UserImportRequest req)
     {
@@ -194,11 +210,7 @@ public class UsersController : ControllerBase
         if (rows.Count == 0) return BadRequest(new { message = "No rows to import." });
         if (rows.Count > 5000) return BadRequest(new { message = "Too many rows — import at most 5000 at a time." });
 
-        // Hash the default password once and reuse it: every imported account shares the same
-        // (weak, meant-to-be-changed) password, so per-row salting adds cost without real benefit.
-        var passwordHash = PasswordHasher.Hash(DefaultImportPassword);
-
-        int created = 0, skipped = 0, failed = 0;
+        int created = 0, skipped = 0, failed = 0, linksQueued = 0;
         var errors = new List<UserImportError>();
 
         for (var i = 0; i < rows.Count; i++)
@@ -265,6 +277,21 @@ public class UsersController : ControllerBase
                 continue;
             }
 
+            var department = _userFields.CleanDepartment(row.Department, out var departmentError);
+            if (departmentError is not null)
+            {
+                errors.Add(new UserImportError(line, label, departmentError));
+                failed++;
+                continue;
+            }
+            var jobRole = _userFields.CleanJobRole(row.JobRole, out var jobRoleError);
+            if (jobRoleError is not null)
+            {
+                errors.Add(new UserImportError(line, label, jobRoleError));
+                failed++;
+                continue;
+            }
+
             var (username, usernameError) = await ResolveUsername(row.Username, first, last, null);
             if (usernameError is not null)
             {
@@ -283,15 +310,20 @@ public class UsersController : ControllerBase
                 Level = string.IsNullOrWhiteSpace(row.Level) ? null : row.Level.Trim(),
                 Email = email,
                 Username = username!,
-                PasswordHash = passwordHash,
+                PasswordHash = "",
                 Role = role,
                 Organization = string.IsNullOrWhiteSpace(row.Organization) ? null : row.Organization.Trim(),
+                Department = department,
+                JobRole = jobRole,
                 Phone = phone,
                 NotificationChannel = channel,
                 Birthdate = birthdate,
                 CanConfirmRegistrations = false,
                 CompanyId = 1,
                 EmailVerified = true, // admin-created accounts are pre-verified
+                // The link goes out in the background (PasswordLinkQueue) so a large file never
+                // times out the request; the marker survives a restart.
+                PasswordLinkQueuedAt = DateTimeOffset.UtcNow,
             };
 
             _db.Users.Add(user);
@@ -306,10 +338,13 @@ public class UsersController : ControllerBase
                 _db.Entry(user).State = EntityState.Detached;
                 errors.Add(new UserImportError(line, label, "Could not save this row (possible duplicate)."));
                 failed++;
+                continue;
             }
+
+            linksQueued++;
         }
 
-        return Ok(new UserImportResult(created, skipped, failed, errors));
+        return Ok(new UserImportResult(created, skipped, failed, errors, linksQueued));
     }
 
     [HttpPut("{id:int}")]
@@ -337,7 +372,7 @@ public class UsersController : ControllerBase
         if (BirthdateRules.Validate(req.Birthdate) is { } birthdateError)
             return BadRequest(new { message = birthdateError });
 
-        var photoError = ValidatePhoto(req.Photo) ?? ValidateFace(req.Face);
+        var photoError = ValidatePhoto(req.Photo) ?? ValidatePhoto(req.FacePhoto) ?? ValidateFace(req.Face);
         if (photoError is not null) return BadRequest(new { message = photoError });
 
         if (!string.IsNullOrEmpty(req.Face))
@@ -351,6 +386,10 @@ public class UsersController : ControllerBase
         if (phoneError is not null) return BadRequest(new { message = phoneError });
         var channelError = ResolveChannel(req.NotificationChannel, phone, out var channel);
         if (channelError is not null) return BadRequest(new { message = channelError });
+        var department = _userFields.CleanDepartment(req.Department, out var departmentError);
+        if (departmentError is not null) return BadRequest(new { message = departmentError });
+        var jobRole = _userFields.CleanJobRole(req.JobRole, out var jobRoleError);
+        if (jobRoleError is not null) return BadRequest(new { message = jobRoleError });
 
         // Username: a supplied value replaces it (validated unique); blank keeps the current one.
         if (!string.IsNullOrWhiteSpace(req.Username))
@@ -376,6 +415,9 @@ public class UsersController : ControllerBase
         user.Email = email;
         user.Role = req.Role;
         user.Organization = string.IsNullOrWhiteSpace(req.Organization) ? null : req.Organization.Trim();
+        // A disabled field keeps whatever is stored, so turning it off never wipes data.
+        if (_userFields.DepartmentEnabled) user.Department = department;
+        if (_userFields.JobRoleEnabled) user.JobRole = jobRole;
         user.Phone = phone;
         user.NotificationChannel = channel;
         user.Birthdate = req.Birthdate;
@@ -388,9 +430,13 @@ public class UsersController : ControllerBase
         }
         if (req.Face is not null) // null = leave unchanged; "" = clear the face registration
             user.FaceDescriptor = req.Face.Length == 0 ? null : req.Face;
+        // The face capture is stored apart from the display photo; clearing the face removes both.
+        var facePhotoChanged = req.FacePhoto is not null || req.Face == "";
+        if (facePhotoChanged)
+            user.FacePhoto = req.Face == "" || req.FacePhoto == "" ? null : req.FacePhoto;
         user.CanConfirmRegistrations = req.CanConfirmRegistrations;
         await _db.SaveChangesAsync();
-        if (photoChanged) await _notify.UserPhotoChangedAsync(user.Id);
+        if (photoChanged || facePhotoChanged) await _notify.UserPhotoChangedAsync(user.Id);
         return Ok(ToDto(user, includePhoto: true));
     }
 
@@ -416,26 +462,50 @@ public class UsersController : ControllerBase
         return Ok(list);
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    // ---- Deactivate / reactivate: the account keeps its registrations, team and passes, but can no
+    // longer sign in and is skipped by every audience that sends messages. Replaces delete. ----
+
+    [HttpPost("{id:int}/deactivate")]
+    public async Task<IActionResult> Deactivate(int id)
     {
         if (id == this.UserId())
-            return BadRequest(new { message = "You can't delete your own account." });
+            return BadRequest(new { message = "You can't deactivate your own account." });
 
         var user = await _db.Users.FindAsync(id);
         if (user is null) return NotFound();
-
-        // Registrations reference the user with a restrict delete — block rather than cascade.
-        if (await _db.Registrations.IgnoreQueryFilters().AnyAsync(r => r.UserId == id))
-            return BadRequest(new { message = "This user has event registrations and can't be deleted." });
-
-        // Teams reference users with a restrict delete: a lead blocks, a membership is dropped.
-        if (await _db.Teams.AnyAsync(t => t.TeamLeadUserId == id))
-            return BadRequest(new { message = "This user leads a team. Reassign or delete the team first." });
-        _db.TeamMembers.RemoveRange(await _db.TeamMembers.Where(m => m.UserId == id).ToListAsync());
-
-        _db.Users.Remove(user);
-        await _db.SaveChangesAsync();
+        if (user.DeactivatedAt is null)
+        {
+            user.DeactivatedAt = DateTime.UtcNow;
+            user.PasswordSetupTokenHash = null;
+            user.PasswordSetupTokenExpiresAt = null;
+            await _db.SaveChangesAsync();
+        }
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/reactivate")]
+    public async Task<IActionResult> Reactivate(int id)
+    {
+        var user = await _db.Users.FindAsync(id);
+        if (user is null) return NotFound();
+        if (user.DeactivatedAt is not null)
+        {
+            user.DeactivatedAt = null;
+            await _db.SaveChangesAsync();
+        }
+        return NoContent();
+    }
+
+    // Sends a fresh single-use set-password link (e.g. the first one expired). Email only: the
+    // admin picks the account, not a channel.
+    [HttpPost("{id:int}/password-link")]
+    public async Task<IActionResult> SendPasswordLink(int id)
+    {
+        var user = await _db.Users.FindAsync(id);
+        if (user is null) return NotFound();
+        if (user.DeactivatedAt is not null)
+            return BadRequest(new { message = "Reactivate this account before sending it a password link." });
+        await _passwordSetup.IssueAsync(user, emailOnly: true);
+        return Ok(new { message = "Password link sent." });
     }
 }

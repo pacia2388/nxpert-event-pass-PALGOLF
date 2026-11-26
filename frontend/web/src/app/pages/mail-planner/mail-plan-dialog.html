@@ -339,6 +339,11 @@
               [invalid]="showEntryErrors(e) && !hasBody(e)"
               placeholder="Write the message receivers will read on this day. Insert an image between paragraphs using the image button."
             />
+            <app-mail-attachments
+              [existing]="editingAttachments()"
+              [(files)]="attachmentFiles"
+              [(removed)]="removedAttachments"
+            />
 
             @if (showEntryErrors(e)) {
               <p class="dc-error" role="alert">
@@ -518,6 +523,19 @@
             </div>
           </div>
         }
+        @if (groupIds().length && groupMembers().length) {
+          <div class="rs-section">
+            <span class="rs-title">Remove members</span>
+            <div class="exclude-list">
+              @for (e of groupMembers(); track e) {
+                <label class="exclude-row">
+                  <input type="checkbox" [checked]="excluded().includes(e)" (change)="toggleExcluded(e)" />
+                  <span>{{ e }}</span>
+                </label>
+              }
+            </div>
+          </div>
+        }
         <!-- Lists picked on plans made before the CC field; they can still be removed. -->
         @if (groupIds().length) {
           <div class="rs-section">
@@ -662,6 +680,10 @@
       Next <mat-icon>arrow_forward</mat-icon>
     </button>
   } @else {
+    <label class="send-now-toggle">
+      <input type="checkbox" [checked]="sendImmediately()" (change)="sendImmediately.set(!sendImmediately())" />
+      Send immediately (one day, next scheduler tick)
+    </label>
     <button type="button" class="ev-btn" (click)="save(true)" [disabled]="saving()">
       <mat-icon>save</mat-icon> Save draft
     </button>

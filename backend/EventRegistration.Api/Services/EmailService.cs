@@ -173,6 +173,99 @@ public class EmailService
     }
 
     /// <summary>
+    /// A composed email (HTML + inline images + attachments) with no recipients, saved as an .eml
+    /// and sent later to each batch. The body is built exactly like a normal send.
+    /// </summary>
+    public virtual async Task<MimeMessage> BuildStoredAsync(string subject, string htmlBody,
+        IReadOnlyDictionary<string, byte[]>? inlineImages = null,
+        IReadOnlyList<EmailAttachment>? attachments = null)
+    {
+        // BuildMessageAsync needs a recipient; the placeholder is removed again.
+        var msg = await BuildMessageAsync(new[] { "stored-mail@localhost" }, Array.Empty<string>(),
+            subject, htmlBody, inlineImages: inlineImages, attachments: attachments);
+        msg.To.Clear();
+        msg.Cc.Clear();
+        msg.Bcc.Clear();
+        return msg;
+    }
+
+    /// <summary>
+    /// Sends a stored email to one batch: To is shown for invitations, BCC for mail-plan batches.
+    /// CC addresses appear on every batch but are delivered only when <paramref name="deliverCc"/>
+    /// is true. An optional calendar invite is added for exactly this batch's recipients.
+    /// </summary>
+    public virtual async Task<DeliveryResult> SendStoredAsync(MimeMessage template,
+        IReadOnlyCollection<string> to, IReadOnlyCollection<string> cc,
+        IReadOnlyCollection<string>? bcc = null, bool deliverCc = true, EmailAttachment? calendar = null)
+    {
+        using var buffer = new MemoryStream();
+        await template.WriteToAsync(buffer);
+        buffer.Position = 0;
+        var msg = await MimeMessage.LoadAsync(buffer);
+
+        msg.To.Clear();
+        msg.Cc.Clear();
+        msg.Bcc.Clear();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var address in to)
+            if (MailboxAddress.TryParse(address, out var mailbox) && seen.Add(mailbox.Address))
+                msg.To.Add(mailbox);
+        foreach (var address in bcc ?? Array.Empty<string>())
+            if (MailboxAddress.TryParse(address, out var mailbox) && seen.Add(mailbox.Address))
+                msg.Bcc.Add(mailbox);
+        foreach (var address in cc)
+            if (MailboxAddress.TryParse(address, out var mailbox) && seen.Add(mailbox.Address))
+                msg.Cc.Add(mailbox);
+        // A BCC batch, or a CC-only batch (CC larger than one message), shows no To mailbox.
+        if (msg.To.Count == 0 && (msg.Bcc.Count > 0 || msg.Cc.Count > 0))
+            msg.To.Add(new GroupAddress("Undisclosed recipients"));
+        if (msg.To.Count == 0) throw new ArgumentException("Add at least one To recipient.");
+        if (calendar is not null) AddCalendarPart(msg, calendar);
+
+        // The envelope decides who SMTP really delivers to, independently of the visible headers:
+        // hidden BCC receivers, never the CC copies on a later batch, and the recipients of a batch
+        // whose CC is only shown.
+        var envelope = new List<string>();
+        if (msg.Bcc.Count > 0)
+            envelope.AddRange(msg.Bcc.Mailboxes.Select(m => m.Address));
+        if (!deliverCc)
+            envelope.AddRange(to);
+        else if (msg.Bcc.Count > 0 || msg.To.Count == 0)
+            envelope.AddRange(cc);
+        IReadOnlyList<MailboxAddress>? delivery = envelope.Count == 0
+            ? null
+            : envelope.Distinct(StringComparer.OrdinalIgnoreCase).Select(a => new MailboxAddress("", a)).ToList();
+        return await TransmitAsync(msg, msg.Subject ?? "", msg.HtmlBody ?? "", null, null, null, delivery);
+    }
+
+    // Inserts text/calendar as an alternative representation of the stored message's body.
+    private static void AddCalendarPart(MimeMessage msg, EmailAttachment attachment)
+    {
+        var part = new MimePart(ContentType.Parse(attachment.ContentType))
+        {
+            Content = new MimeContent(new MemoryStream(attachment.Content)),
+            ContentTransferEncoding = ContentEncoding.Base64,
+            ContentDisposition = new ContentDisposition(ContentDisposition.Inline) { FileName = attachment.FileName },
+        };
+        switch (msg.Body)
+        {
+            case MultipartAlternative altPart:
+                altPart.Add(part);
+                break;
+            case Multipart mixed when mixed.Count > 0 && mixed[0] is MultipartAlternative inner:
+                inner.Add(part);
+                break;
+            case Multipart mixed when mixed.Count > 0:
+                var altWrapper = new MultipartAlternative { mixed[0], part };
+                mixed[0] = altWrapper;
+                break;
+            default:
+                msg.Body = new MultipartAlternative { msg.Body, part };
+                break;
+        }
+    }
+
+    /// <summary>
     /// One message to many receivers, each hidden from the others (BCC). CC addresses appear in the
     /// Cc header; with deliverCc false they are shown but not sent a copy (already sent one).
     /// </summary>

@@ -187,10 +187,11 @@ public class AdminManagesTeamsTests(ApiFixture api)
         var team = await api.CreateTeamAsync(admin, "Regular");
 
         var demote = await admin.PutAsJsonAsync($"/api/users/{team.Lead.Id}", UserEdit(team.Lead, "Participant"));
-        var delete = await admin.DeleteAsync($"/api/users/{team.Lead.Id}");
+        // Deactivation is allowed: the account keeps the team, but can no longer sign in.
+        var deactivate = await admin.PostAsync($"/api/users/{team.Lead.Id}/deactivate", null);
 
         Assert.Equal(HttpStatusCode.Conflict, demote.StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, delete.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, deactivate.StatusCode);
         Assert.Equal(team.Lead.Id, (await Detail(admin, team.Id)).TeamLeadUserId);
     }
 
@@ -209,7 +210,7 @@ public class AdminManagesTeamsTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task Deleting_a_member_account_removes_them_from_the_team()
+    public async Task Deactivating_a_member_account_keeps_them_in_the_team()
     {
         var admin = await api.AdminAsync();
         var team = await api.CreateTeamAsync(admin, "Regular");
@@ -217,10 +218,10 @@ public class AdminManagesTeamsTests(ApiFixture api)
         (await admin.PostAsJsonAsync($"/api/teams/{team.Id}/members", new { userId = participant.Id }))
             .EnsureSuccessStatusCode();
 
-        var delete = await admin.DeleteAsync($"/api/users/{participant.Id}");
+        var deactivate = await admin.PostAsync($"/api/users/{participant.Id}/deactivate", null);
 
-        Assert.True(delete.IsSuccessStatusCode);
-        Assert.Equal(0, (await Detail(admin, team.Id)).MemberCount);
+        Assert.True(deactivate.IsSuccessStatusCode);
+        Assert.Equal(1, (await Detail(admin, team.Id)).MemberCount);
     }
 
     private record ListedUser(int Id, int? TeamId);

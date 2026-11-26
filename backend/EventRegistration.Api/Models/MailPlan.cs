@@ -45,6 +45,11 @@ public class MailPlan
     public string EmailsJson { get; set; } = "[]";
     // Copied openly (Cc header) on each day's email; receivers themselves stay hidden (BCC).
     public string CcJson { get; set; } = "[]";
+    // Group members removed from the audience (ticked off in the plan dialog).
+    public string ExcludedEmailsJson { get; set; } = "[]";
+    // Send as soon as the scheduler's next tick runs, instead of waiting for a target day.
+    public bool SendImmediately { get; set; }
+    public DateTimeOffset? SendAt { get; set; }
     public int CreatedByUserId { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -74,6 +79,10 @@ public class MailPlanSend
     public DateTimeOffset? SentAt { get; set; }
     public int RecipientCount { get; set; }
     [MaxLength(1000)] public string? LastError { get; set; }
+    // The whole email (HTML, inline images, attachments) saved as an .eml in mail-outgoing/.
+    [MaxLength(100)] public string? EmailFile { get; set; }
+    // Addresses whose SMTP batch was accepted, so a retry never sends them the mail twice.
+    public string? DeliveredRecipientsJson { get; set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     [Timestamp] public byte[] Version { get; set; } = [];
     public ICollection<MailPlanDelivery> Deliveries { get; set; } = new List<MailPlanDelivery>();
@@ -120,7 +129,9 @@ public class MailPlanEventName
 public record MailPlanSendInput(int? Id, DateTimeOffset SendAt, string? Subject, string? BodyHtml);
 public record MailPlanRequest(string? Kind, string? EventName, string? Channel, bool Draft,
     List<string>? GroupIds, List<string>? Emails, List<MailPlanSendInput>? Sends, string? Version,
-    List<string>? Cc = null);
+    List<string>? Cc = null, List<string>? ExcludedEmails = null, bool SendImmediately = false,
+    // Attachments already on the plan to keep (by file name); null keeps them all. One set for every day.
+    List<string>? KeepAttachments = null);
 public record MailEventNameRequest(string? Name);
 public record MailSavedCcRequest(string? Email);
 public record MailReminderRequest(DateTimeOffset? RemindAt);

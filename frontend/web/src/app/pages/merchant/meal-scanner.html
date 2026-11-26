@@ -55,6 +55,17 @@
         <p class="muted scan-live">
           <mat-icon class="inline-icon pulse">sensors</mat-icon> Scanning…
         </p>
+      } @else {
+        <button
+          mat-flat-button
+          color="primary"
+          class="full-width"
+          (click)="start()"
+          [disabled]="starting()"
+        >
+          <mat-icon>videocam</mat-icon>
+          {{ starting() ? 'Starting camera…' : 'Start camera' }}
+        </button>
       }
     } @else {
       <div class="barcode-block">

@@ -7,7 +7,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatTabsModule, MatTabChangeEvent } from '@angular/material/tabs';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule, Sort } from '@angular/material/sort';
@@ -18,6 +18,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '../../../core/api.service';
 import { AuthService } from '../../../core/auth.service';
@@ -62,6 +63,7 @@ import { ScheduleComponent } from '../../../shared/schedule';
     MatChipsModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatSlideToggleModule,
     InvitationComposerComponent,
   ],
   templateUrl: './event-detail.html',
@@ -385,6 +387,38 @@ export class EventDetailComponent implements OnInit {
     if (this.auth.isAdmin()) {
       this.api.feedbackSummary(this.id).subscribe((f) => this.feedback.set(f));
     }
+  }
+
+  // The Feedback tab re-reads its summary on open, so answers sent while the page was open show up.
+  tabChanged(event: MatTabChangeEvent): void {
+    if (this.auth.isAdmin() && (event.tab.textLabel ?? '').startsWith('Feedback'))
+      this.api.feedbackSummary(this.id).subscribe((f) => this.feedback.set(f));
+  }
+
+  // Sends the feedback link again to confirmed registrants who have not answered yet.
+  sendFeedbackLinks(): void {
+    this.api.sendFeedbackLinks(this.id).subscribe({
+      next: (r) => {
+        this.toast.success(
+          r.sent
+            ? `Feedback link sent to ${r.sent} ${r.sent === 1 ? 'person' : 'people'}.`
+            : 'Everyone has already been sent the link — retry any failed sends below.',
+        );
+        this.api.feedbackSummary(this.id).subscribe((f) => this.feedback.set(f));
+      },
+      error: (err) =>
+        this.toast.error(err?.error?.message ?? 'Could not send the feedback links.'),
+    });
+  }
+
+  retryFeedbackAutomation(): void {
+    this.api.retryFeedbackAutomation(this.id).subscribe({
+      next: (r) => {
+        this.toast.success(`Retrying failed links (${r.sent} sent).`);
+        this.api.feedbackSummary(this.id).subscribe((f) => this.feedback.set(f));
+      },
+      error: () => this.toast.error('Could not retry the feedback links.'),
+    });
   }
 
   // Upsert pushed rows by registration id (a push can race the initial load), drop removed

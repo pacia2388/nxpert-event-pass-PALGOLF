@@ -73,11 +73,14 @@
             #pwdCtrl="ngModel"
             required
             autocomplete="current-password"
+            (focus)="pwdFocused.set(true)"
+            (blur)="pwdFocused.set(false)"
           />
           <button
             mat-icon-button
             matSuffix
             type="button"
+            tabindex="-1"
             (click)="showPassword.set(!showPassword())"
             [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
             [attr.aria-pressed]="showPassword()"
@@ -88,6 +91,13 @@
             <mat-error>Password is required.</mat-error>
           }
         </mat-form-field>
+
+        @if (pwdFocused() && capsLockOn()) {
+          <p class="caps-warning" role="status">
+            <mat-icon>keyboard_capslock</mat-icon>
+            Caps Lock is on
+          </p>
+        }
 
         <button
           type="submit"
@@ -100,6 +110,10 @@
           } @else {
             <span>Sign in</span> <mat-icon>arrow_forward</mat-icon>
           }
+        </button>
+
+        <button type="button" class="forgot-link" (click)="forgotPassword()">
+          Forgot password?
         </button>
       </form>
 

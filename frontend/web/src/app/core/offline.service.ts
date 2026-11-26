@@ -222,7 +222,8 @@ export class OfflineService {
       senateNo: member?.senateNo ?? null,
       organization: member?.organization ?? null,
       welcomeMessage: bundle.event.welcomeMessage,
-      photoUrl: member?.photoUrl ?? null,
+      // The display photo only: a guest's upload, otherwise the account photo.
+      photoUrl: reg.displayPicture ?? member?.photoUrl ?? null,
       sessionTitle: w.title,
     });
 
@@ -295,6 +296,7 @@ export class OfflineService {
                 responses: i.responses,
                 registeredAt: i.registeredAt,
                 face: i.face ?? null,
+                facePhoto: i.facePhoto ?? null,
                 displayPicture: i.displayPicture ?? null,
               })),
             ),

@@ -250,6 +250,33 @@
           <h3 class="form-heading">Register to attend</h3>
           <p class="muted no-account-note">No account needed — just your details.</p>
 
+          @if (inviteEmail()) {
+            <div class="invite-account-note">
+              <mat-icon>account_circle</mat-icon>
+              <div>
+                <p>
+                  <strong>You already have an account.</strong> Sign in as
+                  {{ inviteEmail() }} to register with your saved details.
+                </p>
+                <div class="invite-account-actions">
+                  <button mat-flat-button color="primary" (click)="signInWithInvite()">
+                    Sign in
+                  </button>
+                  <button
+                    mat-button
+                    (click)="sendInvitePasswordLink()"
+                    [disabled]="invitePasswordLinkSending() || invitePasswordLinkSent()"
+                  >
+                    {{ invitePasswordLinkSent() ? 'Password link sent' : 'Send me a password link' }}
+                  </button>
+                </div>
+                @if (invitePasswordLinkSent()) {
+                  <p class="muted">Check the email or mobile number on your account.</p>
+                }
+              </div>
+            </div>
+          }
+
           @if (!offline.online()) {
             <p class="offline-note">
               <mat-icon class="inline-icon">wifi_off</mat-icon>

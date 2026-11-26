@@ -60,6 +60,24 @@ import { ScheduleComponent } from '../../shared/schedule';
         text-decoration: underline;
         cursor: pointer;
       }
+      .invite-account-note {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px 14px;
+        margin: 0 0 14px;
+        border-radius: 10px;
+        background: var(--pg-tint-soft);
+        color: var(--pg-ink);
+      }
+      .invite-account-note p {
+        margin: 0 0 6px;
+      }
+      .invite-account-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
     `,
   ],
 })
@@ -86,6 +104,10 @@ export class PublicEventComponent implements OnInit {
   fullName = '';
   senateNo = '';
   email = '';
+  // Invited visitor whose email already has an account: offer sign-in / a password link.
+  inviteEmail = signal<string | null>(null);
+  invitePasswordLinkSending = signal(false);
+  invitePasswordLinkSent = signal(false);
   phone: string | null = null; // "+<code><number>" from the phone field
   protected countries = inject(PhoneCountryService);
   // Where the entry pass is sent once confirmed. The matching contact(s) become required.
@@ -201,24 +223,45 @@ export class PublicEventComponent implements OnInit {
       },
     });
 
-    // Magic-link: if the URL carries an invite token and no one is signed in, resolve it —
-    // registered invitees are auto-logged-in (→ auto-filled account flow); otherwise we
-    // prefill the guest form with the invited email.
+    // Magic-link: if the URL carries an invite token and no one is signed in, resolve it.
+    // A registered invitee is asked to sign in (never signed in from the link); a guest gets
+    // the guest form pre-filled with the invited email.
     const inviteToken = this.route.snapshot.queryParamMap.get('invite');
     if (inviteToken && !this.auth.isLoggedIn()) {
       this.auth.resolveInvite(inviteToken).subscribe({
         next: (res) => {
-          // Registered invitees are auto-logged-in via a signal (re-renders on its own).
-          // For guests we prefill the email; nudge change detection since this is a plain
-          // field mutated in an async callback (the app runs zoneless).
-          if (!res.registered) {
-            this.email = res.email;
-            this.cdr.detectChanges();
-          }
+          this.email = res.email;
+          if (res.registered) this.inviteEmail.set(res.email);
+          // nudge change detection since this is a plain field mutated in an async callback (zoneless)
+          this.cdr.detectChanges();
         },
         error: () => {},
       });
     }
+  }
+
+  // A registered invitee: sign in with the invited address, then come back to this event.
+  signInWithInvite(): void {
+    this.router.navigate(['/login'], {
+      queryParams: { email: this.inviteEmail(), returnUrl: `/e/${this.slug}` },
+    });
+  }
+
+  // A registered invitee who has no password yet (admin-created / imported account).
+  sendInvitePasswordLink(): void {
+    const email = this.inviteEmail();
+    if (!email || this.invitePasswordLinkSending()) return;
+    this.invitePasswordLinkSending.set(true);
+    this.auth.forgotPassword(email).subscribe({
+      next: () => {
+        this.invitePasswordLinkSending.set(false);
+        this.invitePasswordLinkSent.set(true);
+      },
+      error: () => {
+        this.invitePasswordLinkSending.set(false);
+        this.toast.error('Could not send the link. Please try again.');
+      },
+    });
   }
 
   // ---- Logged-in account holders: original behavior (auto-filled, lands in My Events) ----
@@ -298,6 +341,7 @@ export class PublicEventComponent implements OnInit {
         sessionIds: ids,
         responses,
         face: this.guestFace(),
+        facePhoto: this.faceConsent ? this.capturedFacePhoto() : null,
         displayPicture: this.registrationPhoto(),
       })
       .subscribe({
@@ -339,6 +383,7 @@ export class PublicEventComponent implements OnInit {
         responses,
         registeredAt: new Date().toISOString(),
         face: this.guestFace(),
+        facePhoto: this.faceConsent ? this.capturedFacePhoto() : null,
         displayPicture: this.registrationPhoto(),
       });
       this.queuedOffline.set(true);
@@ -431,10 +476,10 @@ export class PublicEventComponent implements OnInit {
     this.capturedFacePhoto.set(null);
   }
 
-  // The Face TV recognizes people from this one photo, so a face captured with consent wins over an
-  // uploaded picture, which may be old or not show the face clearly.
+  // The upload is the display photo; the consented face capture travels separately and is used
+  // only for recognition.
   private registrationPhoto(): string | null {
-    return (this.faceConsent ? this.capturedFacePhoto() : null) ?? this.displayPicture();
+    return this.displayPicture();
   }
 
   // ---- Display picture (profile photo shown to staff during check-in) ----

@@ -5,6 +5,7 @@ import {
   MailChannel,
   MailKind,
   MailPlanDto,
+  MailAttachment,
   MailPlanSendDto,
   MailSendStatus,
 } from '../../core/models';
@@ -28,6 +29,7 @@ export interface PlanSend {
   body: string;
   preview: string;
   images: number;
+  attachments?: MailAttachment[];
   status: MailSendStatus;
   recipientCount: number;
   lastError: string | null;
@@ -43,6 +45,9 @@ export interface MailPlan {
   version: string;
   sends: PlanSend[];
   receivers: ReceiverSelection;
+  /** Group members ticked off in the dialog; never mailed. */
+  excluded?: string[];
+  sendImmediately?: boolean;
 }
 
 /** A mail the signed-in user received, with the reminder they planned for it. */
@@ -68,6 +73,7 @@ export function toPlanSend(s: MailPlanSendDto): PlanSend {
     body: s.bodyHtml ?? '',
     preview: s.previewText,
     images: s.imageCount,
+    attachments: s.attachments ?? [],
     status: s.status,
     recipientCount: s.recipientCount,
     lastError: s.lastError,
@@ -84,6 +90,8 @@ export function toPlan(p: MailPlanDto): MailPlan {
     version: p.version,
     sends: p.sends.map(toPlanSend),
     receivers: { groupIds: p.groupIds, emails: p.emails, cc: p.cc ?? [] },
+    excluded: p.excludedEmails ?? [],
+    sendImmediately: p.sendImmediately ?? false,
   };
 }
 

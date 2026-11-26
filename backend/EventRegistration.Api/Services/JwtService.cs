@@ -21,6 +21,10 @@ public class JwtService
 
     public string CreateToken(User user)
     {
+        // A passwordless account (admin-created, import, captain-added) must set one first.
+        if (string.IsNullOrEmpty(user.PasswordHash))
+            throw new InvalidOperationException("The account needs a password before it can sign in.");
+
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),

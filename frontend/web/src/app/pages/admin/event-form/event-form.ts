@@ -155,6 +155,7 @@ export class EventFormComponent implements OnInit {
   welcomeMessage = '';
   registrationFees = '';
   notifyOnKitClaim = false;
+  feedbackForm = false;
 
   // Schedule-of-activities grid (Day / Time / Activity rows)
   scheduleRows: { day: string; time: string; activity: string }[] = [];
@@ -527,6 +528,7 @@ export class EventFormComponent implements OnInit {
           this.welcomeMessage = e.welcomeMessage ?? '';
           this.registrationFees = e.registrationFees ?? '';
           this.notifyOnKitClaim = e.notifyOnKitClaim;
+          this.feedbackForm = e.feedbackForm;
           this.scheduleRows = (e.schedule || []).map((s) => ({
             day: s.day ?? '',
             time: s.time ?? '',
@@ -662,6 +664,7 @@ export class EventFormComponent implements OnInit {
             })),
         })),
       notifyOnKitClaim: this.notifyOnKitClaim,
+      feedbackForm: this.feedbackForm,
       // Event-level (per-day) meal stubs.
       meals: this.eventMeals
         .filter((m) => m.name.trim())

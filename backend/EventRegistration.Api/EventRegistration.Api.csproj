@@ -12,6 +12,7 @@
   <ItemGroup>
     <!-- Per-installation settings: never published, so a deploy keeps the server's copy. -->
     <Content Update="categories.json" CopyToPublishDirectory="Never" />
+    <Content Update="user-fields.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>

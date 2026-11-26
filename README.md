@@ -90,8 +90,9 @@ To send real email via Gmail:
 In an event's **Invite** tab, compose the To/CC recipients, subject and message.
 Choose **Schedule for later**, enter a future date/time in **Philippine time (UTC+8)**,
 then click **Schedule invitations**. Leaving scheduling off sends immediately.
-Full Gmail and company email addresses are supported in both To and CC. `@n-pax`
-expands to the system directory when the email is saved; that recipient list stays fixed.
+Full Gmail and company email addresses are supported in both To and CC. A domain group
+such as `*@n-pax.com` or `*@gmail.com` expands to the registered users of that domain
+when the email is saved; that recipient list stays fixed.
 
 **Email history** below the composer provides **All emails**, **Scheduled** and **Sent**
 filters, plus **Hide emails / Show emails**. Open a message to inspect its content,

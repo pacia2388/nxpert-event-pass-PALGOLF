@@ -25,8 +25,17 @@ Source: `security-assessment` skill. Apply to every change in `backend/` and `fr
   `[innerHTML]` / `bypassSecurityTrust*` with user data in the SPA.
 - **Authorization:** keep `[Authorize(Roles=…)]` on admin endpoints and ownership checks on
   cancel/resend. Never bind `Role` from input.
+- **One check for every signed-in request:** `ActiveUserMiddleware` (after `UseAuthentication`)
+  refuses a missing, deactivated or passwordless account with 401, SignalR hubs included. Tokens
+  are never trusted on their own.
+- **Invite links never sign anyone in.** They only say who the invitation is for; a registered
+  invitee must sign in (or use a one-time set-password link).
+- **Password-setup links** are single-use, time-limited (`App:PasswordSetupLinkHours`) and stored
+  in Unicode NFC like every password. Only a hash is stored; the token is cleared on use, on
+  deactivation and when a new link is issued.
 - **Outbox** (`outbox/` dir of unencrypted emails and QR passes): disabled or protected in
-  Production. The same applies to **`mail-queue/`** (`.eml` files of emails waiting for a retry).
+  Production. The same applies to **`mail-queue/`** (`.eml` files of emails waiting for a retry) and
+  **`mail-outgoing/`** (composed emails with attachments until delivered).
 - **Stored emails:** an email kept for later is saved as an `.eml` file; the database stores only the
   bare file name (`EmailFileStore.PathOf` refuses anything else, so a database value cannot point
   outside the folder).

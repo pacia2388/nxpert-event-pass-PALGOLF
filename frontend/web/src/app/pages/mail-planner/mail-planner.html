@@ -20,6 +20,16 @@
     </button>
   </div>
 
+  @if (sendProgress(); as p) {
+    <div class="mp-card mp-progress" role="status">
+      <mat-icon>send</mat-icon>
+      <span>Sending… {{ p.sent }} of {{ p.total }} recipients{{ p.done ? ' · done' : '' }}</span>
+      <span class="mp-progress-bar">
+        <span [style.width.%]="p.total ? (p.sent / p.total) * 100 : 0"></span>
+      </span>
+    </div>
+  }
+
   @if (loadError()) {
     <div class="mp-card load-error" role="alert">
       <mat-icon>cloud_off</mat-icon><span>{{ loadError() }}</span>

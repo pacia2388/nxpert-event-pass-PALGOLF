@@ -1,4 +1,4 @@
-import { ALL_USERS, recipientAddress } from './invitation.util';
+import { recipientAddress } from './invitation.util';
 import { TeamMemberDto } from './models';
 
 export type TeamCheckState = 'all' | 'some' | 'none';
@@ -11,8 +11,7 @@ export interface TeamInviteChanges {
 
 /** A member's address as it appears in the To field, or null when they have no usable email. */
 export function memberAddress(member: TeamMemberDto): string | null {
-  const address = recipientAddress(member.email ?? '');
-  return address && address !== ALL_USERS ? address : null;
+  return recipientAddress(member.email ?? '');
 }
 
 /** Addresses of the members that can be ticked: those with a usable email. */

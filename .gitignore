@@ -29,3 +29,4 @@ Thumbs.db
 # Per-developer dev-server configs; the shared template is .claude/launch.example.json.
 /.claude/launch.json
 
+backend/EventRegistration.Api/mail-outgoing/

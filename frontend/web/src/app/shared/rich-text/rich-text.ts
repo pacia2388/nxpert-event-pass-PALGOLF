@@ -3,13 +3,48 @@
 // copied as text, never parsed into the live page as HTML.
 
 export const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/bmp'];
-export const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
 export const MAX_IMAGE_EDGE = 1600;
-export const MAX_IMAGES = 5;
-export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-export const MAX_TOTAL_IMAGE_BYTES = 5 * 1024 * 1024;
-export const IMAGE_LIMIT_MESSAGE =
-  'Use up to five images, at most 2 MB each and 5 MB in total after resizing.';
+
+/** Inline-image limits, loaded once from GET api/settings/mail-limits (package defaults here). */
+export interface ImageLimits {
+  maxSourceBytes: number;
+  maxImageBytes: number;
+  maxTotalBytes: number;
+  maxCount: number;
+}
+
+export const DEFAULT_IMAGE_LIMITS: ImageLimits = {
+  maxSourceBytes: 10 * 1024 * 1024,
+  maxImageBytes: 2 * 1024 * 1024,
+  maxTotalBytes: 5 * 1024 * 1024,
+  maxCount: 5,
+};
+
+/** The live limits; {@link applyImageLimits} replaces them with the server's configured values. */
+export const IMAGE_LIMITS: ImageLimits = { ...DEFAULT_IMAGE_LIMITS };
+
+export function applyImageLimits(limits: Partial<ImageLimits> | null | undefined): void {
+  if (!limits) return;
+  for (const key of Object.keys(IMAGE_LIMITS) as (keyof ImageLimits)[]) {
+    const value = limits[key];
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) IMAGE_LIMITS[key] = value;
+  }
+}
+
+const megabytes = (bytes: number) => Math.round((bytes / 1024 / 1024) * 10) / 10;
+
+/** The editor's image hint, built from the loaded limits. */
+export function imageLimitsHelp(): string {
+  return `Images: up to ${IMAGE_LIMITS.maxCount}, ${megabytes(IMAGE_LIMITS.maxImageBytes)} MB each and ${megabytes(IMAGE_LIMITS.maxTotalBytes)} MB total after resizing.`;
+}
+
+export function imageLimitMessage(): string {
+  return `Use up to ${IMAGE_LIMITS.maxCount} images, at most ${megabytes(IMAGE_LIMITS.maxImageBytes)} MB each and ${megabytes(IMAGE_LIMITS.maxTotalBytes)} MB in total after resizing.`;
+}
+
+export function imageSourceMessage(): string {
+  return `Choose a PNG, JPEG, WebP, GIF or BMP image up to ${megabytes(IMAGE_LIMITS.maxSourceBytes)} MB.`;
+}
 
 // Formatting the server keeps (InvitationMessageBuilder.RenderBody) — previews mirror it.
 const RICH_TAGS = new Set([
@@ -187,7 +222,9 @@ export function richTextIsEmpty(html: string | null | undefined): boolean {
 }
 
 export function pngBytes(dataUrl: string): number {
-  return Math.ceil(((dataUrl.split(',')[1]?.length ?? 0) * 3) / 4);
+  const base64 = dataUrl.split(',')[1] ?? '';
+  const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+  return Math.max(0, Math.floor((base64.length * 3) / 4) - padding);
 }
 
 /** Images already in an editor, so new ones can be checked against the limits. */
@@ -204,31 +241,42 @@ export function imageBudget(root: ParentNode): ImageBudget {
   };
 }
 
-/** Re-encodes an image as a static PNG (max 1600 px) and reserves it in the budget. */
+/** The next scale after an encode that was too large: never grows, and shrinks at least 10%. */
+export function fitScale(scale: number, size: number, available: number): number {
+  return scale * Math.min(0.9, Math.sqrt(available / size) * 0.95);
+}
+
+/** Re-encodes an image as a static PNG (max 1600 px) and reserves it in the budget. An image
+ * that is too large after the resize is encoded smaller (scaled down) until it fits the smaller
+ * of its own limit and what is left of the total. */
 export async function toPng(blob: Blob, budget: ImageBudget): Promise<string> {
-  if (!blob.type.startsWith('image/') || blob.size > MAX_SOURCE_BYTES)
-    throw new Error('Choose a PNG, JPEG, WebP, GIF or BMP image up to 10 MB.');
+  if (!blob.type.startsWith('image/') || blob.size > IMAGE_LIMITS.maxSourceBytes)
+    throw new Error(imageSourceMessage());
+  const available = Math.min(IMAGE_LIMITS.maxImageBytes, IMAGE_LIMITS.maxTotalBytes - budget.bytes);
+  if (budget.count >= IMAGE_LIMITS.maxCount || available <= 0) throw new Error(imageLimitMessage());
   const objectUrl = URL.createObjectURL(blob);
   try {
     const image = new Image();
     image.src = objectUrl;
     await image.decode();
-    const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
+    let scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
     const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-    canvas.getContext('2d')!.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const png = canvas.toDataURL('image/png');
-    const size = pngBytes(png);
-    if (
-      budget.count >= MAX_IMAGES ||
-      size > MAX_IMAGE_BYTES ||
-      budget.bytes + size > MAX_TOTAL_IMAGE_BYTES
-    )
-      throw new Error(IMAGE_LIMIT_MESSAGE);
-    budget.count++;
-    budget.bytes += size;
-    return png;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d')!.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const png = canvas.toDataURL('image/png');
+      const size = pngBytes(png);
+      if (!size) throw new Error('Could not read this image.');
+      if (size <= available) {
+        budget.count++;
+        budget.bytes += size;
+        return png;
+      }
+      // PNG compression varies with image detail: estimate the next scale from the encoded size.
+      scale = fitScale(scale, size, available);
+    }
+    throw new Error(imageLimitMessage());
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
@@ -265,14 +313,14 @@ export async function readPaste(
 
   const convert = async (blob: Blob | undefined): Promise<string | null> => {
     if (!blob) return null;
-    if (budget.count >= MAX_IMAGES) {
+    if (budget.count >= IMAGE_LIMITS.maxCount) {
       result.overLimit = true;
       return null;
     }
     try {
       return await toPng(blob, budget);
     } catch (error) {
-      if (error instanceof Error && error.message === IMAGE_LIMIT_MESSAGE) result.overLimit = true;
+      if (error instanceof Error && error.message === imageLimitMessage()) result.overLimit = true;
       return null;
     }
   };
@@ -287,7 +335,7 @@ export async function readPaste(
     for (const img of pastedImages) {
       const src = (img.getAttribute('src') ?? '').trim();
       let blob: Blob | undefined;
-      if (budget.count >= MAX_IMAGES) result.overLimit = true;
+      if (budget.count >= IMAGE_LIMITS.maxCount) result.overLimit = true;
       else if (isLocalSrc(src)) blob = localImages.shift() ?? undefined;
       else {
         blob = await fetchImage(src);
@@ -402,6 +450,6 @@ export function insertAtSelection(nodes: Node[]): void {
 }
 
 export function pasteMessage(result: PasteResult): string {
-  if (result.overLimit) return `Some pasted images were left out. ${IMAGE_LIMIT_MESSAGE}`;
+  if (result.overLimit) return `Some pasted images were left out. ${imageLimitMessage()}`;
   return `${result.skipped} pasted image${result.skipped === 1 ? " couldn't" : "s couldn't"} be copied from the source. Save ${result.skipped === 1 ? 'it' : 'them'} and add with the image button.`;
 }

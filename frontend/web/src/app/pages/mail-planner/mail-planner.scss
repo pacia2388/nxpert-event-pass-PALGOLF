@@ -1339,3 +1339,25 @@ app-rich-text-view.mail-body {
     justify-content: center;
   }
 }
+
+
+// Live batch progress for a plan day.
+.mp-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.mp-progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--pg-tint-soft);
+  overflow: hidden;
+}
+.mp-progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--pg-blue);
+  transition: width 0.15s ease;
+}

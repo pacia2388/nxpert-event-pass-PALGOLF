@@ -1,0 +1,45 @@
+<div class="ma">
+  <div class="ma-head">
+    <mat-icon>attach_file</mat-icon>
+    <span class="ma-title">Attachments</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" (click)="fileInput.click()">
+      <mat-icon>upload_file</mat-icon> Add files
+    </button>
+    <input #fileInput type="file" multiple hidden (change)="pick($event)" />
+  </div>
+
+  <ul class="ma-list">
+    @for (a of kept(); track a.name) {
+      <li>
+        <mat-icon>description</mat-icon>
+        <span class="ma-name">{{ a.name }}</span>
+        <span class="ma-size">{{ size(a.size) }}</span>
+        <button mat-icon-button type="button" (click)="removeExisting(a.name)" aria-label="Remove attachment">
+          <mat-icon>close</mat-icon>
+        </button>
+      </li>
+    }
+    @for (f of files(); track $index) {
+      <li class="new">
+        <mat-icon>draft</mat-icon>
+        <span class="ma-name">{{ f.name }}</span>
+        <span class="ma-size">{{ size(f.size) }}</span>
+        <button mat-icon-button type="button" (click)="removeNew($index)" aria-label="Remove attachment">
+          <mat-icon>close</mat-icon>
+        </button>
+      </li>
+    }
+    @if (!kept().length && !files().length) {
+      <li class="empty">No attachments.</li>
+    }
+  </ul>
+
+  <div class="ma-bar" [class.over]="overLimit()">
+    <span [style.width.%]="percent()"></span>
+  </div>
+  <p class="ma-note" [class.over]="overLimit()">
+    {{ size(totalBytes()) }} of {{ size(maxTotalBytes) }} used (attachments and the message must
+    stay under 25 MB).
+  </p>
+</div>

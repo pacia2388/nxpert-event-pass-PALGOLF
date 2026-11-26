@@ -33,5 +33,10 @@ public class InvitationEmail
     public DateTimeOffset NextAttemptAt { get; set; }
     public int Attempts { get; set; }
     [MaxLength(1000)] public string? LastError { get; set; }
+    // The whole email (HTML, inline images, attachments) saved as an .eml in mail-outgoing/.
+    // The database only keeps its bare file name. Null for rows saved before attachments existed.
+    [MaxLength(100)] public string? EmailFile { get; set; }
+    // Addresses whose SMTP batch was accepted, so a retry never sends them the mail twice.
+    public string? DeliveredRecipientsJson { get; set; }
     [Timestamp] public byte[] Version { get; set; } = [];
 }

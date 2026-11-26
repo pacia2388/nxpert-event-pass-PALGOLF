@@ -44,6 +44,7 @@
       "name": "app-settings",
       "urls": [
         "/appSettings.json",
+        "/menu.json",
         "/theme.*.json"
       ],
       "cacheConfig": {

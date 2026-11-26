@@ -13,6 +13,8 @@ Source: `run-local-demo` skill.
   `apiBaseUrl` (`frontend/web/public/appSettings.json`, no rebuild) to the API URL and `App:FrontendBaseUrl` (backend) to the web URL.
 - Event / team categories live in `backend/EventRegistration.Api/categories.json` (edits apply
   without a restart; empty `Items` = no categories).
+- Optional Department / Job role fields: `backend/EventRegistration.Api/user-fields.json` (read at
+  runtime, no restart; both off by default).
 - Menus can be switched off for everyone in `frontend/web/public/menu.json` (read at runtime, no
   rebuild; see `documentation/menu-config.md`).
 - Switch the look with `"theme"` in `frontend/web/public/appSettings.json` and `"theme"` in the

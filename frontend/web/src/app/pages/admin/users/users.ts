@@ -21,10 +21,11 @@ import { ToastService } from '../../../core/toast.service';
 import { ConfirmService } from '../../../core/confirm.service';
 import { PhoneCountryService } from '../../../core/phone-country.service';
 import { UserDto, UserImportResult } from '../../../core/models';
+import { UserFieldsService } from '../../../core/user-fields.service';
 import { UserFormPanelComponent } from './user-form-panel';
 import { UserImportDialogComponent } from './user-import-dialog';
 
-type RoleFilter = 'All' | 'Admin' | 'Participant' | 'Captain' | 'Merchant' | 'Confirmers';
+type RoleFilter = 'All' | 'Admin' | 'Participant' | 'Captain' | 'Merchant' | 'Confirmers' | 'Deactivated';
 
 // User Master: list of users on the left, the selected (or new) record's form on the right.
 @Component({
@@ -49,6 +50,7 @@ export class UsersComponent implements OnInit {
   private toast = inject(ToastService);
   private confirmer = inject(ConfirmService);
   protected countries = inject(PhoneCountryService);
+  protected userFields = inject(UserFieldsService);
 
   private readonly panel = viewChild.required(UserFormPanelComponent);
   private readonly formPane = viewChild<ElementRef<HTMLElement>>('formPane');
@@ -64,6 +66,7 @@ export class UsersComponent implements OnInit {
     'Captain',
     'Merchant',
     'Confirmers',
+    'Deactivated',
   ];
 
   /** The row shown in the form; null = a new, unsaved record. */
@@ -76,8 +79,8 @@ export class UsersComponent implements OnInit {
     const q = this.search().trim().toLowerCase();
     const rf = this.roleFilter();
     return this.users().filter((u) => {
-      if (
-        rf === 'Confirmers' &&
+      if (rf === 'Deactivated' && !u.deactivatedAt) return false;
+      if (rf === 'Confirmers' &&
         !(u.canConfirmRegistrations || u.role === 'Admin' || u.role === 'SuperAdmin')
       )
         return false;
@@ -91,7 +94,9 @@ export class UsersComponent implements OnInit {
         (u.username ?? '').toLowerCase().includes(q) ||
         (u.senateNo ?? '').toLowerCase().includes(q) ||
         (u.level ?? '').toLowerCase().includes(q) ||
-        (u.organization ?? '').toLowerCase().includes(q)
+        (u.organization ?? '').toLowerCase().includes(q) ||
+        (u.department ?? '').toLowerCase().includes(q) ||
+        (u.jobRole ?? '').toLowerCase().includes(q)
       );
     });
   });
@@ -179,23 +184,44 @@ export class UsersComponent implements OnInit {
     this.load();
   }
 
-  async remove(): Promise<void> {
+  async deactivate(): Promise<void> {
     const u = this.selected();
-    if (!u) return;
+    if (!u || u.deactivatedAt) return;
     const ok = await this.confirmer.confirm({
-      title: 'Delete user?',
-      message: `${u.fullName} will be permanently removed. This cannot be undone.`,
-      confirmText: 'Delete',
-      tone: 'error',
+      title: 'Deactivate user?',
+      message: `${u.fullName} will no longer be able to sign in. Their registrations, passes and team stay as they are, and you can reactivate the account later.`,
+      confirmText: 'Deactivate',
+      cancelText: 'Cancel',
+      tone: 'warning',
     });
     if (!ok) return;
-    this.api.deleteUser(u.id).subscribe({
+    this.api.deactivateUser(u.id).subscribe({
       next: () => {
-        this.toast.success('User deleted.');
-        this.selected.set(null);
-        this.load();
+        this.toast.success('User deactivated.');
+        this.load(u.id);
       },
-      error: (err) => this.toast.error(err?.error?.message ?? 'Could not delete user.'),
+      error: (err) => this.toast.error(err?.error?.message ?? 'Could not deactivate user.'),
+    });
+  }
+
+  reactivate(): void {
+    const u = this.selected();
+    if (!u || !u.deactivatedAt) return;
+    this.api.reactivateUser(u.id).subscribe({
+      next: () => {
+        this.toast.success('User reactivated.');
+        this.load(u.id);
+      },
+      error: (err) => this.toast.error(err?.error?.message ?? 'Could not reactivate user.'),
+    });
+  }
+
+  sendPasswordLink(): void {
+    const u = this.selected();
+    if (!u) return;
+    this.api.sendPasswordLink(u.id).subscribe({
+      next: (r) => this.toast.success(r.message),
+      error: (err) => this.toast.error(err?.error?.message ?? 'Could not send the password link.'),
     });
   }
 
@@ -218,19 +244,10 @@ export class UsersComponent implements OnInit {
       this.toast.info('No users to export.');
       return;
     }
-    const header = [
-      'Name',
-      'Username',
-      'Email',
-      'ID No.',
-      'Chapter',
-      'Role',
-      'Designation',
-      'Phone',
-      'Pass via',
-      'Can confirm',
-      'Birthdate',
-    ];
+    const header = ['Name', 'Username', 'Email', 'ID No.', 'Chapter'];
+    if (this.userFields.departmentEnabled()) header.push('Department');
+    if (this.userFields.jobRoleEnabled()) header.push('Job role');
+    header.push('Role', 'Designation', 'Phone', 'Pass via', 'Can confirm', 'Birthdate');
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = rows.map((u) =>
       [
@@ -239,6 +256,8 @@ export class UsersComponent implements OnInit {
         u.email,
         u.senateNo,
         u.organization,
+        ...(this.userFields.departmentEnabled() ? [u.department] : []),
+        ...(this.userFields.jobRoleEnabled() ? [u.jobRole] : []),
         u.role,
         u.level,
         u.phone,

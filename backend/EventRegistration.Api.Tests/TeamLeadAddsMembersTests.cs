@@ -31,17 +31,19 @@ public class TeamLeadAddsMembersTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task A_new_member_signs_in_as_a_participant_with_the_default_temporary_password()
+    public async Task A_new_member_has_no_password_until_they_complete_the_registration_link()
     {
         var admin = await api.AdminAsync();
         var team = await api.CreateTeamAsync(admin, "Regular");
         var email = ApiFixture.NewEmail();
         await team.LeadClient.PostAsJsonAsync("/api/teams/mine/members", ApiFixture.Member(email));
 
+        // The old shared temporary password no longer exists.
         var login = await api.Anonymous().PostAsJsonAsync("/api/auth/login", new { email, password = "char" });
+        var anyGuess = await api.Anonymous().PostAsJsonAsync("/api/auth/login", new { email, password = "12345" });
 
-        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
-        Assert.Equal("Participant", (await login.Content.ReadFromJsonAsync<AuthBody>())!.Role);
+        Assert.Equal(HttpStatusCode.Unauthorized, login.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, anyGuess.StatusCode);
     }
 
     [Fact]

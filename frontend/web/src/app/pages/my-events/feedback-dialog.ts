@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ApiService } from '../../core/api.service';
 import { ToastService } from '../../core/toast.service';
 
@@ -22,6 +23,7 @@ export interface FeedbackDialogData {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    MatCheckboxModule,
   ],
   templateUrl: './feedback-dialog.html',
 })
@@ -33,6 +35,7 @@ export class FeedbackDialogComponent implements OnInit {
   rating = signal(0);
   hover = signal(0);
   comment = '';
+  anonymous = false;
   saving = signal(false);
   readonly stars = [1, 2, 3, 4, 5];
 
@@ -43,6 +46,7 @@ export class FeedbackDialogComponent implements OnInit {
       if (fb) {
         this.rating.set(fb.rating);
         this.comment = fb.comment ?? '';
+        this.anonymous = !!fb.isAnonymous;
       }
     });
   }
@@ -51,7 +55,7 @@ export class FeedbackDialogComponent implements OnInit {
     if (this.rating() < 1) return;
     this.saving.set(true);
     this.api
-      .submitFeedback(this.data.eventId, this.rating(), this.comment.trim() || null)
+      .submitFeedback(this.data.eventId, this.rating(), this.comment.trim() || null, this.anonymous)
       .subscribe({
         next: () => {
           this.toast.success('Thanks for your feedback!');

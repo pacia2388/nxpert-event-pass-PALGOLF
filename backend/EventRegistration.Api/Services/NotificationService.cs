@@ -102,6 +102,21 @@ public class NotificationService
         }
     }
 
+    // Live progress of a composed email / mail-plan day. A scheduled send has no organizer
+    // waiting, so it goes to the admins group instead.
+    public async Task MailSendProgressAsync(int? userId, MailSendProgressNotice notice)
+    {
+        try
+        {
+            var group = userId is int id ? NotificationHub.UserGroup(id) : NotificationHub.AdminGroup;
+            await _hub.Clients.Group(group).SendAsync("mailSendProgress", notice);
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "Failed to push mailSendProgress for {Source} {Id}.", notice.Source, notice.Id);
+        }
+    }
+
     // A user's photo changed: every event they're registered for has a stale gallery entry.
     public async Task UserPhotoChangedAsync(int userId)
     {

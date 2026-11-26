@@ -43,13 +43,15 @@ public class FaceEngineController : ControllerBase
         if (!await _db.Events.AnyAsync(e => e.Id == id)) return NotFound();
 
         var regs = await _db.Registrations
-            .Where(r => r.EventId == id && (r.User != null ? r.User.PhotoUrl != null : r.GuestPhoto != null))
+            .Where(r => r.EventId == id && (r.User != null
+                ? (r.User.FacePhoto ?? r.User.PhotoUrl) != null : (r.FacePhoto ?? r.GuestPhoto) != null))
             .Select(r => new
             {
                 r.UserId,
                 r.Token,
                 Name = r.User != null ? r.User.FullName : r.GuestFullName,
-                Photo = r.User != null ? r.User.PhotoUrl : r.GuestPhoto,
+                // Recognition uses the face capture; the display photo is only a fallback.
+                Photo = r.User != null ? (r.User.FacePhoto ?? r.User.PhotoUrl) : (r.FacePhoto ?? r.GuestPhoto),
             })
             .ToListAsync();
 

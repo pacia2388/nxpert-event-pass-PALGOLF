@@ -1070,15 +1070,15 @@ export class FaceTvComponent implements OnInit, OnDestroy {
     }
   }
 
-  // What the engine knows, straight from the engine. A QR pass has no engine photo; only the
-  // backend knows whose pass it is.
+  // Recognition supplies identity only. Wait for the API's chosen display photo for every mode;
+  // the face capture used for recognition is never shown.
   private toItem(checkIn: EngineCheckIn): TvItem {
     const { person } = checkIn;
     const isQr = person.person_id.startsWith('q');
     return {
       sequence: checkIn.sequence,
       name: person.name || (isQr ? 'QR pass' : 'Guest'),
-      photo: isQr ? '' : this.engine.photoUrl(person),
+      photo: '',
       result: null,
     };
   }

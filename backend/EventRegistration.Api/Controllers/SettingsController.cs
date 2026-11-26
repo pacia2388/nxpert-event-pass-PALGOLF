@@ -3,6 +3,7 @@ using EventRegistration.Api.Services;
 using EventRegistration.Api.Services.Theming;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace EventRegistration.Api.Controllers;
 
@@ -15,12 +16,17 @@ public class SettingsController : ControllerBase
     private readonly SettingsService _settings;
     private readonly MobileMessenger _mobile;
     private readonly CategoryCatalog _categories;
+    private readonly MailImageOptions _mailImages;
+    private readonly UserFieldCatalog _userFields;
 
-    public SettingsController(SettingsService settings, MobileMessenger mobile, CategoryCatalog categories)
+    public SettingsController(SettingsService settings, MobileMessenger mobile, CategoryCatalog categories,
+        IOptions<MailImageOptions> mailImages, UserFieldCatalog userFields)
     {
         _categories = categories;
         _settings = settings;
         _mobile = mobile;
+        _mailImages = mailImages.Value;
+        _userFields = userFields;
     }
 
     private bool CanSwitch => _mobile.ViberReady && _mobile.SmsReady;
@@ -44,6 +50,16 @@ public class SettingsController : ControllerBase
     // category pill to everyone.
     [HttpGet("categories"), AllowAnonymous]
     public ActionResult<List<CategoryDto>> Categories() => Ok(_categories.List());
+
+    // Optional user fields for this installation (user-fields.json). Public: the account and
+    // registration forms show them only when enabled.
+    [HttpGet("user-fields"), AllowAnonymous]
+    public ActionResult<List<UserFieldDto>> UserFields() => Ok(_userFields.List());
+
+    // Inline-image limits for the invitation composer and the mail planner editor.
+    [HttpGet("mail-limits")]
+    public ActionResult<MailLimitsDto> MailLimits() => Ok(new MailLimitsDto(
+        _mailImages.MaxSourceBytes, _mailImages.MaxImageBytes, _mailImages.MaxTotalBytes, _mailImages.MaxCount));
 
     [HttpPut]
     public async Task<ActionResult<AppSettingsDto>> Update(UpdateSettingsRequest req)

@@ -14,6 +14,10 @@ Source: `deploy-iis` skill.
   sets the event/team categories per installation. `dotnet publish` leaves it out, so a deploy
   never overwrites it: copy it once on a new install and never delete it (no `robocopy /MIR`).
   Steps: `documentation/configuration-and-publishing.md`.
+- **`user-fields.json`** (API site root, source `backend/EventRegistration.Api/user-fields.json`)
+  turns the optional **Department** and **Job role** fields on or off per installation. `dotnet
+  publish` leaves it out, so copy it once on a new install and never delete it; edits apply
+  without a restart.
 - **`menu.json`** (App site root, source `frontend/web/public/menu.json`) switches menus off for
   the whole installation; read at runtime like `appSettings.json`. The production build leaves it
   out, so a deploy never overwrites it: copy it to the server once, and never delete it when
@@ -21,6 +25,9 @@ Source: `deploy-iis` skill.
 - **`mail-queue/`** (API site root, or `App:MailQueueDir`) holds emails waiting for a retry as
   `.eml` files; the database keeps only their file names. It contains personal data: never serve it,
   and never delete it on deploy (no `robocopy /MIR`). Old files are removed automatically after 26 h.
+- **`mail-outgoing/`** (API site root, or `App:MailOutgoingDir`) holds composed invitation /
+  mail-plan emails with their **attachments** until they are delivered. It contains personal data:
+  never serve it, never delete it on deploy (no `robocopy /MIR`), and keep it on a backup schedule.
 - **Theme files `theme.palgolf.json` / `theme.nxpass.json` ship in both sites** (published).
   The App site's `appSettings.json` `"theme"` and the API's `"theme"` (same key) each name one: **set both
   to the same file** (recycle the API pool after changing its `theme`). The web app never gets its

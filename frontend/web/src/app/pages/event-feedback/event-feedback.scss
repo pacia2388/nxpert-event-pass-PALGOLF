@@ -1,0 +1,96 @@
+.ef-shell {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background: var(--pg-wash, #f6f8fb);
+}
+
+.ef-card {
+  width: min(600px, 100%);
+  padding: 28px 26px;
+  border-radius: 16px;
+}
+
+.ef-center {
+  text-align: center;
+  padding: 24px 8px;
+}
+
+.ef-icon {
+  width: 48px;
+  height: 48px;
+  font-size: 28px;
+  line-height: 48px;
+  border-radius: 14px;
+  background: var(--pg-tint);
+  color: var(--pg-blue);
+}
+
+.ef-icon.ok {
+  background: var(--pg-tint-soft);
+  color: var(--pg-blue);
+}
+
+.ef-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ef-head h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.ef-question {
+  margin: 16px 0 4px;
+  font-weight: 600;
+}
+
+.ef-stars {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.ef-star {
+  border: 0;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--pg-blue);
+}
+
+.ef-star mat-icon {
+  font-size: 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.full-width {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.ef-note {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--pg-tint-soft);
+  color: var(--pg-ink);
+  font-size: 13px;
+}
+
+.ef-error {
+  color: var(--mat-sys-error, #b3261e);
+}
+
+.ef-submit {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.muted {
+  color: var(--pg-ink-soft);
+}

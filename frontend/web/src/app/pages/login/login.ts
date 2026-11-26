@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +11,8 @@ import { AuthService } from '../../core/auth.service';
 import { homeFor } from '../../core/guards';
 import { ToastService } from '../../core/toast.service';
 import { ACTIVE_THEME } from '../../core/theme';
+import { capsLockOn } from '../../shared/caps-lock';
+import { ForgotPasswordDialogComponent, ForgotPasswordData } from './forgot-password-dialog';
 
 @Component({
   selector: 'app-login',
@@ -29,6 +32,7 @@ export class LoginComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
+  private dialog = inject(MatDialog);
 
   /** The theme's login image and the words that go with it. */
   protected readonly poster = ACTIVE_THEME.current;
@@ -52,10 +56,23 @@ export class LoginComponent {
     });
   }
 
-  email = '';
+  email = this.route.snapshot.queryParamMap.get('email') ?? '';
   password = '';
   loading = signal(false);
   showPassword = signal(false);
+  pwdFocused = signal(false);
+  /** Caps Lock state of the page (key events only), shown while the password field has focus. */
+  protected readonly capsLockOn = capsLockOn;
+
+  // A registered invitee lands here with their address already filled in.
+  forgotPassword(): void {
+    this.dialog.open<ForgotPasswordDialogComponent, ForgotPasswordData>(ForgotPasswordDialogComponent, {
+      data: { email: this.email.trim() },
+      width: '420px',
+      maxWidth: '92vw',
+      autoFocus: false,
+    });
+  }
 
   submit(): void {
     this.loading.set(true);

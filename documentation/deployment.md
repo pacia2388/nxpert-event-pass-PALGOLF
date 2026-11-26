@@ -433,7 +433,7 @@ Copy `wheels\` next to `requirements.txt` on the server, then:
 | Symptom | Check |
 |---------|-------|
 | Site unreachable from outside | Security group inbound rule, Windows Firewall rule, Elastic IP/DNS |
-| API 500.30 on start | `ASPNETCORE_ENVIRONMENT`, connection string, SQL login for the app pool; stdout log |
+| API 500.30 on start | `ASPNETCORE_ENVIRONMENT`, connection string, SQL login for the app pool; stdout log. If it only happens on a host reboot (`CLR worker thread exited prematurely`, `SqlException ... wait operation timed out` at startup), IIS started the app pool before SQL Server was listening: the app retries for 90 s, and the pool should also start a couple of minutes after boot (scheduled task) |
 | App loads, calls fail with CORS/mixed content | `apiBaseUrl` is `https://SERVER:8000`; API CORS origin is exactly `https://SERVER` |
 | `/face-api/...` returns 404 | ARR *Enable proxy* not ticked; Face Engine service not running |
 | `/face-api/...` returns 502 | `web.config` rule port is not 8001 (a new build resets it to 8100) |

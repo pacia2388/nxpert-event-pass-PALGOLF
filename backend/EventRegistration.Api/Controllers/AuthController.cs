@@ -3,6 +3,7 @@ using EventRegistration.Api.Models;
 using EventRegistration.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventRegistration.Api.Controllers;
@@ -16,15 +17,19 @@ public class AuthController : ControllerBase
     private readonly EmailService _email;
     private readonly IConfiguration _config;
     private readonly NotificationService _notify;
+    private readonly PasswordSetupService _passwordSetup;
+    private readonly UserFieldCatalog _userFields;
 
     public AuthController(AppDbContext db, JwtService jwt, EmailService email, IConfiguration config,
-        NotificationService notify)
+        NotificationService notify, PasswordSetupService passwordSetup, UserFieldCatalog userFields)
     {
         _db = db;
         _jwt = jwt;
         _email = email;
         _config = config;
         _notify = notify;
+        _passwordSetup = passwordSetup;
+        _userFields = userFields;
     }
 
     private bool RequireVerification => _config.GetValue("App:RequireEmailVerification", false);
@@ -35,7 +40,9 @@ public class AuthController : ControllerBase
         // The identifier may be an email address or a username.
         var id = req.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == id || u.Username == id);
-        if (user is null || !PasswordHasher.Verify(req.Password, user.PasswordHash))
+        // Deactivated and passwordless accounts fail with the same generic message.
+        if (user is null || user.DeactivatedAt is not null || string.IsNullOrEmpty(user.PasswordHash)
+            || !PasswordHasher.Verify(req.Password, user.PasswordHash))
             return Unauthorized(new { message = "Invalid username/email or password." });
 
         return Ok(AuthFor(user));
@@ -178,7 +185,9 @@ public class AuthController : ControllerBase
         return Ok(new ProfileDto(
             u.Id, u.FirstName, u.MiddleInitial, u.LastName, u.SenateNo, u.Level,
             u.Email, u.Organization, u.Phone, u.NotificationChannel, u.PhotoUrl, u.Role,
-            !string.IsNullOrEmpty(u.FaceDescriptor), u.Birthdate));
+            !string.IsNullOrEmpty(u.FaceDescriptor), u.Birthdate,
+            _userFields.DepartmentEnabled ? u.Department : null,
+            _userFields.JobRoleEnabled ? u.JobRole : null));
     }
 
     [HttpPut("me")]
@@ -194,7 +203,7 @@ public class AuthController : ControllerBase
         if (BirthdateRules.Validate(req.Birthdate) is { } birthdateError)
             return BadRequest(new { message = birthdateError });
 
-        var photoError = ValidatePhoto(req.Photo) ?? ValidateFace(req.Face);
+        var photoError = ValidatePhoto(req.Photo) ?? ValidatePhoto(req.FacePhoto) ?? ValidateFace(req.Face);
         if (photoError is not null) return BadRequest(new { message = photoError });
 
         if (!string.IsNullOrEmpty(req.Face))
@@ -207,6 +216,10 @@ public class AuthController : ControllerBase
         // Notification channel: Viber delivery uses the phone number, so it's required for Viber.
         var (phone, phoneError) = await PhoneNumber.ValidateAsync(_db, req.Phone);
         if (phoneError is not null) return BadRequest(new { message = phoneError });
+        var department = _userFields.CleanDepartment(req.Department, out var departmentError);
+        if (departmentError is not null) return BadRequest(new { message = departmentError });
+        var jobRole = _userFields.CleanJobRole(req.JobRole, out var jobRoleError);
+        if (jobRoleError is not null) return BadRequest(new { message = jobRoleError });
         var channel = string.IsNullOrWhiteSpace(req.NotificationChannel)
             ? NotificationChannels.Email : req.NotificationChannel.Trim();
         if (!NotificationChannels.IsValid(channel))
@@ -239,6 +252,9 @@ public class AuthController : ControllerBase
         u.SenateNo = string.IsNullOrWhiteSpace(req.SenateNo) ? null : req.SenateNo.Trim();
         u.Level = string.IsNullOrWhiteSpace(req.Level) ? null : req.Level.Trim();
         u.Organization = string.IsNullOrWhiteSpace(req.Organization) ? null : req.Organization.Trim();
+        // A disabled field keeps whatever is stored, so turning it off never wipes data.
+        if (_userFields.DepartmentEnabled) u.Department = department;
+        if (_userFields.JobRoleEnabled) u.JobRole = jobRole;
         u.Phone = phone;
         u.NotificationChannel = channel;
         u.Birthdate = req.Birthdate;
@@ -251,14 +267,68 @@ public class AuthController : ControllerBase
         }
         if (req.Face is not null) // null = leave unchanged; "" = clear the face registration
             u.FaceDescriptor = req.Face.Length == 0 ? null : req.Face;
+        // The face capture is stored apart from the display photo; clearing the face removes both.
+        var facePhotoChanged = req.FacePhoto is not null || req.Face == "";
+        if (facePhotoChanged)
+            u.FacePhoto = req.Face == "" || req.FacePhoto == "" ? null : req.FacePhoto;
 
         await _db.SaveChangesAsync();
-        if (photoChanged) await _notify.UserPhotoChangedAsync(u.Id);
+        if (photoChanged || facePhotoChanged) await _notify.UserPhotoChangedAsync(u.Id);
         // Return a fresh auth response so the client updates its stored session (name/photo).
         return Ok(AuthFor(u));
     }
 
-    // ---- Invite magic-link: resolve who an invitation is for and auto-login if they have an account ----
+    // ---- Password setup (links for admin-created / imported accounts, and forgot password) ----
+
+    // Checks a single-use link before the page asks for a password.
+    [HttpGet("set-password/{token}")]
+    public async Task<ActionResult<SetPasswordInfoDto>> SetPasswordInfo(string token)
+    {
+        var hash = PasswordSetupService.HashToken(token);
+        var user = hash is null ? null : await _db.Users.AsNoTracking().FirstOrDefaultAsync(u =>
+            u.PasswordSetupTokenHash == hash && u.PasswordSetupTokenExpiresAt > DateTime.UtcNow
+            && u.DeactivatedAt == null);
+        return Ok(user is null
+            ? new SetPasswordInfoDto(false, null, null)
+            : new SetPasswordInfoDto(true, user.FullName, user.Email));
+    }
+
+    // Sets the password, marks the email verified and signs the user in. The link is single-use.
+    [HttpPost("set-password/{token}")]
+    [EnableRateLimiting("auth-set-password")]
+    public async Task<ActionResult<AuthResponse>> SetPassword(string token, SetPasswordRequest req)
+    {
+        var hash = PasswordSetupService.HashToken(token);
+        var user = hash is null ? null : await _db.Users.FirstOrDefaultAsync(u =>
+            u.PasswordSetupTokenHash == hash && u.PasswordSetupTokenExpiresAt > DateTime.UtcNow);
+        if (user is null || user.DeactivatedAt is not null)
+            return BadRequest(new { message = "This link is invalid or has expired. Ask an admin to send a new one." });
+        if (PasswordRules.Validate(req.Password, user.Email) is { } passwordError)
+            return BadRequest(new { message = passwordError });
+
+        user.PasswordHash = PasswordHasher.Hash(req.Password!);
+        user.EmailVerified = true;
+        user.PasswordSetupTokenHash = null;
+        user.PasswordSetupTokenExpiresAt = null;
+        await _db.SaveChangesAsync();
+        return Ok(AuthFor(user));
+    }
+
+    // Always the same answer, whether or not the account exists (no user enumeration).
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting("auth-forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest req)
+    {
+        const string reply = "If that email has an account, we've sent it a link to set a new password.";
+        var email = (req.Email ?? "").Trim().ToLowerInvariant();
+        var user = email.Length == 0 ? null : await _db.Users.FirstOrDefaultAsync(u =>
+            u.Email == email && u.DeactivatedAt == null);
+        // The visitor typed an email address: the link goes there, never to the account's phone.
+        if (user is not null) await _passwordSetup.IssueAsync(user, emailOnly: true);
+        return Ok(new { message = reply });
+    }
+
+    // ---- Invite magic-link: who an invitation is for. Never signs the visitor in ----
     [HttpPost("invite/{token}")]
     public async Task<ActionResult<InviteResolveResult>> ResolveInvite(string token)
     {
@@ -269,12 +339,8 @@ public class AuthController : ControllerBase
         if (invite is null) return NotFound(new { message = "Invitation not found." });
 
         var slug = invite.Event?.PublicSlug ?? "";
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == invite.Email);
-
-        // Registered invitee → hand back a token so the client can auto-login and auto-fill.
-        return user is not null
-            ? Ok(new InviteResolveResult(true, invite.Email, slug, AuthFor(user)))
-            : Ok(new InviteResolveResult(false, invite.Email, slug, null));
+        var registered = await _db.Users.AnyAsync(u => u.Email == invite.Email);
+        return Ok(new InviteResolveResult(registered, invite.Email, slug));
     }
 
     // ---- Email verification (only active when App:RequireEmailVerification = true) ----

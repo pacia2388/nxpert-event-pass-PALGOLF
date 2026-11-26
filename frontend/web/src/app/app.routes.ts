@@ -28,12 +28,23 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/verify/verify').then((m) => m.VerifyComponent),
   },
   {
+    // Public one-time link: choose a password for an account created for you (or after forgot password).
+    path: 'set-password/:token',
+    loadComponent: () =>
+      import('./pages/set-password/set-password').then((m) => m.SetPasswordComponent),
+  },
+  {
     path: 'e/:slug',
     loadComponent: () =>
       import('./pages/public-event/public-event').then((m) => m.PublicEventComponent),
   },
   {
-    // Public token magic-link: edit a registration's response without an account.
+    // Public one-time link: rate an event after it ended.
+    path: 'feedback/:token',
+    loadComponent: () =>
+      import('./pages/event-feedback/event-feedback').then((m) => m.EventFeedbackComponent),
+  },
+  {
     path: 'r/:token',
     loadComponent: () =>
       import('./pages/registration-edit/registration-edit').then(

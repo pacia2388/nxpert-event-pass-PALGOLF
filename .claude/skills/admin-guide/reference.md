@@ -227,11 +227,37 @@ checked-in counts, venue and/or **Online meeting link**, and the public link wit
 
 1. **Search contacts** and tick people (a counter shows how many are selected).
 2. Add **Additional emails** (comma or space separated).
-3. **Send invitations** (up to 200 at a time). Each person gets a personal link; people with an
-   account are signed in and pre-filled automatically.
+3. **Send invitations** (up to 200 at a time). Each person gets a personal link. A person who
+   already has an account is asked to sign in (their email is filled in) — the link never signs
+   anyone in by itself; a guest gets the form pre-filled.
 
 The invitation email shows the full date/time range, the venue (or "Online meeting"), and the
 description laid out exactly as you typed it.
+
+### Composed emails, attachments and receivers
+
+- **Compose** an invitation with To / CC, a subject and a message (inline images allowed). Files
+  added under **Attachments** travel inside the email — **25 MB** for the whole message including
+  its images. A refused attachment shows why; nothing is sent.
+- The **To** field also accepts **`*@company.com`**: it stands for every active user of that
+  domain. The server expands it when you save; the pattern itself is never emailed.
+- Recipients go out in batches of at most **100 per message**; a banner shows **Sending… X of Y**.
+  If a batch fails, the message says **"Sent to X of Y — the rest will be retried"**, and a retry
+  never sends the address twice.
+- Editing a scheduled email keeps the attachments you leave ticked and adds the new files.
+
+### Mail planner (reminders and announcements)
+
+The **Mail Planner** builds mails for a saved list (all users, admins, a chapter, a designation,
+event registrants) plus typed addresses:
+
+- **`*@company.com`** in the address field expands to that domain's active users.
+- Tick people off under **Remove members** to exclude them from the list; exclusions are kept on
+  the plan.
+- Each day has its own subject/message and can carry **attachments** (25 MB per email).
+- **Send immediately** queues the one day for the next scheduler tick (about 15 seconds) instead
+  of waiting for its date; the same live **Sending… X of Y** progress appears.
+- A Viber-only plan **cannot carry attachments** (they are sent by email).
 
 ### Tab: Attendance
 
@@ -291,14 +317,26 @@ Stub, Denomination, Control #, Status, Redeemed at**.
 
 ### Tab: Feedback
 
-The average star rating, number of responses, and each rating and comment.
+- **Send a feedback form after the event** is a switch on the **event form** (create / edit), not
+  here. When on, every person with a **confirmed** registration of this event gets a one-time link
+  by their chosen channel once the event has ended. The audience is frozen the first time it is
+  prepared; later registrations don't join it.
+- Counts show **Pending / Sent / Failed / Answered**.
+- **Send feedback link** sends the link again now to everyone in the audience who has not
+  answered yet (up to 50 per click; the event must have ended). If the audience was never frozen
+  it is frozen then and there.
+- **Retry failed** sends the failed links again.
+- The average star rating, number of responses, and each answer (rating, organization rating,
+  what went well / what to improve, comment). An anonymous answer shows **Anonymous** and never
+  the person's name or contact details.
 
 ---
 
 ## 7. Users (User Master)
 
 **Users** is a two-pane screen: the **user list** on the left, the **user form** on the right.
-Click a row to load that user into the form.
+Click a row to load that user into the form. Accounts are never deleted: **Deactivate** turns off
+sign-in and keeps everything else, and **Reactivate** turns it back on.
 
 **Toolbar:**
 
@@ -306,27 +344,34 @@ Click a row to load that user into the form.
 |--------|--------|
 | **New** | Clears the form for a new user |
 | **Save** | Saves the form (new or existing user) |
-| **Delete** | Deletes the selected user (asks first; not allowed for yourself or users with registrations) |
+| **Password link** | Emails the selected user a fresh one-time link to set a new password (always by email, whatever their channel) |
+| **Deactivate** | Turns off sign-in for the selected user (asks first; not allowed for yourself). Their registrations, passes and team stay. |
+| **Reactivate** | Turns sign-in back on for a deactivated user |
 | **Export** | Downloads the filtered list as CSV |
 | **Import** | Bulk-create users from a CSV (below) |
 | **↻** | Refresh the list |
 
 - **Search** by name, email, ID No., designation or chapter; **Role** filter (Admin, Participant,
-  Merchant, Confirmers). The pager (**← 1 / N →**) is below the list.
+  Merchant, Confirmers). **Deactivated** shows only accounts that can no longer sign in. The pager
+  (**← 1 / N →**) is below the list.
+- A deactivated account shows a **Deactivated** badge and is skipped by every message audience.
 - Leaving a user with unsaved changes asks before discarding them.
 
 **Form fields:** **Profile photo**, **First name**, **M.I.**, **Last name** (required), **Email**
-(required), **Username** (auto-generated if blank), **Password** (at least 8 characters with a letter, a number and a
-symbol, and not the user's email; a checklist under the field ticks each rule as you type; when
-editing, leave blank to keep), **Birthdate** (required), **Role** (Participant / Admin / Merchant), **ID No.**, **Designation**
+(required), **Username** (auto-generated if blank), **Department** and **Job role** (only when this installation enables them), **Password** (at least 8 characters with a letter, a number and a
+symbol, and not the user's email; a checklist under the field ticks each rule as you type, and a
+warning shows while Caps Lock is on; when
+editing, leave blank to keep; when creating, leave blank and the new account gets a one-time
+set-password link), **Birthdate** (required), **Role** (Participant / Admin / Merchant), **ID No.**, **Designation**
 (free text), **Chapter**, **Send pass via** (Email / Viber / Both), **Phone** (+63 format;
 required for Viber/Both), and **Can confirm registrations**. Required fields that are empty show a
 red **!**.
 
 **Facial registration:** **Register face** captures the member's face for face check-in
-(**Re-capture** / **Remove** later). Only face data is stored — it doesn't change the profile
-photo. A face already registered to someone else is rejected. Capture in good light, facing the
-camera — a poor capture makes face check-in less reliable.
+(**Re-capture** / **Remove** later). The capture is stored **separately** from the profile photo:
+it is used only by face recognition and never shown on the welcome screen or pass, so capturing
+or removing a face never changes the photo. A face already registered to someone else is rejected.
+Capture in good light, facing the camera — a poor capture makes face check-in less reliable.
 
 ### Importing users
 
@@ -341,8 +386,13 @@ camera — a poor capture makes face check-in less reliable.
   rejected — download the new one.
 - Required values: **First Name, Last Name, Email, Birthdate** (`yyyy-MM-dd` or `M/d/yyyy`, not in
   the future). A row with a blank or invalid birthdate fails.
-- Up to 5,000 rows. New accounts get the password **12345**; existing emails are skipped; blank
-  role = Participant; Viber/Both needs a phone. A summary shows created / skipped / failed rows.
+- When this installation enables **Department** / **Job role**, the template and accepted header
+  add those columns (after Birthdate, both optional).
+- Up to 5,000 rows. New accounts have **no password**: each one gets a one-time set-password link
+  (email, or the mobile channel on the row); existing emails are skipped; blank role = Participant;
+  Viber/Both needs a phone. A summary shows created / skipped / failed rows and how many links were
+  queued; they go out in the background (up to 100 every half-minute) and a queued link survives a
+  server restart.
 
 ### Roles and the "Can confirm registrations" grant
 

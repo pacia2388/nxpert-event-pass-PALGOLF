@@ -9,6 +9,7 @@ import { AuthService } from './core/auth.service';
 import { ToastService } from './core/toast.service';
 import { RealtimeService } from './core/realtime.service';
 import { PwaInstallService } from './core/pwa-install.service';
+import { AppUpdateService } from './core/app-update.service';
 import { AppNotification } from './core/models';
 import { BRANDING } from './core/config';
 import { ACTIVE_THEME } from './core/theme';
@@ -32,6 +33,7 @@ export class App {
   protected readonly auth = inject(AuthService);
   protected readonly rt = inject(RealtimeService);
   protected readonly pwa = inject(PwaInstallService);
+  protected readonly update = inject(AppUpdateService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
 

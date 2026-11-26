@@ -15,6 +15,7 @@ import {
   FaceGalleryChangedNotice,
   KitClaimedNotice,
   VerifyOnlyChangedNotice,
+  MailSendProgressNotice,
   ViberBroadcastProgressNotice,
   NewRegistrationNotice,
   RegistrationApprovedNotice,
@@ -57,6 +58,10 @@ export class RealtimeService {
   private viberBroadcastProgressSubject = new Subject<ViberBroadcastProgressNotice>();
   /** Progress of a Viber broadcast this user started (sent after each recipient). */
   readonly viberBroadcastProgress$ = this.viberBroadcastProgressSubject.asObservable();
+
+  private mailSendProgressSubject = new Subject<MailSendProgressNotice>();
+  /** Progress of a composed invitation / mail-plan day, sent after each SMTP batch. */
+  readonly mailSendProgress$ = this.mailSendProgressSubject.asObservable();
 
   constructor() {
     // Connect/disconnect as the auth state changes.
@@ -123,6 +128,7 @@ export class RealtimeService {
     conn.on('viberBroadcastProgress', (n: ViberBroadcastProgressNotice) =>
       this.viberBroadcastProgressSubject.next(n),
     );
+    conn.on('mailSendProgress', (n: MailSendProgressNotice) => this.mailSendProgressSubject.next(n));
     conn.onreconnected(() => this.connected.set(true));
     conn.onreconnecting(() => this.connected.set(false));
     conn.onclose(() => this.connected.set(false));

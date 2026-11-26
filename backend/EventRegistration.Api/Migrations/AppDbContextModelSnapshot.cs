@@ -195,6 +195,84 @@ namespace EventRegistration.Api.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("EventRegistration.Api.Models.EventFeedbackCampaign", b =>
+                {
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("PreparedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("EventId");
+
+                    b.ToTable("EventFeedbackCampaigns");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.EventFeedbackRecipient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("RegistrationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("Token")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegistrationId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("EventId", "RegistrationId")
+                        .IsUnique();
+
+                    b.ToTable("EventFeedbackRecipients");
+                });
+
             modelBuilder.Entity("EventRegistration.Api.Models.Feedback", b =>
                 {
                     b.Property<int>("Id")
@@ -211,19 +289,49 @@ namespace EventRegistration.Api.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FeedbackRecipientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Improve")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsAnonymous")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("OrganizationRating")
                         .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<string>("WentWell")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FeedbackRecipientId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("EventId", "FeedbackRecipientId")
+                        .IsUnique()
+                        .HasFilter("[FeedbackRecipientId] IS NOT NULL");
+
                     b.HasIndex("EventId", "UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Feedbacks");
                 });
@@ -288,6 +396,13 @@ namespace EventRegistration.Api.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeliveredRecipientsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmailFile")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("EventId")
                         .HasColumnType("int");
@@ -377,6 +492,10 @@ namespace EventRegistration.Api.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ExcludedEmailsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("GroupIdsJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -385,6 +504,12 @@ namespace EventRegistration.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTimeOffset?>("SendAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("SendImmediately")
+                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -525,8 +650,15 @@ namespace EventRegistration.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DeliveredRecipientsJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTimeOffset?>("DispatchedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EmailFile")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("ImageCount")
                         .HasColumnType("int");
@@ -800,6 +932,9 @@ namespace EventRegistration.Api.Migrations
                     b.Property<string>("FaceDescriptor")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FacePhoto")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FormResponses")
                         .HasColumnType("nvarchar(max)");
 
@@ -1032,6 +1167,13 @@ namespace EventRegistration.Api.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<DateTime?>("DeactivatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -1046,12 +1188,19 @@ namespace EventRegistration.Api.Migrations
                     b.Property<string>("FaceDescriptor")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FacePhoto")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("JobRole")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -1080,6 +1229,16 @@ namespace EventRegistration.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTimeOffset?>("PasswordLinkQueuedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTime?>("PasswordSetupTokenExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordSetupTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
@@ -1105,6 +1264,10 @@ namespace EventRegistration.Api.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("PasswordSetupTokenHash")
+                        .IsUnique()
+                        .HasFilter("[PasswordSetupTokenHash] IS NOT NULL");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -1194,6 +1357,53 @@ namespace EventRegistration.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Vouchers");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.EventFeedbackCampaign", b =>
+                {
+                    b.HasOne("EventRegistration.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.EventFeedbackRecipient", b =>
+                {
+                    b.HasOne("EventRegistration.Api.Models.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EventRegistration.Api.Models.Registration", "Registration")
+                        .WithMany()
+                        .HasForeignKey("RegistrationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Registration");
+                });
+
+            modelBuilder.Entity("EventRegistration.Api.Models.Feedback", b =>
+                {
+                    b.HasOne("EventRegistration.Api.Models.EventFeedbackRecipient", "FeedbackRecipient")
+                        .WithMany()
+                        .HasForeignKey("FeedbackRecipientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("EventRegistration.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("FeedbackRecipient");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EventRegistration.Api.Models.Invitation", b =>

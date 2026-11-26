@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { MobileChannelService } from '../../core/mobile-channel.service';
 import { PhoneCountryService } from '../../core/phone-country.service';
+import { UserFieldsService } from '../../core/user-fields.service';
 import { PhoneFieldComponent } from '../../shared/phone-field/phone-field';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -55,6 +56,7 @@ export class AccountComponent implements OnInit {
   private api = inject(ApiService);
   protected mobile = inject(MobileChannelService);
   protected countries = inject(PhoneCountryService);
+  protected userFields = inject(UserFieldsService);
   private auth = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
@@ -71,6 +73,8 @@ export class AccountComponent implements OnInit {
   level = '';
   email = '';
   organization = '';
+  department = '';
+  jobRole = '';
   // "+<code><number>" from the phone field; storedPhone is the saved value (warning).
   phone: string | null = null;
   private storedPhone: string | null = null;
@@ -94,6 +98,7 @@ export class AccountComponent implements OnInit {
   // Facial-registration state (mirrors photo semantics).
   hadFace = false;
   newFace = signal<string | null>(null);
+  newFacePhoto = signal<string | null>(null);
   clearFace = signal(false);
   faceRegistered = () => !!this.newFace() || (this.hadFace && !this.clearFace());
 
@@ -113,6 +118,8 @@ export class AccountComponent implements OnInit {
         this.level = p.level ?? '';
         this.email = p.email;
         this.organization = p.organization ?? '';
+        this.department = p.department ?? '';
+        this.jobRole = p.jobRole ?? '';
         this.storedPhone = p.phone ?? null;
         this.phone = this.storedPhone;
         this.notificationChannel = p.notificationChannel ?? 'Email';
@@ -188,16 +195,15 @@ export class AccountComponent implements OnInit {
       .subscribe((res: FaceCaptureResult | undefined) => {
         if (!res) return;
         this.newFace.set(JSON.stringify(res.descriptor));
+        this.newFacePhoto.set(res.image);
         this.clearFace.set(false);
-        // The captured face doubles as the profile photo (used on the check-in welcome screen).
-        this.newPhoto.set(res.image);
-        this.clearPhoto.set(false);
         this.cdr.detectChanges();
       });
   }
 
   removeFace(): void {
     this.newFace.set(null);
+    this.newFacePhoto.set(null);
     this.clearFace.set(true);
   }
 
@@ -227,12 +233,15 @@ export class AccountComponent implements OnInit {
       senateNo: this.senateNo.trim() || null,
       level: this.level || null,
       organization: this.organization.trim() || null,
+      department: this.userFields.departmentEnabled() ? this.department.trim() || null : null,
+      jobRole: this.userFields.jobRoleEnabled() ? this.jobRole.trim() || null : null,
       phone: this.phone,
       photo: this.photoPayload(),
       currentPassword: this.newPassword ? this.currentPassword : null,
       newPassword: this.newPassword || null,
       notificationChannel: this.notificationChannel,
       face: this.facePayload(),
+      facePhoto: this.clearFace() ? '' : this.newFacePhoto(),
       birthdate: toIsoDate(this.birthdate),
     };
 

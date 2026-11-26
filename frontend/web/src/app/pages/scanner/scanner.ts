@@ -169,6 +169,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private realtime = inject(RealtimeService);
   private scanner: Html5Qrcode | null = null;
+  // Bumped by every start/stop, so a start that loses the race stops its own stream.
+  private cameraAttempt = 0;
   private readonly regionId = 'qr-reader';
 
   // Cached offline data for this event (members, registrations). Loaded on init when online,
@@ -434,11 +436,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   async start(): Promise<void> {
+    if (this.starting()) return;
+    const attempt = ++this.cameraAttempt;
     this.cameraError.set(null);
     this.starting.set(true);
+    let scanner: Html5Qrcode | undefined;
     try {
-      this.scanner = new Html5Qrcode(this.regionId, { verbose: false });
-      await this.scanner.start(
+      scanner = new Html5Qrcode(this.regionId, { verbose: false });
+      await scanner.start(
         { facingMode: this.qrFacing() },
         {
           fps: CAMERA_FPS,
@@ -451,13 +456,22 @@ export class ScannerComponent implements OnInit, OnDestroy {
             return { width: s, height: s };
           },
         },
-        (decoded) => this.onScan(decoded),
+        (decoded) => {
+          if (attempt === this.cameraAttempt) this.onScan(decoded);
+        },
         () => {}, // per-frame decode failures are noise; ignore
       );
+      if (attempt !== this.cameraAttempt) {
+        // A start that lost the race (mode switched, page left) closes its own stream.
+        await this.releaseCamera(scanner);
+        return;
+      }
+      this.scanner = scanner;
       this.scanning.set(true);
       this.qrMirrored.set(this.runningFacing() !== 'environment');
       void this.detectCameras();
     } catch (err) {
+      if (attempt !== this.cameraAttempt) return;
       const failure = cameraFailure(err);
       this.cameraError.set(
         failure === 'other'
@@ -467,6 +481,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       // Keep trying unless only the operator can fix it (blocked, no camera, no HTTPS).
       if (failure === 'busy' || failure === 'other') this.scheduleCameraRetry();
     } finally {
+      if (scanner && this.scanner !== scanner) await this.releaseCamera(scanner);
       this.starting.set(false);
     }
   }
@@ -474,16 +489,20 @@ export class ScannerComponent implements OnInit, OnDestroy {
   // Stops the camera only. The result banner keeps its own timer (clearing it here left a
   // banner stuck on screen when the camera restarted mid-result).
   async stop(): Promise<void> {
-    if (this.scanner) {
-      try {
-        if (this.scanner.isScanning) await this.scanner.stop();
-        this.scanner.clear();
-      } catch {
-        /* ignore */
-      }
-      this.scanner = null;
-    }
+    this.cameraAttempt++;
+    const scanner = this.scanner;
+    this.scanner = null;
+    if (scanner) await this.releaseCamera(scanner);
     this.scanning.set(false);
+  }
+
+  private async releaseCamera(scanner: Html5Qrcode): Promise<void> {
+    try {
+      if (scanner.isScanning) await scanner.stop();
+      scanner.clear();
+    } catch {
+      /* the container may already be gone when leaving the page */
+    }
   }
 
   private runningFacing(): string | undefined {

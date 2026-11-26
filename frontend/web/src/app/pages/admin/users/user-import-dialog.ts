@@ -1,15 +1,22 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ApiService } from '../../../core/api.service';
 import { UserImportResult, UserImportRow } from '../../../core/models';
+import { UserFieldsService } from '../../../core/user-fields.service';
 
 // The import file's header row is fixed to this list: same columns, same order (it is also the
 // downloadable template). Cells are read by position. "(optional)" columns may be left blank.
 // alt: an older header still accepted, so files made from the previous template keep working.
-const COLUMNS: { header: string; field: keyof UserImportRow; alt?: string }[] = [
+interface ImportColumn {
+  header: string;
+  field: keyof UserImportRow;
+  alt?: string;
+}
+
+const BASE_COLUMNS: ImportColumn[] = [
   { header: 'First Name', field: 'firstName' },
   { header: 'Middle Initial (optional)', field: 'middleInitial' },
   { header: 'Last Name', field: 'lastName' },
@@ -28,9 +35,24 @@ const COLUMNS: { header: string; field: keyof UserImportRow; alt?: string }[] = 
   { header: 'Birthdate', field: 'birthdate' },
 ];
 
-const TEMPLATE_HEADERS = COLUMNS.map((c) => c.header).join(',');
-const TEMPLATE_SAMPLE =
+const BASE_SAMPLE =
   "Juan,D,Dela Cruz,juan.delacruz@example.com,,12345,Senator,Acme Corp,'+639171234567,Participant,Email,1990-01-31";
+
+// Department / job role columns are added only while the installation enables them.
+function importColumns(department: boolean, jobRole: boolean): ImportColumn[] {
+  const columns = [...BASE_COLUMNS];
+  if (department) columns.push({ header: 'Department (optional)', field: 'department' });
+  if (jobRole) columns.push({ header: 'Job role (optional)', field: 'jobRole' });
+  return columns;
+}
+
+function templateSample(department: boolean, jobRole: boolean): string {
+  return [
+    ...BASE_SAMPLE.split(','),
+    ...(department ? ['Finance'] : []),
+    ...(jobRole ? ['Analyst'] : []),
+  ].join(',');
+}
 
 // Case and surrounding spaces don't count as a difference; trim() also drops an Excel BOM (U+FEFF).
 function normalizeHeader(h: string): string {
@@ -38,16 +60,16 @@ function normalizeHeader(h: string): string {
 }
 
 /** Returns an error message when the header row is not exactly the template header, else null. */
-export function headerError(headerRow: string[]): string | null {
+export function headerError(headerRow: string[], columns: ImportColumn[] = BASE_COLUMNS): string | null {
   const got = headerRow.map(normalizeHeader);
   // Trailing empty cells (e.g. a stray comma Excel kept) are not columns.
   while (got.length && !got[got.length - 1]) got.pop();
-  for (let i = 0; i < Math.max(got.length, COLUMNS.length); i++) {
-    const want = COLUMNS[i]?.header;
+  for (let i = 0; i < Math.max(got.length, columns.length); i++) {
+    const want = columns[i]?.header;
     const cell = (headerRow[i] ?? '').trim();
     if (want === undefined) return `Unexpected extra column "${cell}" (column ${i + 1}).`;
     if (i >= got.length) return `Missing column "${want}" (column ${i + 1}).`;
-    const alt = COLUMNS[i].alt;
+    const alt = columns[i].alt;
     if (got[i] !== normalizeHeader(want) && !(alt && got[i] === normalizeHeader(alt)))
       return `Column ${i + 1} must be "${want}" but is "${cell || '(blank)'}".`;
   }
@@ -194,6 +216,7 @@ function parseCsv(text: string): string[][] {
 })
 export class UserImportDialogComponent {
   private api = inject(ApiService);
+  protected userFields = inject(UserFieldsService);
   private ref = inject(MatDialogRef<UserImportDialogComponent>);
 
   fileName = signal<string | null>(null);
@@ -201,6 +224,12 @@ export class UserImportDialogComponent {
   parseError = signal<string | null>(null);
   importing = signal(false);
   result = signal<UserImportResult | null>(null);
+
+  // Columns and template depend on the installation's optional fields.
+  readonly columns = computed(() =>
+    importColumns(this.userFields.departmentEnabled(), this.userFields.jobRoleEnabled()),
+  );
+  readonly templateHeaders = computed(() => this.columns().map((c) => c.header).join(','));
 
   // First few parsed rows, for a preview.
   preview = () => this.rows().slice(0, 5);
@@ -223,17 +252,18 @@ export class UserImportDialogComponent {
         this.parseError.set('The file needs a header row and at least one data row.');
         return;
       }
-      const mismatch = headerError(table[0]);
+      const columns = this.columns();
+      const mismatch = headerError(table[0], columns);
       if (mismatch) {
         this.parseError.set(
-          `${mismatch} The header row must match the template exactly: ${TEMPLATE_HEADERS}. ` +
+          `${mismatch} The header row must match the template exactly: ${this.templateHeaders()}. ` +
             'Download the template and copy your data into it.',
         );
         return;
       }
       const parsed: UserImportRow[] = table.slice(1).map((cells) => {
         const r: UserImportRow = {};
-        COLUMNS.forEach(({ field }, i) => {
+        columns.forEach(({ field }, i) => {
           const v = (cells[i] ?? '').trim();
           if (v) r[field] = v;
         });
@@ -246,7 +276,11 @@ export class UserImportDialogComponent {
   }
 
   downloadTemplate(): void {
-    const blob = new Blob([`${TEMPLATE_HEADERS}\n${TEMPLATE_SAMPLE}\n`], {
+    const sample = templateSample(
+      this.userFields.departmentEnabled(),
+      this.userFields.jobRoleEnabled(),
+    );
+    const blob = new Blob([`${this.templateHeaders()}\n${sample}\n`], {
       type: 'text/csv;charset=utf-8',
     });
     const url = URL.createObjectURL(blob);

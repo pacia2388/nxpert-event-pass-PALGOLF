@@ -188,6 +188,7 @@
         mat-stretch-tabs="false"
         mat-align-tabs="start"
         animationDuration="150ms"
+        (selectedTabChange)="tabChanged($event)"
       >
         <!-- Invites (admin only) -->
         @if (auth.isAdmin()) {
@@ -931,6 +932,22 @@
           <mat-tab label="Feedback ({{ feedback()?.count || 0 }})">
             <div class="tab-body">
               @if (feedback(); as fb) {
+                @if (fb.campaign; as c) {
+                  <div class="feedback-automation">
+                    <span class="muted">
+                      Pending {{ c.pending }} · Sent {{ c.sent }} · Failed {{ c.failed }} ·
+                      Answered {{ c.answered }}
+                    </span>
+                    <button mat-stroked-button type="button" (click)="sendFeedbackLinks()">
+                      <mat-icon>send</mat-icon> Send feedback link
+                    </button>
+                    @if (c.failed) {
+                      <button mat-stroked-button type="button" (click)="retryFeedbackAutomation()">
+                        <mat-icon>refresh</mat-icon> Retry failed
+                      </button>
+                    }
+                  </div>
+                }
                 @if (fb.count === 0) {
                   <div class="empty-state">
                     <mat-icon>reviews</mat-icon>
@@ -962,15 +979,69 @@
                       <mat-card class="feedback-item">
                         <div class="feedback-head">
                           <strong>{{ item.fullName }}</strong>
-                          <span class="rating-inline">
+                          <span
+                            class="rating-inline"
+                            [attr.aria-label]="'Overall rating ' + item.rating + ' of 5'"
+                          >
                             @for (s of starArray(5); track s) {
                               <mat-icon>{{ item.rating >= s ? 'star' : 'star_border' }}</mat-icon>
                             }
+                            <span class="feedback-score">{{ item.rating }}/5</span>
                           </span>
                         </div>
-                        @if (item.comment) {
-                          <p class="feedback-comment">{{ item.comment }}</p>
-                        }
+                        <dl class="feedback-answers">
+                          @if (item.organizationRating != null) {
+                            <div>
+                              <dt>Organization rating</dt>
+                              <dd>
+                                <span
+                                  class="rating-inline"
+                                  [attr.aria-label]="
+                                    'Organization rating ' + item.organizationRating + ' of 5'
+                                  "
+                                >
+                                  @for (s of starArray(5); track s) {
+                                    <mat-icon>{{
+                                      item.organizationRating >= s ? 'star' : 'star_border'
+                                    }}</mat-icon>
+                                  }
+                                  <span class="feedback-score"
+                                    >{{ item.organizationRating }}/5</span
+                                  >
+                                </span>
+                              </dd>
+                            </div>
+                          }
+                          @if (item.wentWell) {
+                            <div>
+                              <dt>What went well</dt>
+                              <dd>{{ item.wentWell }}</dd>
+                            </div>
+                          }
+                          @if (item.improve) {
+                            <div>
+                              <dt>What to improve</dt>
+                              <dd>{{ item.improve }}</dd>
+                            </div>
+                          }
+                          @if (item.comment) {
+                            <div>
+                              <dt>Comment</dt>
+                              <dd>{{ item.comment }}</dd>
+                            </div>
+                          }
+                          @if (
+                            !item.organizationRating &&
+                            !item.wentWell &&
+                            !item.improve &&
+                            !item.comment
+                          ) {
+                            <div>
+                              <dt>Answer</dt>
+                              <dd class="muted">Rating only.</dd>
+                            </div>
+                          }
+                        </dl>
                         <p class="muted feedback-date">
                           {{ item.createdAt | date: 'MMM d, y, h:mm a' }}
                         </p>

@@ -8,7 +8,8 @@
   @if (result(); as r) {
     <!-- Result summary -->
     <p class="note">
-      Import finished. New accounts use the default password <strong>12345</strong>.
+      Import finished. Each new account gets a one-time link to set its password
+      ({{ r.linksQueued ?? 0 }} being sent now).
     </p>
     <div class="summary">
       <div class="stat created">{{ r.created }}<small>created</small></div>
@@ -28,9 +29,8 @@
   } @else {
     <!-- Upload step -->
     <p class="note">
-      Upload a <strong>CSV</strong> file of users. Every new account is created with the default
-      password <strong>12345</strong> (users should change it on first sign-in). Rows whose email
-      already exists are skipped.
+      Upload a <strong>CSV</strong> file of users. Every new account is created without a password
+      and gets a one-time link to set one. Rows whose email already exists are skipped.
     </p>
 
     <div class="drop-hint">

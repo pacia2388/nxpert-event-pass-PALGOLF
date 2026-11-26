@@ -3,10 +3,15 @@ using MimeKit;
 namespace EventRegistration.Api.Services;
 
 /// <summary>
-/// Emails kept for a later send (background email retry, late Viber failure) are saved as .eml files
-/// here; the database stores only the file name (<c>EmailRetry.EmailFile</c>, <c>ViberMessage.EmailFile</c>).
-/// Folder: <c>App:MailQueueDir</c>, default <c>mail-queue</c> in the API folder. It holds personal
-/// data: never serve it, and keep it across deploys (no <c>robocopy /MIR</c>).
+/// Emails kept for a later send are saved as .eml files here; the database stores only the file
+/// name. Two instances:
+/// <list type="bullet">
+/// <item><c>mail-queue/</c> (<c>App:MailQueueDir</c>): the background email retry and late Viber
+/// failure copies. Old files are removed after 26 h.</item>
+/// <item><c>mail-outgoing/</c> (<c>App:MailOutgoingDir</c>): the whole composed invitation / mail
+/// plan email with its attachments, kept until it is delivered. Never cleaned by age.</item>
+/// </list>
+/// Both hold personal data: never serve them, and keep them across deploys (no <c>robocopy /MIR</c>).
 /// </summary>
 public class EmailFileStore
 {
@@ -17,12 +22,20 @@ public class EmailFileStore
     private readonly string _dir;
 
     public EmailFileStore(IConfiguration config, IWebHostEnvironment env)
+        : this(Resolve(config, env, "App:MailQueueDir", "mail-queue")) { }
+
+    private EmailFileStore(string dir) => _dir = dir;
+
+    /// <summary>The outgoing-mail store (composed emails with their attachments).</summary>
+    public static EmailFileStore Outgoing(IConfiguration config, IWebHostEnvironment env) =>
+        new(Resolve(config, env, "App:MailOutgoingDir", "mail-outgoing"));
+
+    private static string Resolve(IConfiguration config, IWebHostEnvironment env, string key, string fallback)
     {
-        var configured = config["App:MailQueueDir"];
-        if (string.IsNullOrWhiteSpace(configured))
-            _dir = Path.Combine(env.ContentRootPath, "mail-queue");
-        else
-            _dir = Path.GetFullPath(configured, env.ContentRootPath);
+        var configured = config[key];
+        return string.IsNullOrWhiteSpace(configured)
+            ? Path.Combine(env.ContentRootPath, fallback)
+            : Path.GetFullPath(configured, env.ContentRootPath);
     }
 
     /// <summary>Writes the whole email (headers, HTML, inline images, attachments); returns its file name.</summary>
@@ -41,6 +54,13 @@ public class EmailFileStore
         if (path is null || !File.Exists(path))
             return null;
         return await MimeMessage.LoadAsync(path);
+    }
+
+    /// <summary>The saved email's size in bytes, or 0 when it is missing.</summary>
+    public long SizeOf(string? name)
+    {
+        var path = PathOf(name);
+        return path is not null && File.Exists(path) ? new FileInfo(path).Length : 0;
     }
 
     public void Delete(string? name)
@@ -63,7 +83,7 @@ public class EmailFileStore
         return Path.Combine(_dir, name);
     }
 
-    /// <summary>Deletes files older than <see cref="KeepFor"/> that no pending retry uses.</summary>
+    /// <summary>Deletes files older than <see cref="KeepFor"/> that no pending retry uses (queue store only).</summary>
     public void DeleteOld(IReadOnlySet<string> inUse)
     {
         if (!Directory.Exists(_dir))

@@ -1,12 +1,19 @@
 <div class="invite-grid" [attr.aria-busy]="sending()">
+  @if (sendProgress(); as p) {
+    <div class="send-progress" role="status">
+      <span>Sending… {{ p.sent }} of {{ p.total }} recipients</span>
+      <span class="send-bar"><span [style.width.%]="p.total ? (p.sent / p.total) * 100 : 0"></span></span>
+    </div>
+  }
   <div class="invite-main">
     <div class="section-head">
       <div>
         <h3>{{ editingEmail ? 'Edit scheduled email' : 'Compose invitation' }}</h3>
         <p class="muted">
           Type email addresses, separated by commas (e.g. ana&#64;gmail.com, ben&#64;gmail.com), or
-          click To or CC to pick a saved one. Use <strong>&#64;n-pax</strong> to include all
-          {{ directoryCount }} system users, or <strong>Invite teams</strong> to pick team members.
+          click To or CC to pick a saved one. Use a domain group such as
+          <strong>*&#64;n-pax.com</strong> or <strong>*&#64;gmail.com</strong> to include every
+          registered user of that domain, or <strong>Invite teams</strong> to pick team members.
         </p>
       </div>
       @if (counts.to.length + counts.cc.length > 0) {
@@ -34,10 +41,7 @@
               <mat-chip-row
                 (removed)="remove(field, address)"
                 [disabled]="sending()"
-                [class.group-chip]="address === allUsers"
-                [matTooltip]="
-                  address === allUsers ? 'Expands to all current system users when saved' : address
-                "
+                [matTooltip]="address"
               >
                 @if (isSaved(address)) {
                   <mat-icon matChipAvatar>bookmark</mat-icon>
@@ -337,9 +341,10 @@
         {{
           processingImage()
             ? 'Preparing image…'
-            : 'Images: up to 5, 2 MB each and 5 MB total after resizing. Pasted text keeps its images and basic formatting.'
+            : mailLimits.help() + ' Pasted text keeps its images and basic formatting.'
         }}
       </p>
+      <app-mail-attachments class="span-2" [existing]="editingAttachments()" />
       @if (hasScheduleDay()) {
         <p class="hint" [class.schedule-error]="!canUseScheduleDay">
           {{

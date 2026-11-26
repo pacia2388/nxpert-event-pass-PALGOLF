@@ -13,6 +13,7 @@ import {
   LOCALE_ID,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -35,14 +36,19 @@ import {
   InvitationEmail,
   InvitationMessageRequest,
   InvitationMessageResult,
+  MailAttachment,
+  MailSendProgressNotice,
 } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { MailLimitsService } from '../../core/mail-limits.service';
 import { ConfirmService } from '../../core/confirm.service';
 import { AuthService } from '../../core/auth.service';
+import { RealtimeService } from '../../core/realtime.service';
+import { MailAttachmentsComponent } from '../mail-attachments/mail-attachments';
 import {
-  ALL_USERS,
   expandRecipients,
   invitationErrorMessage,
+  isMailDomainPattern,
   recipientAddress,
 } from '../../core/invitation.util';
 import { MatDialog } from '@angular/material/dialog';
@@ -53,6 +59,7 @@ import {
   IMAGE_TYPES,
   cleanNode,
   imageBudget,
+  imageSourceMessage,
   insertAtSelection,
   newImage,
   pasteMessage,
@@ -73,8 +80,8 @@ const SCHEDULE_DAY_PATTERN = /\{\{\s*schedule_day\s*\}\}/i;
 
 /**
  * Event invitation email, Gmail / Outlook style: To and CC chips (typed or comma-separated
- * addresses, addresses the admin chose to save picked from a dropdown, or the @n-pax group = every
- * system user), a formatted message with inline images, and the
+ * addresses, addresses the admin chose to save picked from a dropdown, or a *@domain group such
+ * as *@n-pax.com = every system user of that domain), a formatted message with inline images, and the
  * event's details + calendar invitation appended by the server.
  */
 @Component({
@@ -91,6 +98,7 @@ const SCHEDULE_DAY_PATTERN = /\{\{\s*schedule_day\s*\}\}/i;
     MatInputModule,
     MatTooltipModule,
     MatSelectModule,
+    MailAttachmentsComponent,
   ],
   templateUrl: './invitation-composer.html',
   styleUrl: './invitation-composer.scss',
@@ -120,13 +128,15 @@ export class InvitationComposerComponent implements OnChanges {
   private api = inject(ApiService);
   private locale = inject(LOCALE_ID);
   private toast = inject(ToastService);
+  protected mailLimits = inject(MailLimitsService);
   private confirmer = inject(ConfirmService);
   private dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
   private changeDetector = inject(ChangeDetectorRef);
   private auth = inject(AuthService);
+  private rt = inject(RealtimeService);
+  private attachmentsPanel = viewChild(MailAttachmentsComponent);
 
-  readonly allUsers = ALL_USERS;
   // Addresses this admin chose to save, listed in the To and CC dropdowns.
   savedAddresses = signal<string[]>(this.loadSaved());
   readonly fields: RecipientField[] = ['to', 'cc'];
@@ -156,9 +166,18 @@ export class InvitationComposerComponent implements OnChanges {
   // Row showing the "opening" indicator while its email loads.
   openingId: number | null = null;
   editingEmail: InvitationEmail | null = null;
+  // Attachments already saved on the email being edited.
+  editingAttachments = signal<MailAttachment[]>([]);
+  // Live progress while the batches go out (SignalR).
+  sendProgress = signal<MailSendProgressNotice | null>(null);
   private historyEventId: number | null = null;
 
   constructor() {
+    this.rt.mailSendProgress$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((p) => {
+        if (p.source === 'invitation' && this.sending()) this.sendProgress.set(p);
+      });
     interval(15000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -282,6 +301,10 @@ export class InvitationComposerComponent implements OnChanges {
         return;
     }
     this.editingEmail = copy ? null : email;
+    const opened = this.openedEmail();
+    this.editingAttachments.set(
+      copy ? [] : ((opened?.id === email.id ? opened.attachments : email.attachments) ?? []),
+    );
     this.recipients = { to: [...email.to], cc: [...email.cc] };
     this.clearQuery(...this.fields);
     this.subject = email.subject;
@@ -333,6 +356,8 @@ export class InvitationComposerComponent implements OnChanges {
 
   resetDraft(): void {
     this.editingEmail = null;
+    this.editingAttachments.set([]);
+    this.attachmentsPanel()?.clear();
     this.recipients = { to: [], cc: [] };
     this.clearQuery(...this.fields);
     this.subject = `You're invited: ${this.event.title}`.slice(0, 200);
@@ -430,31 +455,15 @@ export class InvitationComposerComponent implements OnChanges {
     return time === null ? null : Math.floor(time / 60000);
   }
 
-  // Unique addresses after @n-pax expansion; To wins over CC.
+  // Unique addresses; To wins over CC. A *@domain entry counts once, as typed.
   get counts() {
-    return expandRecipients(
-      this.recipients.to,
-      this.recipients.cc,
-      this.contacts.map((c) => c.email),
-    );
+    return expandRecipients(this.recipients.to, this.recipients.cc);
   }
 
   // CC addresses dropped because they are already in To (they still get one copy, as To).
   get ccInTo(): number {
-    const enteredCc = expandRecipients(
-      [],
-      this.recipients.cc,
-      this.contacts.map((c) => c.email),
-    ).cc.length;
+    const enteredCc = expandRecipients([], this.recipients.cc).cc.length;
     return enteredCc - this.counts.cc.length;
-  }
-
-  get directoryCount() {
-    return expandRecipients(
-      [ALL_USERS],
-      [],
-      this.contacts.map((c) => c.email),
-    ).to.length;
   }
 
   // Saved addresses not yet in this field: all of them on click, narrowed down while typing.
@@ -469,9 +478,9 @@ export class InvitationComposerComponent implements OnChanges {
     return this.savedAddresses().includes(address);
   }
 
-  // Entered addresses that can still be saved; @n-pax is a group, so it is never offered.
+  // Entered addresses that can still be saved.
   unsaved(field: RecipientField): string[] {
-    return this.recipients[field].filter((a) => a !== ALL_USERS && !this.isSaved(a));
+    return this.recipients[field].filter((a) => !this.isSaved(a));
   }
 
   saveAddresses(addresses: string[]): void {
@@ -498,7 +507,7 @@ export class InvitationComposerComponent implements OnChanges {
       return Array.isArray(parsed)
         ? parsed
             .map((v) => (typeof v === 'string' ? recipientAddress(v) : null))
-            .filter((a): a is string => !!a && a !== ALL_USERS)
+            .filter((a): a is string => !!a)
         : [];
     } catch {
       return [];
@@ -516,10 +525,9 @@ export class InvitationComposerComponent implements OnChanges {
     }
   }
 
-  // Most recently used first; @n-pax is a group, not an address, so it is never saved.
+  // Most recently used first.
   private rememberAddresses(addresses: string[]): void {
-    const used = addresses.filter((a) => a !== ALL_USERS);
-    if (used.length) this.storeSaved([...new Set([...used, ...this.savedAddresses()])]);
+    if (addresses.length) this.storeSaved([...new Set([...addresses, ...this.savedAddresses()])]);
   }
 
   forgetAddress(event: MouseEvent, address: string): void {
@@ -529,7 +537,6 @@ export class InvitationComposerComponent implements OnChanges {
   }
 
   label(address: string): string {
-    if (address === ALL_USERS) return `@n-pax · All users (${this.directoryCount})`;
     const contact = this.contacts.find((c) => c.email.toLowerCase() === address);
     return contact ? `${contact.fullName} <${address}>` : address;
   }
@@ -540,12 +547,32 @@ export class InvitationComposerComponent implements OnChanges {
       .filter(Boolean)
       .map(recipientAddress);
     if (addresses.some((a) => !a)) {
-      this.toast.error('Enter valid email addresses or choose @n-pax.');
+      this.toast.error('Enter valid email addresses or a *@domain group.');
       return false;
     }
-    this.recipients[field] = [...new Set([...this.recipients[field], ...(addresses as string[])])];
+    // *@domain becomes the registered people of that domain, each a removable chip; the pattern
+    // itself is never saved or sent.
+    const patterns = (addresses as string[]).filter(isMailDomainPattern);
+    const plain = (addresses as string[]).filter((a) => !isMailDomainPattern(a));
+    this.recipients[field] = [...new Set([...this.recipients[field], ...plain])];
+    for (const pattern of patterns) this.expandDomain(field, pattern);
     this.clearQuery(field);
     return true;
+  }
+
+  private expandDomain(field: RecipientField, pattern: string): void {
+    this.api
+      .expandMailDomain(pattern)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (people) => {
+          if (!people.length) this.toast.warning(`No registered users at ${pattern.slice(1)}.`);
+          this.recipients[field] = [...new Set([...this.recipients[field], ...people])];
+          // Arrives outside an event on this component, and `recipients` is not a signal.
+          this.changeDetector.markForCheck();
+        },
+        error: () => this.toast.error(`Could not look up ${pattern.slice(1)}. Try again.`),
+      });
   }
 
   // The autocomplete writes model values to the form field's control, which here is the chip grid
@@ -564,7 +591,7 @@ export class InvitationComposerComponent implements OnChanges {
     event.stopPropagation();
     if (this.sending()) return;
     openInviteTeamsDialog(this.dialog, {
-      alreadyInTo: this.recipients.to.filter((a) => a !== ALL_USERS),
+      alreadyInTo: this.recipients.to,
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((changes) => {
@@ -731,7 +758,7 @@ export class InvitationComposerComponent implements OnChanges {
   async insertImage(file: File): Promise<void> {
     if (this.processingImage()) return;
     if (!IMAGE_TYPES.includes(file.type)) {
-      this.toast.error('Choose a PNG, JPEG, WebP, GIF or BMP image up to 10 MB.');
+      this.toast.error(imageSourceMessage());
       return;
     }
     this.processingImage.set(true);
@@ -788,18 +815,24 @@ export class InvitationComposerComponent implements OnChanges {
     };
     // When editing, the first date updates the saved email; every other date adds a new one.
     const editing = this.editingEmail;
+    const files = this.attachmentsPanel()?.files() ?? [];
+    const keepAttachments = this.attachmentsPanel()?.keptNames() ?? [];
     const results: InvitationMessageResult[] = [];
+    this.sendProgress.set(null);
     this.setSending(true);
     from(schedules)
       .pipe(
         concatMap((scheduledAt, i) => {
           const request: InvitationMessageRequest = { ...base, scheduledAt };
           return i === 0 && editing
-            ? this.api.updateInvitationEmail(this.event.id, editing.id, {
-                ...request,
-                version: editing.version,
-              })
-            : this.api.sendInvitationMessage(this.event.id, request);
+            ? this.api.updateInvitationEmail(
+                this.event.id,
+                editing.id,
+                { ...request, version: editing.version },
+                files,
+                keepAttachments,
+              )
+            : this.api.sendInvitationMessage(this.event.id, request, files);
         }),
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.setSending(false)),

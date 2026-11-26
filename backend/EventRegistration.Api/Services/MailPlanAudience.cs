@@ -19,7 +19,7 @@ public class MailPlanAudience(AppDbContext db)
 
     public async Task<List<MailAudienceGroup>> GroupsAsync()
     {
-        var users = (await db.Users.AsNoTracking().Where(u => u.Email != "")
+        var users = (await db.Users.AsNoTracking().Where(u => u.Email != "" && u.DeactivatedAt == null)
                 .Select(u => new { u.Email, u.Role, u.Organization, u.Level }).ToListAsync())
             .Select(u => new { Email = InvitationMessageBuilder.Address(u.Email), u.Role, Organization = u.Organization?.Trim(), Level = u.Level?.Trim() })
             .Where(u => u.Email != null).ToList();
@@ -41,7 +41,8 @@ public class MailPlanAudience(AppDbContext db)
         var events = await db.Events.AsNoTracking().Where(e => e.EndsAt >= since)
             .OrderBy(e => e.StartsAt).Select(e => new { e.Id, e.Title }).Take(100).ToListAsync();
         var eventIds = events.Select(e => e.Id).ToList();
-        var registrants = await db.Registrations.AsNoTracking().Where(r => eventIds.Contains(r.EventId))
+        var registrants = await db.Registrations.AsNoTracking()
+            .Where(r => eventIds.Contains(r.EventId) && (r.User == null || r.User.DeactivatedAt == null))
             .Select(r => new { r.EventId, Email = r.User != null ? r.User.Email : r.GuestEmail }).ToListAsync();
         foreach (var ev in events)
         {
@@ -51,8 +52,12 @@ public class MailPlanAudience(AppDbContext db)
         return groups;
     }
 
+    /// <summary>Typed addresses with every <c>*@domain</c> entry expanded to active users.</summary>
+    public Task<List<string>> ExpandAsync(IEnumerable<string>? emails) => MailRecipients.ExpandAsync(db, emails);
+
     /// <summary>Unique receivers of a selection, with the account and phone (for Viber) behind each address.</summary>
-    public async Task<List<MailRecipient>> ResolveAsync(IEnumerable<string> groupIds, IEnumerable<string> emails)
+    public async Task<List<MailRecipient>> ResolveAsync(IEnumerable<string> groupIds, IEnumerable<string> emails,
+        IEnumerable<string>? excluded = null)
     {
         var ids = groupIds.ToHashSet();
         // Keep the order the addresses were entered in (CC header shows them as typed).
@@ -61,7 +66,20 @@ public class MailPlanAudience(AppDbContext db)
         if (ids.Count > 0)
             foreach (var group in (await GroupsAsync()).Where(g => ids.Contains(g.Id)))
                 list.AddRange(group.Emails.Where(seen.Add));
-        foreach (var email in emails) if (InvitationMessageBuilder.Address(email) is { } address && seen.Add(address)) list.Add(address);
+        foreach (var address in await MailRecipients.ExpandAsync(db, emails))
+            if (seen.Add(address)) list.Add(address);
+        // Group members ticked off in the plan dialog are never mailed.
+        var blocked = (excluded ?? []).Select(InvitationMessageBuilder.Address).Where(e => e != null)
+            .Cast<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (blocked.Count > 0) list.RemoveAll(blocked.Contains);
+        if (list.Count == 0) return [];
+
+        // Deactivated accounts are never mailed, even when their address is typed or in a group.
+        var deactivated = (await db.Users.AsNoTracking()
+                .Where(u => u.DeactivatedAt != null && list.Contains(u.Email))
+                .Select(u => u.Email).ToListAsync())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (deactivated.Count > 0) list.RemoveAll(deactivated.Contains);
         if (list.Count == 0) return [];
 
         var users = (await db.Users.AsNoTracking().Where(u => list.Contains(u.Email))

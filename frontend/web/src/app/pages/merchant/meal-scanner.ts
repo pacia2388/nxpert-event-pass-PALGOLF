@@ -2,7 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } f
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { Html5Qrcode } from 'html5-qrcode';
+import type { Html5Qrcode } from 'html5-qrcode';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,6 +13,7 @@ import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { MealStubScanResult } from '../../core/models';
 import { BeepService } from '../../core/beep.service';
+import { CAMERA_FAILURE_MESSAGES, cameraFailure } from '../../core/camera-failure';
 
 type Input = 'camera' | 'barcode';
 type Banner = 'idle' | 'valid' | 'already' | 'invalid' | 'notvalid' | 'error';
@@ -46,6 +47,7 @@ export class MealScannerComponent implements OnInit, OnDestroy {
   @ViewChild('barcodeInput') private barcodeInput?: ElementRef<HTMLInputElement>;
 
   scanning = signal(false);
+  starting = signal(false);
   cameraError = signal<string | null>(null);
   banner = signal<Banner>('idle');
   resultName = signal<string | null>(null);
@@ -60,11 +62,12 @@ export class MealScannerComponent implements OnInit, OnDestroy {
   private busy = false;
   private lastCode = '';
   private resumeTimer: ReturnType<typeof setTimeout> | null = null;
+  // Bumped by every start/stop, so a start that loses the race stops its own stream.
+  private cameraAttempt = 0;
 
   ngOnInit(): void {
     this.loadTally();
     this.beeper.warmUp();
-    this.start();
   }
 
   // Seed the running total from the server (all stubs this merchant has ever redeemed), so the
@@ -88,16 +91,21 @@ export class MealScannerComponent implements OnInit, OnDestroy {
     this.input.set(m);
     this.barcodeValue = '';
     this.banner.set('idle');
-    if (m === 'camera') setTimeout(() => this.start(), 0);
-    else this.focusBarcode();
+    if (m === 'barcode') this.focusBarcode();
   }
 
+  // Started only from the "Start camera" button: the browser then asks for the camera on a tap.
   async start(): Promise<void> {
-    if (this.input() !== 'camera') return;
+    if (this.input() !== 'camera' || this.starting() || this.scanning()) return;
+    const attempt = ++this.cameraAttempt;
     this.cameraError.set(null);
+    this.starting.set(true);
+    let scanner: Html5Qrcode | undefined;
     try {
-      this.scanner = new Html5Qrcode(this.regionId, { verbose: false });
-      await this.scanner.start(
+      const { Html5Qrcode } = await import('html5-qrcode');
+      if (attempt !== this.cameraAttempt) return;
+      scanner = new Html5Qrcode(this.regionId, { verbose: false });
+      await scanner.start(
         { facingMode: 'environment' },
         {
           fps: 30,
@@ -107,29 +115,47 @@ export class MealScannerComponent implements OnInit, OnDestroy {
             return { width: s, height: s };
           },
         },
-        (decoded) => this.onScan(decoded),
+        (decoded) => {
+          if (attempt === this.cameraAttempt) this.onScan(decoded);
+        },
         () => {},
       );
-      this.scanning.set(true);
-    } catch {
-      this.cameraError.set(
-        'Could not open the camera. Grant permission and use HTTPS (or localhost).',
-      );
+      if (attempt === this.cameraAttempt) {
+        this.scanner = scanner;
+        this.scanning.set(true);
+      }
+    } catch (err) {
+      if (attempt === this.cameraAttempt) {
+        const failure = cameraFailure(err);
+        this.cameraError.set(
+          failure === 'other'
+            ? 'Could not open the camera. Grant permission and use HTTPS (or localhost).'
+            : CAMERA_FAILURE_MESSAGES[failure],
+        );
+      }
+    } finally {
+      // A stale start (navigated away, switched input) closes the stream it opened.
+      if (scanner && this.scanner !== scanner) await this.releaseCamera(scanner);
+      this.starting.set(false);
     }
   }
 
   async stop(): Promise<void> {
+    this.cameraAttempt++;
     if (this.resumeTimer) clearTimeout(this.resumeTimer);
-    if (this.scanner) {
-      try {
-        if (this.scanner.isScanning) await this.scanner.stop();
-        this.scanner.clear();
-      } catch {
-        /* ignore */
-      }
-      this.scanner = null;
-    }
+    const scanner = this.scanner;
+    this.scanner = null;
+    if (scanner) await this.releaseCamera(scanner);
     this.scanning.set(false);
+  }
+
+  private async releaseCamera(scanner: Html5Qrcode): Promise<void> {
+    try {
+      if (scanner.isScanning) await scanner.stop();
+      scanner.clear();
+    } catch {
+      // The camera container may already be gone when leaving the page.
+    }
   }
 
   submitBarcode(): void {

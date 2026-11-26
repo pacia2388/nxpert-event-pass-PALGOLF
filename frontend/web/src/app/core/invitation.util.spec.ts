@@ -1,4 +1,4 @@
-import { expandRecipients, invitationErrorMessage, recipientAddress } from './invitation.util';
+import { expandRecipients, invitationErrorMessage, isMailDomainPattern, recipientAddress } from './invitation.util';
 
 describe('event invitation composer', () => {
   describe('explaining a failed send', () => {
@@ -82,8 +82,8 @@ describe('event invitation composer', () => {
       expect(recipientAddress('  Ana.Santos@Example.COM ')).toBe('ana.santos@example.com');
     });
 
-    it('accepts the all-users shortcut in any case', () => {
-      expect(recipientAddress(' @N-PAX ')).toBe('@n-pax');
+    it('does not treat the retired all-users shortcut as an address', () => {
+      expect(recipientAddress('@n-pax')).toBeNull();
     });
 
     it('accepts an address of 256 characters', () => {
@@ -106,44 +106,36 @@ describe('event invitation composer', () => {
   });
 
   describe('expanding the recipient lists', () => {
-    const directory = ['Ana@Example.com', 'ben@example.com', 'not-an-email', '@n-pax', ''];
-
-    it('expands the all-users shortcut to every valid address in the directory', () => {
-      expect(expandRecipients(['@n-pax'], [], directory)).toEqual({
-        to: ['ana@example.com', 'ben@example.com'],
-        cc: [],
-      });
-    });
-
     it('lists each address once, in the order first seen', () => {
-      expect(expandRecipients(['ben@example.com', '@n-pax'], [], directory)).toEqual({
-        to: ['ben@example.com', 'ana@example.com'],
-        cc: [],
-      });
-    });
-
-    it('lists a directory address once even when it appears in two cases', () => {
-      expect(expandRecipients(['@n-pax'], [], ['ana@example.com', 'ANA@example.com'])).toEqual({
-        to: ['ana@example.com'],
-        cc: [],
-      });
+      expect(
+        expandRecipients(['ben@example.com', 'ana@example.com', 'ben@example.com'], []),
+      ).toEqual({ to: ['ben@example.com', 'ana@example.com'], cc: [] });
     });
 
     it('does not copy anyone who is already a main recipient', () => {
       expect(
-        expandRecipients(['ana@example.com'], ['ana@example.com', 'cy@example.com'], directory),
+        expandRecipients(['ana@example.com'], ['ana@example.com', 'cy@example.com']),
       ).toEqual({ to: ['ana@example.com'], cc: ['cy@example.com'] });
     });
 
-    it('copies everyone else when the all-users shortcut is in copy', () => {
-      expect(expandRecipients(['ana@example.com'], ['@n-pax'], directory)).toEqual({
-        to: ['ana@example.com'],
-        cc: ['ben@example.com'],
+    it('keeps a *@domain entry as typed for the server to expand', () => {
+      expect(expandRecipients(['*@n-pax.com'], ['*@gmail.com'])).toEqual({
+        to: ['*@n-pax.com'],
+        cc: ['*@gmail.com'],
       });
     });
+  });
 
-    it('expands the shortcut to nobody when the directory is empty', () => {
-      expect(expandRecipients(['@n-pax'], ['@n-pax'], [])).toEqual({ to: [], cc: [] });
+  describe('a *@domain receiver entry', () => {
+    it('is accepted as typed and lower-cased', () => {
+      expect(recipientAddress(' *@Company.COM ')).toBe('*@company.com');
+    });
+
+    it('is recognised only with a full domain', () => {
+      expect(isMailDomainPattern('*@company.com')).toBe(true);
+      expect(isMailDomainPattern('*@company')).toBe(false);
+      expect(isMailDomainPattern('ana@company.com')).toBe(false);
+      expect(isMailDomainPattern('*@')).toBe(false);
     });
   });
 });

@@ -109,6 +109,21 @@ secrets in it.
 Edit `C:\inetpub\wwwroot\PalGolf_App\appSettings.json`, then reload the page. If it is missing or
 `apiBaseUrl` is not text, the app shows "App failed to start".
 
+### 2.3a API `user-fields.json`
+
+Turns the optional **Department** and **Job role** profile fields on or off for this installation.
+
+```json
+{ "UserFields": { "Department": { "Enabled": false }, "JobRole": { "Enabled": false } } }
+```
+
+- Both are **off by default**. The API ignores a disabled field on input and leaves it out of its
+  answers, so turning it off never overwrites or clears stored values.
+- Read at runtime with `reloadOnChange`: an edit applies without a restart.
+- The build does not include this file. Copy
+  `backend/EventRegistration.Api/user-fields.json` to the API site root on a new install and edit
+  it there; never delete it on deploy.
+
 ### 2.4 App `menu.json`
 
 Switches menus off for everyone on this installation. Ids, defaults and rules:
@@ -127,7 +142,39 @@ Switches menus off for everyone on this installation. Ids, defaults and rules:
 
 Only the face engine proxy port changes per server (rule `FastAPI_Proxy`, see
 [deployment.md §2.4](deployment.md#24-point-the-proxy-at-port-8001)). Keep the other rules as
-built.
+built. The file also tells IIS and the browser not to cache `index.html`, `ngsw.json`,
+`ngsw-worker.js`, `appSettings.json`, `menu.json` and the theme files, so an update is picked up
+on the next load.
+
+### 2.6 API `Mail:InlineImages` and `App:PasswordSetupLinkHours`
+
+Inline images in composed emails and mail-plan messages have four limits; the message editors in
+the App load the same numbers (`GET api/settings/mail-limits`) for their checks and help text.
+
+```json
+{
+  "Mail": {
+    "InlineImages": {
+      "MaxSourceBytes": 10485760,
+      "MaxImageBytes": 2097152,
+      "MaxTotalBytes": 5242880,
+      "MaxCount": 5
+    }
+  },
+  "App": {
+    "PasswordSetupLinkHours": 72
+  }
+}
+```
+
+- The whole email (body, inline images, attachments, base64 overhead) must stay under **25 MB**.
+  Base64 adds about 33%, which is why the request cap is worked out from `MaxTotalBytes`, not set
+  by hand.
+- `PasswordSetupLinkHours` is how long a one-time set-password link stays valid (default 72).
+- `App:MailOutgoingDir` (default `mail-outgoing/` in the API folder) holds a composed invitation or
+  mail-plan email, with its attachments, until it is delivered. It contains personal data: never
+  serve it, never delete it on deploy, and keep it in the backup plan.
+- Changing these needs an API restart (they are read at startup).
 
 ## 3. Publishing to an environment
 

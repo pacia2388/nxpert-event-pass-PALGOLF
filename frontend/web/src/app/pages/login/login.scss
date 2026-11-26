@@ -137,6 +137,23 @@
   }
 }
 
+// Caps Lock warning under the password field.
+.caps-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 2px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pg-red);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
 .login-btn {
   display: inline-flex;
   align-items: center;
@@ -503,4 +520,20 @@
       color: var(--pg-blue);
     }
   }
+}
+
+// "Forgot password?" under the sign-in button.
+.forgot-link {
+  display: block;
+  margin: 10px auto 0;
+  border: 0;
+  background: none;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pg-blue);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

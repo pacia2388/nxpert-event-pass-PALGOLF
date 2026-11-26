@@ -418,11 +418,6 @@ p.muted {
 mat-chip-row {
   max-width: 100%;
 }
-.group-chip {
-  --mdc-chip-elevated-container-color: var(--pg-tint);
-  --mat-chip-elevated-container-color: var(--pg-tint);
-  font-weight: 700;
-}
 
 // "Invite teams" sits inside the To field, pinned to its top-right as chips wrap.
 :host ::ng-deep .mat-mdc-form-field-icon-suffix:has(.invite-teams-btn) {
@@ -876,4 +871,31 @@ mat-chip-row {
   .message-editor {
     padding: 12px;
   }
+}
+
+
+// Live batch progress while an immediate send is running.
+.send-progress {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--pg-tint-soft);
+  color: var(--pg-ink);
+  font-size: 13px;
+}
+.send-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--pg-surface, #fff);
+  overflow: hidden;
+}
+.send-bar span {
+  display: block;
+  height: 100%;
+  background: var(--pg-blue);
+  transition: width 0.15s ease;
 }

@@ -180,6 +180,33 @@ public static class EmailTemplates
            </p>
            <p style=""color:#888;font-size:13px"">If you didn't request this, you can ignore this email.</p>");
 
+    // The one-time link to rate an event after it ended.
+    public static string FeedbackRequest(string eventTitle, string name, string feedbackUrl) => Shell(
+        "How was the event?",
+        $@"<p>Hi {E(name)},</p>
+           <p>Thank you for joining <strong>{E(eventTitle)}</strong>. The organizer would like your
+              feedback — it takes a minute.</p>
+           <p style=""text-align:center;margin:28px 0"">
+             <a href=""{E(feedbackUrl)}"" style=""background:{Accent};color:#fff;text-decoration:none;
+                padding:12px 28px;border-radius:8px;display:inline-block;font-weight:600"">
+                Give feedback</a>
+           </p>
+           <p style=""color:#888;font-size:13px"">Or paste this link: {E(feedbackUrl)}</p>
+           <p style=""color:#888;font-size:13px"">This link is only for you; open it again to change your answer.</p>");
+
+    // Single-use link to choose a password for an account someone else created.
+    public static string PasswordSetup(string name, string setUrl, int validHours) => Shell(
+        "Set your password",
+        $@"<p>Hi {E(name)},</p>
+           <p>An account has been created for you. Choose your password to sign in.</p>
+           <p style=""text-align:center;margin:28px 0"">
+             <a href=""{E(setUrl)}"" style=""background:{Accent};color:#fff;text-decoration:none;
+                padding:12px 28px;border-radius:8px;display:inline-block;font-weight:600"">
+                Set your password</a>
+           </p>
+           <p style=""color:#888;font-size:13px"">Or paste this link: {E(setUrl)}</p>
+           <p style=""color:#888;font-size:13px"">This link works once and expires in {validHours} hours.</p>");
+
     // Organizer broadcast sent by email when Viber could not reach the registrant.
     public static string Broadcast(string eventTitle, string message) => Shell(
         System.Net.WebUtility.HtmlEncode(eventTitle),

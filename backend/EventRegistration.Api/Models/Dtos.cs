@@ -52,8 +52,12 @@ public record UserDto(
     string NotificationChannel,
     bool CanConfirmRegistrations, bool EmailVerified, DateTime CreatedAt, string? PhotoUrl, bool HasFace,
     DateOnly? Birthdate,
+    // Deactivated accounts keep their data but cannot sign in and are skipped by audiences.
+    DateTime? DeactivatedAt = null,
     // The team this user is a member of (null = none). Filled on the users list only.
-    int? TeamId = null);
+    int? TeamId = null,
+    // Only while the installation enables the field in user-fields.json.
+    string? Department = null, string? JobRole = null);
 
 // Password is required on create, optional on update (blank = keep current).
 // Face: a JSON array of 128 floats (the face descriptor) captured during facial registration;
@@ -63,16 +67,20 @@ public record AdminUserUpsertRequest(
     string FirstName, string? MiddleInitial, string LastName, string? SenateNo, string? Level,
     string Email, string? Password, string Role, string? Organization, string? Phone,
     bool CanConfirmRegistrations, string? Photo, string? Face, string? NotificationChannel,
-    string? Username, DateOnly? Birthdate);
+    string? Username, DateOnly? Birthdate, [StringLength(2_000_000)] string? FacePhoto = null,
+    string? Department = null,
+    string? JobRole = null);
 
 // ---- Bulk user import (spreadsheet upload). Each created account gets the default password. ----
 public record UserImportRow(
     string? FirstName, string? MiddleInitial, string? LastName, string? SenateNo, string? Level,
     string? Email, string? Username, string? Organization, string? Phone, string? Role,
-    string? NotificationChannel, string? Birthdate);
+    string? NotificationChannel, string? Birthdate, string? Department = null, string? JobRole = null);
 public record UserImportRequest(List<UserImportRow>? Rows);
 public record UserImportError(int Row, string Name, string Message);
-public record UserImportResult(int Created, int Skipped, int Failed, List<UserImportError> Errors);
+// Created accounts have no password until they follow the sent set-password link.
+public record UserImportResult(int Created, int Skipped, int Failed, List<UserImportError> Errors,
+    int LinksQueued = 0);
 
 // Registered face descriptors for facial-recognition check-in.
 public record FaceDescriptorDto(int UserId, string FullName, float[] Descriptor);
@@ -98,6 +106,8 @@ public record VerifyOnlyChangedNotice(int EventId, bool Enabled);
 // Sent to the organizer running a Viber broadcast after each recipient, so the dialog shows progress.
 // BroadcastId echoes the id the dialog sent, so only that browser tab picks the updates up.
 public record ViberBroadcastProgressNotice(Guid? BroadcastId, int EventId, int Done, int Total, int Sent, int Emailed, int Failed);
+// Sent while a composed invitation / mail-plan day is being delivered in batches.
+public record MailSendProgressNotice(string Source, int Id, int Sent, int Total, int Failed, bool Done);
 // Sent to a registrant when their registration is confirmed by an admin.
 public record RegistrationApprovedNotice(
     int RegistrationId, int EventId, string EventTitle, string? SessionTitle, DateTime At);
@@ -117,7 +127,7 @@ public record OfflineMemberDto(
     string? PhotoUrl, float[]? Face);
 public record OfflineRegDto(
     string Token, int? UserId, string? GuestName, int? SessionId, bool Confirmed, DateTime? CheckedInAt,
-    float[]? Face);
+    float[]? Face, string? DisplayPicture = null);
 public record OfflineBundleDto(
     OfflineEventDto Event, List<OfflineSessionDto> Sessions, List<OfflineMemberDto> Members,
     List<OfflineRegDto> Registrations, List<FormFieldDef> FormFields, DateTime GeneratedAt);
@@ -130,7 +140,8 @@ public record SyncCheckInResult(int Applied, int AlreadyChecked, int NotFound);
 public record OfflineRegItem(
     string FullName, string? Email, string? Phone, List<int>? SessionIds,
     Dictionary<string, string>? Responses, DateTime? RegisteredAt, string? NotificationChannel = null,
-    string? Face = null, string? SenateNo = null, string? DisplayPicture = null);
+    string? Face = null, string? SenateNo = null, string? DisplayPicture = null,
+    [StringLength(2_000_000)] string? FacePhoto = null);
 public record OfflineRegSyncRequest(string Slug, List<OfflineRegItem> Items);
 public record OfflineRegSyncResult(int Created, int Skipped);
 public record VerifyEmailResult(bool Success, string Message);
@@ -139,7 +150,8 @@ public record VerifyEmailResult(bool Success, string Message);
 public record ProfileDto(
     int Id, string? FirstName, string? MiddleInitial, string? LastName, string? SenateNo,
     string? Level, string Email, string? Organization, string? Phone, string NotificationChannel,
-    string? PhotoUrl, string Role, bool HasFace, DateOnly? Birthdate);
+    string? PhotoUrl, string Role, bool HasFace, DateOnly? Birthdate,
+    string? Department = null, string? JobRole = null);
 
 // Password change is optional: supply CurrentPassword + NewPassword to change it.
 // NotificationChannel: "Email" (default) or "Viber". When "Viber", Phone is required.
@@ -147,10 +159,17 @@ public record ProfileDto(
 public record ProfileUpdateRequest(
     string FirstName, string? MiddleInitial, string LastName, string? SenateNo, string? Level,
     string? Organization, string? Phone, string? Photo, string? CurrentPassword, string? NewPassword,
-    string? NotificationChannel, string? Face, DateOnly? Birthdate);
-// Result of opening an invite magic-link: if the invited email has an account, Auth is
-// populated for auto-login; otherwise the caller prefills the guest form with Email.
-public record InviteResolveResult(bool Registered, string Email, string EventSlug, AuthResponse? Auth);
+    string? NotificationChannel, string? Face, DateOnly? Birthdate,
+    [StringLength(2_000_000)] string? FacePhoto = null,
+    string? Department = null,
+    string? JobRole = null);
+// Result of opening an invite magic-link (never signs in): a registered invitee is asked to sign
+// in, a guest is pre-filled with Email.
+public record InviteResolveResult(bool Registered, string Email, string EventSlug);
+// Set-password link: whether the token is still usable, plus who it belongs to.
+public record SetPasswordInfoDto(bool Valid, string? Name, string? Email);
+public record SetPasswordRequest(string Password);
+public record ForgotPasswordRequest(string Email);
 
 // A single custom registration-form field.
 // Type: text|textarea|number|date|time|select|multiselect|radio|checkbox|image.
@@ -177,7 +196,9 @@ public record EventUpsertRequest(
     List<FormFieldDef>? FormFields, string? BannerImage, string? WelcomeMessage,
     List<SessionUpsertRequest>? Sessions, string? RegistrationFees, List<ScheduleItem>? Schedule,
     bool NotifyOnKitClaim = false, List<MealUpsertRequest>? Meals = null,
-    string? Format = null, string? MeetingUrl = null, string? Category = null);
+    string? Format = null, string? MeetingUrl = null, string? Category = null,
+    // Send every confirmed registrant a one-time feedback link after the event ends.
+    bool FeedbackForm = false);
 
 public record EventDto(
     int Id, string Title, string Description, DateTime StartsAt, DateTime EndsAt,
@@ -190,7 +211,9 @@ public record EventDto(
     // and browse responses never expose the join link (confirmed registrants get it via My Events).
     string Format = EventFormats.InPerson, string? MeetingUrl = null, bool VerifyOnly = false,
     // A name from categories.json, or null (no category).
-    string? Category = null);
+    string? Category = null,
+    // The automatic post-event feedback form is on for this event.
+    bool FeedbackForm = false);
 // Turn an event's verify-only mode on or off (scanner switch).
 public record VerifyOnlyRequest(bool Enabled);
 
@@ -215,13 +238,13 @@ public record SessionDto(
     string? PosterImage, List<MealDto> Meals, string? MeetingUrl = null);
 
 public record InviteRequest(List<string> Emails);
-// Composed invitation: To / CC (addresses or "@n-pax" for every system user), subject and
+// Composed invitation: To / CC (addresses or "*@domain" for every user of that email domain), subject and
 // editor XHTML. The server rebuilds a safe HTML allowlist and turns images into CID parts.
 public record InvitationComposeRequest(List<string>? To, List<string>? Cc, string? Subject, string? BodyHtml,
     DateTimeOffset? ScheduledAt = null);
 
 public record InvitationEmailUpdateRequest(List<string>? To, List<string>? Cc, string? Subject,
-    string? BodyHtml, DateTimeOffset? ScheduledAt, string Version);
+    string? BodyHtml, DateTimeOffset? ScheduledAt, string Version, List<string>? KeepAttachments = null);
 public record InvitationEmailVersionRequest(string Version);
 
 // SessionIds: which sub-events to register for (empty/null = the whole event, for events
@@ -232,7 +255,8 @@ public record RegisterForEventRequest(int EventId, List<int>? SessionIds, Dictio
 // where the pass is sent once confirmed (Email or Viber); the matching contact is then required.
 public record GuestRegisterRequest(string FullName, string? Email, string? Phone,
     List<int>? SessionIds, Dictionary<string, string>? Responses, string? NotificationChannel,
-    string? Face, string? SenateNo, string? DisplayPicture = null);
+    string? Face, string? SenateNo, string? DisplayPicture = null,
+    [StringLength(2_000_000)] string? FacePhoto = null);
 
 // Result of a (possibly multi-session) registration submission. EditToken lets the caller
 // build a public edit link for standard contact details and custom responses.
@@ -299,6 +323,8 @@ public record EventAttendanceSummaryDto(int EventId, int CheckedIn, int Register
 // switch channels only when both are ready.
 public record AppSettingsDto(List<string> CcEmails, string MobileProvider, bool ViberReady, bool SmsReady);
 public record MobileChannelDto(string MobileProvider);
+// Inline-image limits for the message editors (config Mail:InlineImages).
+public record MailLimitsDto(int MaxSourceBytes, int MaxImageBytes, int MaxTotalBytes, int MaxCount);
 public record UpdateSettingsRequest(List<string>? CcEmails, string? MobileProvider);
 
 // Bulk confirmation: admin selects registrations and confirms them, which issues the pass.
@@ -376,9 +402,24 @@ public record StubIdsResult(int Affected);
 
 public record ContactDto(int Id, string FullName, string Email, string? Organization);
 
-public record FeedbackRequest(int Rating, string? Comment);
-public record FeedbackDto(int Id, int EventId, string FullName, int Rating, string? Comment, DateTime CreatedAt);
-public record EventFeedbackSummary(int Count, double AverageRating, List<FeedbackDto> Items);
+public record FeedbackRequest(int Rating, string? Comment, bool IsAnonymous = false,
+    string? DisplayName = null, int? OrganizationRating = null, string? WentWell = null,
+    string? Improve = null);
+public record FeedbackDto(int Id, int EventId, string FullName, int Rating, string? Comment,
+    DateTime CreatedAt, bool IsAnonymous = false, string? DisplayName = null,
+    int? OrganizationRating = null, string? WentWell = null, string? Improve = null);
+public record EventFeedbackSummary(int Count, double AverageRating, List<FeedbackDto> Items,
+    FeedbackCampaignDto? Campaign = null);
+
+// Automatic post-event feedback: the switch and the frozen audience's progress.
+public record FeedbackAutomationRequest(bool Enabled);
+public record FeedbackCampaignDto(bool Enabled, bool Prepared, int Pending, int Sent, int Failed,
+    int Answered);
+// The public feedback link: the event it is for and whether it was already answered.
+public record PublicFeedbackDto(int EventId, string EventTitle, DateTime StartsAt, DateTime EndsAt,
+    bool AlreadySubmitted);
+public record PublicFeedbackRequest(int Rating, string? Comment, bool IsAnonymous,
+    int? OrganizationRating, string? WentWell, string? Improve);
 
 public record DashboardSummary(
     int TotalEvents, int UpcomingEvents, int TotalRegistrations, int TotalCheckedIn,

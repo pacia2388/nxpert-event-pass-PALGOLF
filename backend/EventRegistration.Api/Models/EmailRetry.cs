@@ -7,6 +7,10 @@ public static class EmailRetryKinds
     public const string Pass = "Pass";
     public const string KitClaimed = "KitClaimed";
     public const string EditLink = "EditLink";
+    // A single-use "set your password" link sent to an account with no password.
+    public const string PasswordSetup = "PasswordSetup";
+    // The one-time post-event feedback link.
+    public const string FeedbackRequest = "FeedbackRequest";
     public const string MeetingUpdate = "MeetingUpdate";
     public const string MeetingCancel = "MeetingCancel";
     // Any other email sent through EmailSender (or a broadcast's fallback): the whole email is kept

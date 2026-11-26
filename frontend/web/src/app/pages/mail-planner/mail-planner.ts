@@ -9,8 +9,9 @@ import { Observable, finalize, forkJoin, interval, of } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { ConfirmService } from '../../core/confirm.service';
-import { InboxMailDto, MailAudienceGroup, MailPlanDto, MailPlanSendDto } from '../../core/models';
+import { InboxMailDto, MailAudienceGroup, MailPlanDto, MailPlanSendDto, MailSendProgressNotice } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { RealtimeService } from '../../core/realtime.service';
 import { RichTextViewComponent } from '../../shared/rich-text/rich-text-view';
 import { MailPlanDialogComponent, MailPlanDialogData } from './mail-plan-dialog';
 import {
@@ -71,6 +72,7 @@ export class MailPlannerComponent {
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private destroyRef = inject(DestroyRef);
+  private rt = inject(RealtimeService);
 
   readonly kindIcons = KIND_ICONS;
   readonly channelIcons = CHANNEL_ICONS;
@@ -195,10 +197,18 @@ export class MailPlannerComponent {
   readonly expanded = signal<ReadonlySet<string>>(new Set());
   readonly bodies = signal<ReadonlyMap<string, string>>(new Map());
 
+  // Live progress while a plan day goes out in batches (SignalR).
+  readonly sendProgress = signal<MailSendProgressNotice | null>(null);
+
   readonly isToday = (d: Date) => dayKey(d) === dayKey(new Date());
   readonly sameDay = (a: Date, b: Date) => dayKey(a) === dayKey(b);
 
   constructor() {
+    this.rt.mailSendProgress$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((p) => {
+        if (p.source === 'plan') this.sendProgress.set(p);
+      });
     this.load();
     // Picks up days the server sent (or failed) and reminders coming due.
     interval(30_000)

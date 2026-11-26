@@ -7,12 +7,14 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { By } from '@angular/platform-browser';
 import { UserDto } from '../../../core/models';
+import { capsLockOn } from '../../../shared/caps-lock';
 import { UserFormPanelComponent } from './user-form-panel';
 
 describe('User form panel', () => {
   let fixture: ComponentFixture<UserFormPanelComponent>;
 
   beforeEach(async () => {
+    capsLockOn.set(false);
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideNativeDateAdapter()],
     });
@@ -56,8 +58,9 @@ describe('User form panel', () => {
     fixture.componentInstance.save();
     await settle();
 
-    // First name, last name, email and password are empty on a new record.
-    expect(requiredMarkers()).toBe(4);
+    // First name, last name and email are empty on a new record. A blank password is allowed:
+    // the new account gets a set-password link instead.
+    expect(requiredMarkers()).toBe(3);
   });
 
   it('marks an empty required field once the user leaves it', () => {
@@ -129,6 +132,27 @@ describe('User form panel', () => {
     expect(root().querySelector('app-phone-field .phone-error')?.textContent?.trim()).toBe(
       'A phone number is required for mobile.',
     );
+  });
+
+  it('warns while Caps Lock is on in the password field', () => {
+    const password = input('password');
+    const warnings = () => root().querySelectorAll('.caps-warning').length;
+    const key = (type: string, capsLock: boolean) =>
+      new KeyboardEvent(type, { key: 'Tab', modifierCapsLock: capsLock });
+
+    // Caps Lock on before the field was focused: the key press that got there carried the state.
+    document.body.dispatchEvent(key('keydown', true));
+    password.focus();
+    fixture.detectChanges();
+    expect(warnings()).toBe(1);
+
+    document.body.dispatchEvent(key('keyup', false));
+    fixture.detectChanges();
+    expect(warnings()).toBe(0);
+
+    password.blur();
+    fixture.detectChanges();
+    expect(warnings()).toBe(0);
   });
 
   it('clears the markers when another user is opened', async () => {

@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Net.Http.Json;
 using EventRegistration.Api.Data;
 using EventRegistration.Api.Models;
@@ -41,6 +43,8 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     public static string SentDir(string channel) => Path.Combine(SentRoot, channel);
     // Emails saved for a later send (EmailFileStore), kept apart from the sent messages.
     public static readonly string MailQueueDir = Path.Combine(AppContext.BaseDirectory, "test", "mail-queue");
+    // Composed emails with attachments, saved until delivered.
+    public static readonly string MailOutgoingDir = Path.Combine(AppContext.BaseDirectory, "test", "mail-outgoing");
 
     /// <summary>The text of a retry's saved email (.eml file), or its older JSON snapshot.</summary>
     public string StoredEmail(EmailRetry retry)
@@ -66,7 +70,7 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     // not fail the run).
     private static readonly Lazy<bool> ClearSentOnce = new(() =>
     {
-        foreach (var root in new[] { SentRoot, MailQueueDir })
+        foreach (var root in new[] { SentRoot, MailQueueDir, MailOutgoingDir })
         {
             if (!Directory.Exists(root))
                 continue;
@@ -79,6 +83,8 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        // Keep test output readable: EF logs every SQL command at Information; warnings and errors still show.
+        builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Warning");
         // LocalDB by default; set EVENTPASS_TEST_SQLSERVER to run against another SQL Server
         // (e.g. on a build agent). Either way the tests use their own database.
         var server = Environment.GetEnvironmentVariable("EVENTPASS_TEST_SQLSERVER") ?? "(localdb)\\MSSQLLocalDB";
@@ -96,13 +102,14 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Viber:TestSendDir", SentDir("viber"));
         builder.UseSetting("Sms:TestSendDir", SentDir("sms"));
         builder.UseSetting("App:MailQueueDir", MailQueueDir);
+        builder.UseSetting("App:MailOutgoingDir", MailOutgoingDir);
         builder.UseSetting("theme", ThemeFile);
         builder.ConfigureTestServices(services =>
         {
             // The background mail schedulers have nothing to do in a test run.
             var schedulers = services
                 .Where(d => d.ServiceType == typeof(IHostedService)
-                    && d.ImplementationType?.Name is "InvitationEmailScheduler" or "MailPlanScheduler" or "EmailRetryScheduler")
+                    && d.ImplementationType?.Name is "InvitationEmailScheduler" or "MailPlanScheduler" or "EmailRetryScheduler" or "EventFeedbackScheduler")
                 .ToList();
             foreach (var d in schedulers) services.Remove(d);
         });
@@ -288,6 +295,22 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
     public static object Member(string email, string firstName = "Mia", string lastName = "Santos") =>
         new { firstName, middleInitial = (string?)null, lastName, email };
+
+    /// <summary>A multipart compose/save request: a JSON payload part plus files[] attachments.</summary>
+    public static MultipartFormDataContent MailForm(object payload,
+        params (string Name, byte[] Content, string Type)[] files)
+    {
+        var form = new MultipartFormDataContent();
+        form.Add(new StringContent(JsonSerializer.Serialize(payload, new JsonSerializerOptions(JsonSerializerDefaults.Web)),
+            Encoding.UTF8, "application/json"), "payload");
+        foreach (var (name, content, type) in files)
+        {
+            var part = new ByteArrayContent(content);
+            part.Headers.ContentType = new MediaTypeHeaderValue(type);
+            form.Add(part, "files", name);
+        }
+        return form;
+    }
 }
 
 public record TestUser(int Id, string Email);

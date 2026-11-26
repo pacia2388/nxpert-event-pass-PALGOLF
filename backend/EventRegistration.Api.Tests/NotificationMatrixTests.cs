@@ -325,7 +325,8 @@ public class NotificationMatrixTests(ApiFixture api)
             {
                 var eml = await File.ReadAllTextAsync(ApiFixture.Sent(E, address).Single());
                 Assert.Contains("Complete your registration", eml);
-                Assert.Contains(cc, eml); // the Settings CC copy
+                // A personal registration link is never copied to the Settings CC list.
+                Assert.DoesNotContain(cc, eml);
             }
         }
         finally
@@ -387,8 +388,9 @@ public class NotificationMatrixTests(ApiFixture api)
         var address = ApiFixture.NewEmail();
         await using var _ = await api.ChannelsAsync(email: email);
 
-        (await admin.PostAsJsonAsync($"/api/events/{ev.Id}/invitations/compose",
-            new { to = new[] { address }, subject = "Join us", bodyHtml = "<p>Hello</p>" })).EnsureSuccessStatusCode();
+        (await admin.PostAsync($"/api/events/{ev.Id}/invitations/compose",
+            ApiFixture.MailForm(new { to = new[] { address }, subject = "Join us", bodyHtml = "<p>Hello</p>" })))
+            .EnsureSuccessStatusCode();
 
         var saved = await DbAsync(db => db.InvitationEmails.Where(m => m.EventId == ev.Id).Select(m => m.Status).SingleAsync());
         Assert.True(saved == status, $"{id}: status {saved}");

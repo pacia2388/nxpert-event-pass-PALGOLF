@@ -1,3 +1,4 @@
+import { isMailDomainPattern } from '../../core/invitation.util';
 import { MailChannel, MailKind, PlanSend } from './mail-planner.model';
 
 export const BODY_MAX = 4000;
@@ -8,6 +9,11 @@ export const EXTRA_EMAILS_MAX = 200;
 // Same cap as the server (MailPlansController.MaxCc).
 export const CC_MAX = 50;
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** A typed receiver address, including the server-expanded *@domain form. */
+export function isValidRecipient(value: string): boolean {
+  return EMAIL_PATTERN.test(value) || isMailDomainPattern(value);
+}
 
 export const MAIL_KINDS: MailKind[] = ['Reminder', 'Announcement', 'Follow-up'];
 export const MAIL_CHANNELS: MailChannel[] = ['Email', 'Viber', 'Both'];

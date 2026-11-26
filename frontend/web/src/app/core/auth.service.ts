@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, firstValueFrom, tap } from 'rxjs';
 import { API_BASE } from './config';
-import { AuthResponse, InviteResolveResult, TeamCategory, VerifyEmailResult } from './models';
+import { AuthResponse, InviteResolveResult, SetPasswordInfo, TeamCategory, VerifyEmailResult } from './models';
 
 const STORAGE_KEY = 'evt_auth';
 
@@ -106,11 +106,30 @@ export class AuthService {
     );
   }
 
-  /** Opens an invitation magic-link. Auto-logs in when the invitee has an account. */
+  /** Opens an invitation magic-link: tells the page who it is for. Never signs the visitor in. */
   resolveInvite(token: string): Observable<InviteResolveResult> {
+    return this.http.post<InviteResolveResult>(`${API_BASE}/api/auth/invite/${token}`, {});
+  }
+
+  /** Anonymous: asks for a set-password link. The answer is the same for every address. */
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${API_BASE}/api/auth/forgot-password`, { email });
+  }
+
+  /** Anonymous: whether a set-password link is still usable, and who it is for. */
+  setPasswordInfo(token: string): Observable<SetPasswordInfo> {
+    return this.http.get<SetPasswordInfo>(
+      `${API_BASE}/api/auth/set-password/${encodeURIComponent(token)}`,
+    );
+  }
+
+  /** Sets the password from the link and signs the user in. */
+  setPassword(token: string, password: string): Observable<AuthResponse> {
     return this.http
-      .post<InviteResolveResult>(`${API_BASE}/api/auth/invite/${token}`, {})
-      .pipe(tap((res) => res.auth && this.store(res.auth)));
+      .post<AuthResponse>(`${API_BASE}/api/auth/set-password/${encodeURIComponent(token)}`, {
+        password,
+      })
+      .pipe(tap((res) => this.store(res)));
   }
 
   verifyEmail(token: string): Observable<VerifyEmailResult> {

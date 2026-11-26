@@ -68,7 +68,7 @@ public class EventsController : ControllerBase
     // includeMeeting: admin responses only — the join link never goes to public / browse callers.
     private static EventDto ToDto(Event e, bool includeBanner,
         IReadOnlyDictionary<int, Counts> evCounts, IReadOnlyDictionary<int, Counts> sesCounts,
-        bool includeMeeting = false)
+        bool includeMeeting = false, bool feedbackForm = false)
     {
         var ec = evCounts.TryGetValue(e.Id, out var c) ? c : new Counts(0, 0);
         var sessions = e.Sessions
@@ -107,7 +107,8 @@ public class EventsController : ControllerBase
             EventFormats.Normalize(e.Format),
             includeMeeting ? e.MeetingUrl : null,
             e.VerifyOnly,
-            e.Category);
+            e.Category,
+            feedbackForm);
     }
 
     private static MealDto ToMealDto(Meal m) =>
@@ -382,7 +383,7 @@ public class EventsController : ControllerBase
             r.Token.ToString(), r.UserId,
             r.UserId == null ? r.GuestFullName : null,
             r.SessionId, r.ConfirmedAt != null, r.CheckedInAt,
-            r.UserId == null ? ParseFace(r.FaceDescriptor) : null)).ToList();
+            r.UserId == null ? ParseFace(r.FaceDescriptor) : null, r.DisplayPhoto)).ToList();
 
         var sessions = e.Sessions.OrderBy(s => s.StartsAt)
             .Select(s => new OfflineSessionDto(s.Id, s.Title, s.StartsAt, s.EndsAt, s.Venue, s.Capacity))
@@ -447,7 +448,9 @@ public class EventsController : ControllerBase
             .FirstOrDefaultAsync(x => x.Id == id);
         if (e is null) return NotFound();
         var (ev, ses) = await LoadCountsAsync(id);
-        return Ok(ToDto(e, includeBanner: true, ev, ses, includeMeeting: true));
+        var feedbackForm = await _db.EventFeedbackCampaigns.AsNoTracking()
+            .AnyAsync(c => c.EventId == id && c.Enabled);
+        return Ok(ToDto(e, includeBanner: true, ev, ses, includeMeeting: true, feedbackForm));
     }
 
     // ---- Public: event by slug (the landing page for both invite links and public links) ----
@@ -504,8 +507,9 @@ public class EventsController : ControllerBase
         RebuildMeals(e, req, sessionMap);
         _db.Events.Add(e);
         await _db.SaveChangesAsync();
+        await SetFeedbackFormAsync(e.Id, req.FeedbackForm);
         var (ev, ses) = await LoadCountsAsync(e.Id);
-        return Ok(ToDto(e, includeBanner: true, ev, ses, includeMeeting: true));
+        return Ok(ToDto(e, includeBanner: true, ev, ses, includeMeeting: true, req.FeedbackForm));
     }
 
     [HttpPut("{id:int}"), Authorize(Roles = Roles.Admin + "," + Roles.SuperAdmin)]
@@ -557,11 +561,29 @@ public class EventsController : ControllerBase
         if (changes.Any) e.InviteSequence += 2;
 
         await _db.SaveChangesAsync();
+        await SetFeedbackFormAsync(id, req.FeedbackForm);
         if (changes.Any) await SendInviteChangesAsync(e, changes);
         if (changes.AllRegistrations) await _calendars.NotifyAsync(e);
 
         var (ev, ses) = await LoadCountsAsync(id);
-        return Ok(ToDto(e, includeBanner: true, ev, ses, includeMeeting: true));
+        return Ok(ToDto(e, includeBanner: true, ev, ses, includeMeeting: true, req.FeedbackForm));
+    }
+
+    // The feedback switch lives on the event form: one campaign row per event, the audience
+    // frozen once (turning it back on never re-freezes it).
+    private async Task SetFeedbackFormAsync(int eventId, bool enabled)
+    {
+        var campaign = await _db.EventFeedbackCampaigns.FindAsync(eventId);
+        if (campaign is null)
+        {
+            if (!enabled) return;
+            _db.EventFeedbackCampaigns.Add(new EventFeedbackCampaign { EventId = eventId, Enabled = true });
+        }
+        else
+        {
+            campaign.Enabled = enabled;
+        }
+        await _db.SaveChangesAsync();
     }
 
     // What an invite depends on, captured before an update so changes can be detected.
