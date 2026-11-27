@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -104,6 +105,13 @@ public class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("App:MailQueueDir", MailQueueDir);
         builder.UseSetting("App:MailOutgoingDir", MailOutgoingDir);
         builder.UseSetting("theme", ThemeFile);
+        // user-fields.json is per installation; tests run with both optional fields off (the default).
+        // Added here, not with UseSetting, so it wins over the json file Program.cs adds later.
+        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["UserFields:Department:Enabled"] = "false",
+            ["UserFields:JobRole:Enabled"] = "false",
+        }));
         builder.ConfigureTestServices(services =>
         {
             // The background mail schedulers have nothing to do in a test run.

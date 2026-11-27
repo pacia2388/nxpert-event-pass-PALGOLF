@@ -78,7 +78,7 @@ public class UserFieldCatalogTests
     }
 }
 
-// With the shipped user-fields.json both fields are off: input is ignored and nothing is shown.
+// With both fields off (the default, pinned by ApiFixture): input is ignored and nothing is shown.
 [Collection("api")]
 public class UserFieldDisabledTests(ApiFixture api)
 {
