@@ -58,10 +58,7 @@ export function recipientAddress(value: string): string | null {
 }
 
 // Unique addresses; To wins over CC. A *@domain entry stays as typed (the server expands it).
-export function expandRecipients(
-  to: string[],
-  cc: string[],
-): { to: string[]; cc: string[] } {
+export function expandRecipients(to: string[], cc: string[]): { to: string[]; cc: string[] } {
   const primary = [...new Set(to)];
   return { to: primary, cc: [...new Set(cc)].filter((e) => !primary.includes(e)) };
 }

@@ -173,11 +173,9 @@ export class InvitationComposerComponent implements OnChanges {
   private historyEventId: number | null = null;
 
   constructor() {
-    this.rt.mailSendProgress$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((p) => {
-        if (p.source === 'invitation' && this.sending()) this.sendProgress.set(p);
-      });
+    this.rt.mailSendProgress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => {
+      if (p.source === 'invitation' && this.sending()) this.sendProgress.set(p);
+    });
     interval(15000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {

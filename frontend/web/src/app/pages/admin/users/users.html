@@ -8,7 +8,12 @@
       <button type="button" class="um-btn" (click)="save()" [disabled]="panel.saving()">
         <mat-icon>save</mat-icon> Save
       </button>
-      <button type="button" class="um-btn" (click)="sendPasswordLink()" [disabled]="!selected() || !!selected()!.deactivatedAt">
+      <button
+        type="button"
+        class="um-btn"
+        (click)="sendPasswordLink()"
+        [disabled]="!selected() || !!selected()!.deactivatedAt"
+      >
         <mat-icon>key</mat-icon> Password link
       </button>
       @if (selected()?.deactivatedAt) {
@@ -95,11 +100,27 @@
           <tbody>
             @if (loading() && !users().length) {
               <tr class="um-empty">
-                <td [attr.colspan]="4 + (userFields.departmentEnabled() ? 1 : 0) + (userFields.jobRoleEnabled() ? 1 : 0)"><mat-spinner diameter="32"></mat-spinner></td>
+                <td
+                  [attr.colspan]="
+                    4 +
+                    (userFields.departmentEnabled() ? 1 : 0) +
+                    (userFields.jobRoleEnabled() ? 1 : 0)
+                  "
+                >
+                  <mat-spinner diameter="32"></mat-spinner>
+                </td>
               </tr>
             } @else if (!filtered().length) {
               <tr class="um-empty">
-                <td [attr.colspan]="4 + (userFields.departmentEnabled() ? 1 : 0) + (userFields.jobRoleEnabled() ? 1 : 0)">No users match your search.</td>
+                <td
+                  [attr.colspan]="
+                    4 +
+                    (userFields.departmentEnabled() ? 1 : 0) +
+                    (userFields.jobRoleEnabled() ? 1 : 0)
+                  "
+                >
+                  No users match your search.
+                </td>
               </tr>
             }
             @for (u of paged(); track u.id) {
@@ -161,7 +182,13 @@
             @if (filtered().length) {
               @for (_ of fillerRows(); track $index) {
                 <tr class="um-filler">
-                  <td [attr.colspan]="4 + (userFields.departmentEnabled() ? 1 : 0) + (userFields.jobRoleEnabled() ? 1 : 0)"></td>
+                  <td
+                    [attr.colspan]="
+                      4 +
+                      (userFields.departmentEnabled() ? 1 : 0) +
+                      (userFields.jobRoleEnabled() ? 1 : 0)
+                    "
+                  ></td>
                 </tr>
               }
             }

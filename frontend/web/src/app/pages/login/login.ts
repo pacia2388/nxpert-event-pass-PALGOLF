@@ -66,12 +66,15 @@ export class LoginComponent {
 
   // A registered invitee lands here with their address already filled in.
   forgotPassword(): void {
-    this.dialog.open<ForgotPasswordDialogComponent, ForgotPasswordData>(ForgotPasswordDialogComponent, {
-      data: { email: this.email.trim() },
-      width: '420px',
-      maxWidth: '92vw',
-      autoFocus: false,
-    });
+    this.dialog.open<ForgotPasswordDialogComponent, ForgotPasswordData>(
+      ForgotPasswordDialogComponent,
+      {
+        data: { email: this.email.trim() },
+        width: '420px',
+        maxWidth: '92vw',
+        autoFocus: false,
+      },
+    );
   }
 
   submit(): void {

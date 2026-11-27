@@ -25,7 +25,8 @@ import { UserFieldsService } from '../../../core/user-fields.service';
 import { UserFormPanelComponent } from './user-form-panel';
 import { UserImportDialogComponent } from './user-import-dialog';
 
-type RoleFilter = 'All' | 'Admin' | 'Participant' | 'Captain' | 'Merchant' | 'Confirmers' | 'Deactivated';
+type RoleFilter =
+  'All' | 'Admin' | 'Participant' | 'Captain' | 'Merchant' | 'Confirmers' | 'Deactivated';
 
 // User Master: list of users on the left, the selected (or new) record's form on the right.
 @Component({
@@ -80,7 +81,8 @@ export class UsersComponent implements OnInit {
     const rf = this.roleFilter();
     return this.users().filter((u) => {
       if (rf === 'Deactivated' && !u.deactivatedAt) return false;
-      if (rf === 'Confirmers' &&
+      if (
+        rf === 'Confirmers' &&
         !(u.canConfirmRegistrations || u.role === 'Admin' || u.role === 'SuperAdmin')
       )
         return false;

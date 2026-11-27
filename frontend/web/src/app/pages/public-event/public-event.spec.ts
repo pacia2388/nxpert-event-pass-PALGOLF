@@ -56,7 +56,10 @@ describe('public event invite link', () => {
             forgotPassword,
           },
         },
-        { provide: MobileChannelService, useValue: { name: () => 'Mobile', label: () => 'Mobile' } },
+        {
+          provide: MobileChannelService,
+          useValue: { name: () => 'Mobile', label: () => 'Mobile' },
+        },
         { provide: OfflineService, useValue: { online: () => true } },
         {
           provide: ActivatedRoute,
@@ -87,7 +90,11 @@ describe('public event invite link', () => {
   }
 
   it('pre-fills the guest email and offers no sign-in for a guest invitee', async () => {
-    const { fixture } = await setup({ registered: false, email: 'guest@example.com', eventSlug: 'golf-day' });
+    const { fixture } = await setup({
+      registered: false,
+      email: 'guest@example.com',
+      eventSlug: 'golf-day',
+    });
 
     expect(fixture.componentInstance.email).toBe('guest@example.com');
     expect(fixture.componentInstance.inviteEmail()).toBeNull();

@@ -8,8 +8,10 @@
   @if (result(); as r) {
     <!-- Result summary -->
     <p class="note">
-      Import finished. Each new account gets a one-time link to set its password
-      ({{ r.linksQueued ?? 0 }} being sent now).
+      Import finished. Each new account gets a one-time link to set its password ({{
+        r.linksQueued ?? 0
+      }}
+      being sent now).
     </p>
     <div class="summary">
       <div class="stat created">{{ r.created }}<small>created</small></div>

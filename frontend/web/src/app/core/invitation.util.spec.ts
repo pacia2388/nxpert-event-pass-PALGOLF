@@ -1,4 +1,9 @@
-import { expandRecipients, invitationErrorMessage, isMailDomainPattern, recipientAddress } from './invitation.util';
+import {
+  expandRecipients,
+  invitationErrorMessage,
+  isMailDomainPattern,
+  recipientAddress,
+} from './invitation.util';
 
 describe('event invitation composer', () => {
   describe('explaining a failed send', () => {
@@ -113,9 +118,10 @@ describe('event invitation composer', () => {
     });
 
     it('does not copy anyone who is already a main recipient', () => {
-      expect(
-        expandRecipients(['ana@example.com'], ['ana@example.com', 'cy@example.com']),
-      ).toEqual({ to: ['ana@example.com'], cc: ['cy@example.com'] });
+      expect(expandRecipients(['ana@example.com'], ['ana@example.com', 'cy@example.com'])).toEqual({
+        to: ['ana@example.com'],
+        cc: ['cy@example.com'],
+      });
     });
 
     it('keeps a *@domain entry as typed for the server to expand', () => {

@@ -2,10 +2,10 @@
   "// UserFields": "Optional profile fields for this installation. On or off for Department and JobRole; a disabled field is ignored on input and not shown. Edits apply without a restart.",
   "UserFields": {
     "Department": {
-      "Enabled": false
+      "Enabled": true
     },
     "JobRole": {
-      "Enabled": false
+      "Enabled": true
     }
   }
 }

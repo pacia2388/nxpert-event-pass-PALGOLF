@@ -15,7 +15,12 @@
         <mat-icon>description</mat-icon>
         <span class="ma-name">{{ a.name }}</span>
         <span class="ma-size">{{ size(a.size) }}</span>
-        <button mat-icon-button type="button" (click)="removeExisting(a.name)" aria-label="Remove attachment">
+        <button
+          mat-icon-button
+          type="button"
+          (click)="removeExisting(a.name)"
+          aria-label="Remove attachment"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </li>
@@ -25,7 +30,12 @@
         <mat-icon>draft</mat-icon>
         <span class="ma-name">{{ f.name }}</span>
         <span class="ma-size">{{ size(f.size) }}</span>
-        <button mat-icon-button type="button" (click)="removeNew($index)" aria-label="Remove attachment">
+        <button
+          mat-icon-button
+          type="button"
+          (click)="removeNew($index)"
+          aria-label="Remove attachment"
+        >
           <mat-icon>close</mat-icon>
         </button>
       </li>

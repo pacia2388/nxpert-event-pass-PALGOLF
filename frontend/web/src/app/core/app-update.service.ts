@@ -19,11 +19,9 @@ export class AppUpdateService {
   constructor() {
     const updates = this.updates;
     if (!updates?.isEnabled) return;
-    updates.versionUpdates
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((event) => {
-        if (event.type === 'VERSION_READY') this.ready.set(true);
-      });
+    updates.versionUpdates.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+      if (event.type === 'VERSION_READY') this.ready.set(true);
+    });
     void updates.checkForUpdate().catch(() => {});
     this.timer = setInterval(() => {
       if (document.visibilityState === 'visible') void updates.checkForUpdate().catch(() => {});

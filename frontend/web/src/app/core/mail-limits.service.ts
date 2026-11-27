@@ -1,7 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiService } from './api.service';
 import { MailLimits } from './models';
-import { DEFAULT_IMAGE_LIMITS, IMAGE_LIMITS, applyImageLimits } from '../shared/rich-text/rich-text';
+import {
+  DEFAULT_IMAGE_LIMITS,
+  IMAGE_LIMITS,
+  applyImageLimits,
+} from '../shared/rich-text/rich-text';
 
 // Loads the message editors' inline-image limits once (GET api/settings/mail-limits) and applies
 // them to the shared rich-text helpers. The package defaults apply until the answer arrives (or

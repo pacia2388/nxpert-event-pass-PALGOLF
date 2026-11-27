@@ -2,7 +2,13 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, firstValueFrom, tap } from 'rxjs';
 import { API_BASE } from './config';
-import { AuthResponse, InviteResolveResult, SetPasswordInfo, TeamCategory, VerifyEmailResult } from './models';
+import {
+  AuthResponse,
+  InviteResolveResult,
+  SetPasswordInfo,
+  TeamCategory,
+  VerifyEmailResult,
+} from './models';
 
 const STORAGE_KEY = 'evt_auth';
 

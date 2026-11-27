@@ -14,7 +14,14 @@ export interface ForgotPasswordData {
 // "Forgot password?" dialog: asks for the account email and always gives the same answer.
 @Component({
   selector: 'app-forgot-password-dialog',
-  imports: [FormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule],
+  imports: [
+    FormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+  ],
   templateUrl: './forgot-password-dialog.html',
   styleUrl: './forgot-password-dialog.scss',
 })

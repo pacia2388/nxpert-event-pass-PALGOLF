@@ -255,8 +255,8 @@
               <mat-icon>account_circle</mat-icon>
               <div>
                 <p>
-                  <strong>You already have an account.</strong> Sign in as
-                  {{ inviteEmail() }} to register with your saved details.
+                  <strong>You already have an account.</strong> Sign in as {{ inviteEmail() }} to
+                  register with your saved details.
                 </p>
                 <div class="invite-account-actions">
                   <button mat-flat-button color="primary" (click)="signInWithInvite()">
@@ -267,7 +267,9 @@
                     (click)="sendInvitePasswordLink()"
                     [disabled]="invitePasswordLinkSending() || invitePasswordLinkSent()"
                   >
-                    {{ invitePasswordLinkSent() ? 'Password link sent' : 'Send me a password link' }}
+                    {{
+                      invitePasswordLinkSent() ? 'Password link sent' : 'Send me a password link'
+                    }}
                   </button>
                 </div>
                 @if (invitePasswordLinkSent()) {

@@ -406,8 +406,7 @@ export class EventDetailComponent implements OnInit {
         );
         this.api.feedbackSummary(this.id).subscribe((f) => this.feedback.set(f));
       },
-      error: (err) =>
-        this.toast.error(err?.error?.message ?? 'Could not send the feedback links.'),
+      error: (err) => this.toast.error(err?.error?.message ?? 'Could not send the feedback links.'),
     });
   }
 

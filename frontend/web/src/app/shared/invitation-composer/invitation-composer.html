@@ -2,7 +2,9 @@
   @if (sendProgress(); as p) {
     <div class="send-progress" role="status">
       <span>Sending… {{ p.sent }} of {{ p.total }} recipients</span>
-      <span class="send-bar"><span [style.width.%]="p.total ? (p.sent / p.total) * 100 : 0"></span></span>
+      <span class="send-bar"
+        ><span [style.width.%]="p.total ? (p.sent / p.total) * 100 : 0"></span
+      ></span>
     </div>
   }
   <div class="invite-main">

@@ -935,8 +935,8 @@
                 @if (fb.campaign; as c) {
                   <div class="feedback-automation">
                     <span class="muted">
-                      Pending {{ c.pending }} · Sent {{ c.sent }} · Failed {{ c.failed }} ·
-                      Answered {{ c.answered }}
+                      Pending {{ c.pending }} · Sent {{ c.sent }} · Failed {{ c.failed }} · Answered
+                      {{ c.answered }}
                     </span>
                     <button mat-stroked-button type="button" (click)="sendFeedbackLinks()">
                       <mat-icon>send</mat-icon> Send feedback link

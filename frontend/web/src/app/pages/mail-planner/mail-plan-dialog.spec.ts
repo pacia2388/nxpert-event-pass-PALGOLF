@@ -48,7 +48,9 @@ describe('Mail plan dialog attachments', () => {
   it('keeps a picked attachment when the plan is saved from the last step', () => {
     const dialog = fixture.componentInstance;
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    dialog.entries.set([{ uid: 1, id: null, date: tomorrow, time: '09:00', subject: 'Hi', body: 'Hello' }]);
+    dialog.entries.set([
+      { uid: 1, id: null, date: tomorrow, time: '09:00', subject: 'Hi', body: 'Hello' },
+    ]);
     dialog.emails.set(['a@example.com']);
 
     dialog.step.set(1);

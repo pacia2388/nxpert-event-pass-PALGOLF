@@ -21,12 +21,11 @@ export class MailAttachmentsComponent {
   readonly files = model<File[]>([]);
   readonly removed = model<string[]>([]);
 
-  readonly kept = computed(() =>
-    this.existing().filter((a) => !this.removed().includes(a.name)),
-  );
+  readonly kept = computed(() => this.existing().filter((a) => !this.removed().includes(a.name)));
   readonly keptNames = computed(() => this.kept().map((a) => a.name));
   readonly totalBytes = computed(
-    () => this.files().reduce((sum, f) => sum + f.size, 0) +
+    () =>
+      this.files().reduce((sum, f) => sum + f.size, 0) +
       this.kept().reduce((sum, a) => sum + a.size, 0),
   );
   readonly overLimit = computed(() => this.totalBytes() > this.maxTotalBytes);

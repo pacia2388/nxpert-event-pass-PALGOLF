@@ -128,7 +128,9 @@ export class RealtimeService {
     conn.on('viberBroadcastProgress', (n: ViberBroadcastProgressNotice) =>
       this.viberBroadcastProgressSubject.next(n),
     );
-    conn.on('mailSendProgress', (n: MailSendProgressNotice) => this.mailSendProgressSubject.next(n));
+    conn.on('mailSendProgress', (n: MailSendProgressNotice) =>
+      this.mailSendProgressSubject.next(n),
+    );
     conn.onreconnected(() => this.connected.set(true));
     conn.onreconnecting(() => this.connected.set(false));
     conn.onclose(() => this.connected.set(false));

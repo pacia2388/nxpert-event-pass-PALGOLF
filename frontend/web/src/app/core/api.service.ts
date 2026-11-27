@@ -303,7 +303,10 @@ export class ApiService {
   publicFeedback(token: string): Observable<PublicFeedback> {
     return this.http.get<PublicFeedback>(this.url(`/api/feedback/${encodeURIComponent(token)}`));
   }
-  submitPublicFeedback(token: string, answer: PublicFeedbackAnswer): Observable<{ message: string }> {
+  submitPublicFeedback(
+    token: string,
+    answer: PublicFeedbackAnswer,
+  ): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(
       this.url(`/api/feedback/${encodeURIComponent(token)}`),
       answer,
@@ -416,7 +419,11 @@ export class ApiService {
       context: new HttpContext().set(SKIP_ERROR_TOAST, true),
     });
   }
-  updateMailPlan(id: number, plan: MailPlanSaveRequest, files: File[] = []): Observable<MailPlanDto> {
+  updateMailPlan(
+    id: number,
+    plan: MailPlanSaveRequest,
+    files: File[] = [],
+  ): Observable<MailPlanDto> {
     return this.http.put<MailPlanDto>(this.url(`/api/mail-plans/${id}`), mailForm(plan, files), {
       context: new HttpContext().set(SKIP_ERROR_TOAST, true),
     });

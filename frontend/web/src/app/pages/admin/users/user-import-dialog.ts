@@ -60,7 +60,10 @@ function normalizeHeader(h: string): string {
 }
 
 /** Returns an error message when the header row is not exactly the template header, else null. */
-export function headerError(headerRow: string[], columns: ImportColumn[] = BASE_COLUMNS): string | null {
+export function headerError(
+  headerRow: string[],
+  columns: ImportColumn[] = BASE_COLUMNS,
+): string | null {
   const got = headerRow.map(normalizeHeader);
   // Trailing empty cells (e.g. a stray comma Excel kept) are not columns.
   while (got.length && !got[got.length - 1]) got.pop();
@@ -229,7 +232,11 @@ export class UserImportDialogComponent {
   readonly columns = computed(() =>
     importColumns(this.userFields.departmentEnabled(), this.userFields.jobRoleEnabled()),
   );
-  readonly templateHeaders = computed(() => this.columns().map((c) => c.header).join(','));
+  readonly templateHeaders = computed(() =>
+    this.columns()
+      .map((c) => c.header)
+      .join(','),
+  );
 
   // First few parsed rows, for a preview.
   preview = () => this.rows().slice(0, 5);

@@ -189,7 +189,12 @@
   @if (userFields.departmentEnabled()) {
     <mat-form-field appearance="outline" class="span-2">
       <mat-label>Department</mat-label>
-      <input matInput name="department" [(ngModel)]="department" [maxlength]="userFields.departmentMax()" />
+      <input
+        matInput
+        name="department"
+        [(ngModel)]="department"
+        [maxlength]="userFields.departmentMax()"
+      />
     </mat-form-field>
   }
   @if (userFields.jobRoleEnabled()) {

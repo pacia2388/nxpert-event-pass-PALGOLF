@@ -9,7 +9,13 @@ import { Observable, finalize, forkJoin, interval, of } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { ConfirmService } from '../../core/confirm.service';
-import { InboxMailDto, MailAudienceGroup, MailPlanDto, MailPlanSendDto, MailSendProgressNotice } from '../../core/models';
+import {
+  InboxMailDto,
+  MailAudienceGroup,
+  MailPlanDto,
+  MailPlanSendDto,
+  MailSendProgressNotice,
+} from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { RealtimeService } from '../../core/realtime.service';
 import { RichTextViewComponent } from '../../shared/rich-text/rich-text-view';
@@ -204,11 +210,9 @@ export class MailPlannerComponent {
   readonly sameDay = (a: Date, b: Date) => dayKey(a) === dayKey(b);
 
   constructor() {
-    this.rt.mailSendProgress$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((p) => {
-        if (p.source === 'plan') this.sendProgress.set(p);
-      });
+    this.rt.mailSendProgress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => {
+      if (p.source === 'plan') this.sendProgress.set(p);
+    });
     this.load();
     // Picks up days the server sent (or failed) and reminders coming due.
     interval(30_000)

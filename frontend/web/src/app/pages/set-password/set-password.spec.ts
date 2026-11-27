@@ -20,7 +20,10 @@ describe('Set password page', () => {
         },
         {
           provide: AuthService,
-          useValue: { setPasswordInfo: () => of({ valid: true, name: 'Tess Ting', email: 'tess@example.com' }) },
+          useValue: {
+            setPasswordInfo: () =>
+              of({ valid: true, name: 'Tess Ting', email: 'tess@example.com' }),
+          },
         },
         { provide: ToastService, useValue: { success: () => {}, error: () => {} } },
       ],
@@ -48,17 +51,17 @@ describe('Set password page', () => {
     password.focus();
     fixture.detectChanges();
     expect(warnings()).toBe(1);
-    expect(password.closest('mat-form-field')!.nextElementSibling?.classList.contains(
-      'caps-warning',
-    )).toBe(true);
+    expect(
+      password.closest('mat-form-field')!.nextElementSibling?.classList.contains('caps-warning'),
+    ).toBe(true);
 
     // Only the field with focus carries the warning.
     confirm.focus();
     fixture.detectChanges();
     expect(warnings()).toBe(1);
-    expect(confirm.closest('mat-form-field')!.nextElementSibling?.classList.contains(
-      'caps-warning',
-    )).toBe(true);
+    expect(
+      confirm.closest('mat-form-field')!.nextElementSibling?.classList.contains('caps-warning'),
+    ).toBe(true);
 
     confirm.dispatchEvent(event('keyup', false));
     fixture.detectChanges();

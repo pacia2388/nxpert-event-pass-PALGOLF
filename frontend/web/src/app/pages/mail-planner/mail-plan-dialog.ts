@@ -22,7 +22,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../core/api.service';
 import { ConfirmService } from '../../core/confirm.service';
-import { MailAttachment, MailAudienceGroup, MailPlanDto, MailPlanSaveRequest } from '../../core/models';
+import {
+  MailAttachment,
+  MailAudienceGroup,
+  MailPlanDto,
+  MailPlanSaveRequest,
+} from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { RichTextEditorComponent } from '../../shared/rich-text/rich-text-editor';
 import { RichTextViewComponent } from '../../shared/rich-text/rich-text-view';
@@ -702,7 +707,10 @@ export class MailPlanDialogComponent {
       request.keepAttachments = this.editingAttachments()
         .filter((a) => !this.removedAttachments().includes(a.name))
         .map((a) => a.name);
-    (plan ? this.api.updateMailPlan(plan.id, request, files) : this.api.createMailPlan(request, files))
+    (plan
+      ? this.api.updateMailPlan(plan.id, request, files)
+      : this.api.createMailPlan(request, files)
+    )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (saved) => this.ref.close(saved),

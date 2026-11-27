@@ -529,7 +529,11 @@
             <div class="exclude-list">
               @for (e of groupMembers(); track e) {
                 <label class="exclude-row">
-                  <input type="checkbox" [checked]="excluded().includes(e)" (change)="toggleExcluded(e)" />
+                  <input
+                    type="checkbox"
+                    [checked]="excluded().includes(e)"
+                    (change)="toggleExcluded(e)"
+                  />
                   <span>{{ e }}</span>
                 </label>
               }
@@ -681,7 +685,11 @@
     </button>
   } @else {
     <label class="send-now-toggle">
-      <input type="checkbox" [checked]="sendImmediately()" (change)="sendImmediately.set(!sendImmediately())" />
+      <input
+        type="checkbox"
+        [checked]="sendImmediately()"
+        (change)="sendImmediately.set(!sendImmediately())"
+      />
       Send immediately (one day, next scheduler tick)
     </label>
     <button type="button" class="ev-btn" (click)="save(true)" [disabled]="saving()">
